@@ -56,9 +56,9 @@ _qwen35_27b_defaults: &qwen35_27b_defaults
 # 28 K–60 K regime where these loops actually live.
 #
 # At 65 K context with the default ``max_num_seqs: 64``, the KV cache
-# would be ~80 GiB on GPU and roughly the same CPU shadow — that broke
-# the 80 GiB SLURM ``--mem`` limit on Helix and SLURM OOM-killed the
-# step. We use ``max_num_seqs: 16`` (the agent never has more than 4
+# would be ~80 GiB on GPU and roughly the same CPU shadow, which
+# exceeds an 80 GiB scheduler memory limit and gets the step OOM-killed.
+# We use ``max_num_seqs: 16`` (the agent never has more than 4
 # requests in flight given ``--batch-size 1`` + ``--max-concurrent 4``,
 # so 16 is generous) and ``slurm_mem_gb: 128`` to give a comfortable
 # system-RAM buffer.

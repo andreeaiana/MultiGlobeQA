@@ -7,7 +7,7 @@ The system prompt is composed of:
      spans (Romance, Slavic, Asian, Greek) — each family gets one demo
      so the LLMs see concrete substitution-fix patterns.
   4. Optional per-language ``LANGUAGE NOTES`` block loaded from
-     ``scripts/postedit/prompts/language_riders/<lang>.md``.
+     ``pipelines/postedit/prompts/language_riders/<lang>.md``.
 
 The user prompt carries:
   * ``LANGUAGE: <iso639-3>``

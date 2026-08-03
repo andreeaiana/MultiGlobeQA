@@ -60,7 +60,7 @@ def _has_bare_entity_occurrence(text: str, value: str) -> bool:
     # or ideographs (no whitespace) would slip past this check.
     # ``re.ASCII`` restricts \w to ASCII letters/digits/underscore so
     # adjacent non-Latin script is treated as a boundary, matching the
-    # convention in ``scripts/postedit/normalize.py``.
+    # convention in ``pipelines/postedit/normalize.py``.
     return bool(
         re.search(rf"(?<!\w){re.escape(value)}(?!\w)", text, re.ASCII)
     )

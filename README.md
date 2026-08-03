@@ -111,7 +111,7 @@ scored on abstention rather than on EM.
 | `data/templates/` | the 315 variants, one TSV per language, joined by `vid` |
 | `data/reference/` | country polygons and World Bank income groups |
 | `config/kg_prefixes.yaml` | per-KG predicate IRIs by role |
-| `scripts/` | scoring drivers and the SLURM generator |
+| `scripts/` | scoring drivers |
 | `nt_parser_rs/` | Rust N-Triples parser used by the KG build |
 
 ## Templates

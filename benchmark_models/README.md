@@ -11,15 +11,11 @@ uv sync --extra benchmark_models
 
 ## API Key Configuration
 
-API keys are needed for closed-source model backends. Two options:
+API keys are needed for hosted model backends. Set the environment variable, or
+pass the key per run:
 
 ```bash
-# Option 1: copy the template and fill in your keys (gitignored)
-cp scripts/set_api_keys.sh.example scripts/set_api_keys.sh
-# ... edit scripts/set_api_keys.sh with your real keys ...
-source scripts/set_api_keys.sh
-
-# Option 2: pass directly via CLI flag
+export GOOGLE_API_KEY=...
 python -m benchmark_models smoke -v gemini-3-flash-plain --api-key YOUR_KEY --n 5
 ```
 
@@ -55,221 +51,34 @@ Predictions are written to `results/smoke/<variant>/predictions.jsonl`. A `run.l
 
 Tier 3 predictions include a full execution trace in the `tool_calls` field — each step records the Python code the model wrote, the execution output, and any errors. This trace is used by the eval pipeline for tool-use analysis.
 
-## Running at Scale — Per-Cell Parallel Runs
+## Running at scale
 
-The post-edited share `benchmark/final/<size>/<kg>/<sfid>/<lang>/benchmark.jsonl/` (`<size>` ∈ {`large`, `small`}, default `large`) is already chunked by KG bucket, structural function (SFID), and language. Headline runs distribute work along those axes — one SLURM job per cell — rather than artificial line-count chunks. The runner's share-root walker concatenates within whatever sub-tree you point it at, so a job can target any granularity from a single (kg, sfid, lang) cell up to the whole share.
+The share is chunked by KG bucket, spatial-function family (SFID) and language:
+`<size>/<kg>/<sfid>/<lang>/benchmark.jsonl/`. Distribute work along those axes, one
+job per cell, rather than by line count. The runner's walker concatenates whatever
+sub-tree you point it at, so a job can target anything from a single (kg, sfid, lang)
+cell up to the whole share.
 
-The recommended invocation is the SLURM generator in `scripts/benchmark_models/generate_slurm.py`. It emits one script per cell with the right defaults per variant (GPU partition for vLLM, CPU partition for API; granularity = `cell` for tier 1/2, `sfid` for tier 3 since per-row agent loops would blow past any single-job time budget).
+Granularity that works in practice:
 
-```bash
-# Emit per-cell jobs for one closed-source tier-1 variant (4 KG buckets × 17 langs = 68 scripts).
-uv run python scripts/benchmark_models/generate_slurm.py \
-    --variant gemini-3-flash-plain
-
-# Tier-3 variant: auto-splits to per-(lang, kg, sfid). Per-KG SFID
-# coverage on disk is 13 + 13 + 9 = 35 standard cells (kwg has no D,
-# osmh3kg has no I, worldkg populates only 9), plus 2 multimodal
-# sub-cells (the multimodal bucket fans out into one per-underlying-KG
-# sub-script — osmh3kg + worldkg — so tier-3a/3c jobs can pass a real
-# --kg-source value): 17 × (35 + 2) = 629 scripts.
-uv run python scripts/benchmark_models/generate_slurm.py \
-    --variant qwen35-a3b-tier3a
-
-# Single-language smoke; pick the kgs you want.
-uv run python scripts/benchmark_models/generate_slurm.py \
-    --variant gemma-3-27b-it-plain --languages eng --kgs kwg,worldkg
-
-# Run on the small benchmark instead (--size small; default large).
-uv run python scripts/benchmark_models/generate_slurm.py \
-    --variant qwen35-a3b-tier3b --size small
-
-# Submit whichever subset you want.
-sbatch jobs/benchmark_models/large/gemini-3-flash-plain/eng_kwg.sh
-```
-
-Each script ends up calling the smoke command against the right sub-tree:
-
-```bash
-uv run python -m benchmark_models smoke \
-    --variant <variant> \
-    --benchmark benchmark/final/<size>/<kg>/[<sfid>/] \
-    --language <lang> \
-    --output results/runs/<size>/<variant>/<lang>/<kg>/[<sfid>/]predictions.jsonl \
-    --n 0 \
-    --batch-size <tier-dependent>
-```
-
-`--n 0` is the sentinel for "process every row in the loaded shard" — the smoke command's default 10 is for ad-hoc development only.
-
-**Per-tier guidance:**
-
-- **Tier 1 / 2 (API backends)**: granularity `cell` is enough. One (lang, kg) cell is ~hundreds of questions; the ThreadPoolExecutor + provider rate limit is the bottleneck.
-- **Tier 3 (any backend)**: granularity `sfid`. Per-question agent loops run 3–10 s/q on tier-3b, ~30 s/q on oracle modes, and ~250 s/q on tier-3a/3c with `--use-kg` (each step issues a Spark query). The generator's `_compute_time_budget` scales the SLURM `--time` cap by `--n`, concurrency, and a cluster-specific cold-start (Helix vLLM ≈ 15 min, bwUC3 ≈ 5 min, API ≈ 30 s), then rounds up to the next 30 min and clips at the 24 h partition wall (resume picks up after a wall-clip).
-- **vLLM (HTTP-served)**: one GPU per job (the script header allocates `--gres=gpu:1` on bwUniCluster or `--gres=gpu:H200:1` on Helix). Each SLURM cell starts its own `vllm serve` in the background, polls `/health`, runs the smoke against `localhost:<port>/v1`, then traps to kill serve on exit. Cold-start is ~3-5 min on first run (HF weight download + JIT) and ~30-60s on subsequent jobs (warm Torchinductor + vLLM cache).
-
-**`--cluster bwuc3 | helix`** picks the partition + GPU type + workspace path bundle for the target cluster. Default `bwuc3` keeps existing behaviour. `helix` swaps `gpu_h100` → `gpu-single`, `gpu:1` → `gpu:H200:1`, `single` → `cpu-single`, and wraps `vllm serve` in a Singularity container (Helix host glibc is too old for the in-tree vLLM wheel). The Helix path requires `$SBR_WS` and `$SBR_VLLM_SIF` env vars set in `~/.bashrc` — see `scripts/postedit/README.md` for the one-time setup.
-
-**Cost / time pre-flight:**
-
-```bash
-# Order-of-magnitude check before submitting. See benchmark_models/cost_estimator.py.
-uv run python -m benchmark_models cost-estimate --variant all --n 65000
-```
-
-**Caveats:**
-
-- All cells must use the **same scoring spec** (`benchmark_eval/scoring_spec.json`) and the **same prompt templates** for the predictions to be comparable. Don't mix runs with manual prompt edits in flight.
-- MLflow logging is per-process; one MLflow run per cell is the default. Pass `--no-mlflow` to the script template (via `generate_slurm.py --no-mlflow`) if the cluster runner shouldn't write to MLflow.
-- Score-aggregation joins on `question_id` and is order-independent — concatenating per-cell `predictions.jsonl` files for the eval pipeline is safe at any cell order.
-
-### Headline-run script generation — variant × flag tables
-
-The tables below enumerate the in-scope variants per tier × regime and the `generate_slurm.py` flags needed to emit the SLURM scripts for that regime. Each row corresponds to one invocation per variant in the row.
-
-**Flag legend**
-
-| Flag | Purpose |
-|---|---|
-| `--variant <name>` | Which variant from `models.yaml` |
-| `--seeds 42` | Pin seed; emits `seed42/` under `jobs/` + `results/` |
-| `--languages eng` | Restrict to one language (omit → all 17) |
-| `--kgs <list>` | KG bucket(s); comma-separated |
-| `--use-kg` | Tier-3a/3c only — talk to the live KG bridge at runtime |
-| `--oracle-mode <m>` | Inject gold triples; `structured`/`raw`/`verbalized` (tier 1 only), `t3` (tier 3). Rejected on tier-2 by the CLI. |
-| `--cluster <c>` | `bwuc3` (default) or `helix` |
-
-Multimodal variants (`-image`, `-name`) carry their `multimodal_mode` in YAML — no extra flag needed. `--use-kg` and `--oracle-mode` are mutually exclusive (the runner short-circuits use-kg when an oracle mode is set).
-
-#### Text-only runs (all 3 KGs)
-
-**Tier 1 — plain (4 variants)**
-
-| Regime | Variants | Flags after `--variant <V> --seeds 42` |
+| tier | granularity | why |
 |---|---|---|
-| Plain (no oracle) | `gemini-3-flash-plain`, `qwen35-27b-plain`, `qwen35-a3b-plain`, `gemma-3-27b-it-plain` | `--kgs kwg,osmh3kg,worldkg` |
-| + Oracle structured | same 4 | `--kgs kwg,osmh3kg,worldkg --oracle-mode structured` |
-| + Oracle raw | same 4 | `--kgs kwg,osmh3kg,worldkg --oracle-mode raw` |
-| + Oracle verbalized | same 4 | `--kgs kwg,osmh3kg,worldkg --oracle-mode verbalized` |
+| 1, 2 | `(lang, kg)` | single-turn; a cell finishes inside a normal job wall |
+| 3 | `(lang, kg, sfid)` | agent loops run 3-10 s per question on web search, ~30 s on oracle modes and up to ~250 s on KG retrieval, so a whole KG bucket overruns |
 
-**Tier 2 — reasoning (4 variants)**
+Per-KG SFID coverage is 13 + 13 + 9 = 35 standard cells plus 2 multimodal sub-cells,
+so one tier-3 variant across all languages is 17 x 37 = 629 jobs.
 
-| Regime | Variants | Flags after `--variant <V> --seeds 42` |
-|---|---|---|
-| Reasoning (no oracle) | `gemini-3-flash-thinking-tier2`, `qwen35-27b-tier2`, `qwen35-a3b-thinking-tier2`, `gemma-3-27b-it-tier2` | `--kgs kwg,osmh3kg,worldkg` |
+The multimodal bucket fans out into one sub-job per underlying KG so a tier-3a / 3c
+job can pass a real `--kg-source`: the KG bridge has no `multimodal` schema and would
+raise `ValueError: Unknown KG: 'multimodal'`.
 
-Tier-2 + oracle is rejected by the CLI (`cli.py:515-519`). Run oracle ablations at tier-1 only.
+Runs resume by default. Point a rerun at the same output path and the runner skips
+questions that already have predictions; `--no-resume` forces a clean run.
 
-**Tier 3a — KG + Python (4 variants)**
-
-| Regime | Variants | Flags after `--variant <V> --seeds 42` |
-|---|---|---|
-| With KG bridge | `gemini-3-flash-tier3a`, `qwen35-27b-tier3a`, `qwen35-a3b-tier3a`, `gemma-3-27b-it-tier3a` | `--kgs kwg,osmh3kg,worldkg --use-kg` |
-| Oracle-t3 (gold triples + Python, no KG) | same 4 | `--kgs kwg,osmh3kg,worldkg --oracle-mode t3` |
-
-**Tier 3b — Web + Python (4 variants)**
-
-| Regime | Variants | Flags after `--variant <V> --seeds 42` |
-|---|---|---|
-| Web tools (no KG) | `gemini-3-flash-tier3b`, `qwen35-27b-tier3b`, `qwen35-a3b-tier3b`, `gemma-3-27b-it-tier3b` | `--kgs kwg,osmh3kg,worldkg` |
-
-Tier-3b + oracle-t3 is code-identical to tier-3a + oracle-t3 (both disable tools and inject gold triples through the same `SmolagentsOracleModel`). Run it under tier-3a only.
-
-**Tier 3c — KG + Web + Python (4 variants)**
-
-| Regime | Variants | Flags after `--variant <V> --seeds 42` |
-|---|---|---|
-| With KG bridge + Web | `gemini-3-flash-tier3c`, `qwen35-27b-tier3c`, `qwen35-a3b-tier3c`, `gemma-3-27b-it-tier3c` | `--kgs kwg,osmh3kg,worldkg --use-kg` |
-
-Tier-3c + oracle-t3 is also code-identical to tier-3a + oracle-t3. The oracle path uses `SmolagentsOracleModel` with `tools=[]` and the `tier3_oracle` prompt template regardless of the variant's `sub_tier`, so all three tier-3 sub-tiers collapse to the same agent setup under `--oracle-mode t3`. Run it under tier-3a only.
-
-#### Multimodal runs (`osmh3kg` + `worldkg` slice only)
-
-The `multimodal` bucket fans into 2 sub-cells per language (`osmh3kg` and `worldkg`) — one SLURM script per underlying KG. `kwg` has no multimodal questions.
-
-**Tier 1 — image / name (8 variants)**
-
-| Regime | Variants | Flags after `--variant <V> --seeds 42` |
-|---|---|---|
-| Image (no oracle) | `gemini-3-flash-image`, `qwen35-27b-image`, `qwen35-a3b-image`, `gemma-3-27b-it-image` | `--kgs multimodal` |
-| Name ablation (no oracle) | `gemini-3-flash-name`, `qwen35-27b-name`, `qwen35-a3b-name`, `gemma-3-27b-it-name` | `--kgs multimodal` |
-| Image + oracle structured | image variants | `--kgs multimodal --oracle-mode structured` |
-| Image + oracle raw | image variants | `--kgs multimodal --oracle-mode raw` |
-| Image + oracle verbalized | image variants | `--kgs multimodal --oracle-mode verbalized` |
-| Name + oracle structured/raw/verbalized | name variants | `--kgs multimodal --oracle-mode <mode>` |
-
-**Tier 2 — image / name (8 variants)**
-
-| Regime | Variants | Flags after `--variant <V> --seeds 42` |
-|---|---|---|
-| Image (no oracle) | `gemini-3-flash-thinking-tier2-image`, `qwen35-27b-tier2-image`, `qwen35-a3b-thinking-tier2-image`, `gemma-3-27b-it-tier2-image` | `--kgs multimodal` |
-| Name ablation | corresponding `*-name` variants | `--kgs multimodal` |
-
-Same restriction as text-only tier-2: oracle modes are rejected on tier-2 image and name variants by the CLI.
-
-**Tier 3a — image / name (8 variants)**
-
-| Regime | Variants | Flags after `--variant <V> --seeds 42` |
-|---|---|---|
-| Image + KG bridge | `gemini-3-flash-tier3a-image`, `qwen35-27b-tier3a-image`, `qwen35-a3b-tier3a-image`, `gemma-3-27b-it-tier3a-image` | `--kgs multimodal --use-kg` |
-| Name + KG bridge | `*-tier3a-name` (same 4 prefixes) | `--kgs multimodal --use-kg` |
-| Image + oracle-t3 | image variants | `--kgs multimodal --oracle-mode t3` |
-| Name + oracle-t3 | name variants | `--kgs multimodal --oracle-mode t3` |
-
-**Tier 3b — image / name (8 variants)**
-
-| Regime | Variants | Flags after `--variant <V> --seeds 42` |
-|---|---|---|
-| Image + Web (no KG) | `gemini-3-flash-tier3b-image`, `qwen35-27b-tier3b-image`, `qwen35-a3b-tier3b-image`, `gemma-3-27b-it-tier3b-image` | `--kgs multimodal` |
-| Name + Web | corresponding `*-name` | `--kgs multimodal` |
-
-**Tier 3c — image / name (8 variants)**
-
-| Regime | Variants | Flags after `--variant <V> --seeds 42` |
-|---|---|---|
-| Image + KG + Web | `gemini-3-flash-tier3c-image`, `qwen35-27b-tier3c-image`, `qwen35-a3b-tier3c-image`, `gemma-3-27b-it-tier3c-image` | `--kgs multimodal --use-kg` |
-| Name + KG + Web | corresponding `*-name` | `--kgs multimodal --use-kg` |
-
-Same collapse as the text-only case: tier-3c + oracle-t3 (image or name) is code-identical to tier-3a + oracle-t3 (image or name) — same `SmolagentsOracleModel`, same `tier3_oracle` prompt, same empty tool list. Run it under tier-3a only.
-
-#### One-liner shape
-
-```bash
-uv run python scripts/benchmark_models/generate_slurm.py \
-    --variant <variant-from-table> \
-    --seeds 42 \
-    --kgs <kg-list-from-table> \
-    [--use-kg]              \
-    [--oracle-mode <mode>]  \
-    [--languages eng]       # add to restrict to English; omit for all 17
-```
-
-#### Copy-paste examples
-
-```bash
-# tier 1 plain — all 4 models, all 3 KGs, all 17 langs, no oracle
-for V in gemini-3-flash-plain qwen35-27b-plain qwen35-a3b-plain gemma-3-27b-it-plain; do
-    uv run python scripts/benchmark_models/generate_slurm.py \
-        --variant $V --seeds 42 --kgs kwg,osmh3kg,worldkg
-done
-
-# tier 3a image + KG bridge (multimodal)
-for V in gemini-3-flash-tier3a-image qwen35-27b-tier3a-image qwen35-a3b-tier3a-image gemma-3-27b-it-tier3a-image; do
-    uv run python scripts/benchmark_models/generate_slurm.py \
-        --variant $V --seeds 42 --kgs multimodal --use-kg
-done
-
-# tier 1 oracle-raw on multimodal image
-for V in gemini-3-flash-image qwen35-27b-image qwen35-a3b-image gemma-3-27b-it-image; do
-    uv run python scripts/benchmark_models/generate_slurm.py \
-        --variant $V --seeds 42 --kgs multimodal --oracle-mode raw
-done
-
-# oracle-t3 multimodal at tier 3a (replaces tier-3b/3c oracle-t3 — code-identical)
-for V in gemini-3-flash-tier3a-image qwen35-27b-tier3a-image qwen35-a3b-tier3a-image gemma-3-27b-it-tier3a-image; do
-    uv run python scripts/benchmark_models/generate_slurm.py \
-        --variant $V --seeds 42 --kgs multimodal --oracle-mode t3
-done
-```
+For vLLM variants, start one `vllm serve` per job and point the harness at it with
+`VLLM_BASE_URL`. `--enable-prefix-caching` lets vLLM reuse KV cache across the
+questions in a cell.
 
 ### Tier-3 tuning knobs
 
@@ -329,7 +138,7 @@ benchmark/final/<size>/multimodal/
 uv run python -m scripts.normalize_multimodal_image_paths --root benchmark/final/large/ [--dry-run]
 ```
 
-**Per-KG SLURM dispatch**: the SLURM generator fans the `multimodal` bucket out into one sub-script per underlying KG so tier-3a/3c jobs can pass a real `--kg-source` (the bridge's `schema_for(...)` doesn't know a `multimodal` schema and would raise `ValueError: Unknown KG: 'multimodal'`). Generated layout:
+**Per-KG dispatch**: fan the `multimodal` bucket out into one job per underlying KG so tier-3a/3c jobs can pass a real `--kg-source` (the bridge's `schema_for(...)` doesn't know a `multimodal` schema and would raise `ValueError: Unknown KG: 'multimodal'`). Generated layout:
 
 ```
 jobs/benchmark_models/<size>/<variant>/seed42/
@@ -361,7 +170,7 @@ The split is uniform across tiers — tier-1/2/3b multimodal scripts also emit p
 
 ### vLLM context windows
 
-All open-weights vLLM variants serve at their native context windows except for tier-3a / tier-3c on qwen35-27b, where the agent loop's per-step input growth (~5-7 K tokens of cumulative tool outputs replayed each turn) exhausts the native 32 K window within 4–5 steps. Those two variants extend to **65 K** via YaRN rope scaling (factor=2.0, `original_max_position_embeddings=32768`) — the standard inference-time technique documented on the [Qwen3.5 model card](https://huggingface.co/Qwen/Qwen3.5-27B-Instruct). The SLURM template passes this to vLLM as `--hf-overrides '{"rope_scaling": {...}}'`, which overrides the HuggingFace config.json at engine init. Perplexity degradation at factor=2.0 is well under 1 % in the 28 K–60 K regime where these loops actually consume the budget. Tier-1 / tier-2 / tier-3b qwen variants stay at native 32 K because they don't need the extended window. Configuration lives on the `_qwen35_27b_yarn_64k` YAML anchor in `models.yaml`.
+All open-weights vLLM variants serve at their native context windows except for tier-3a / tier-3c on qwen35-27b, where the agent loop's per-step input growth (~5-7 K tokens of cumulative tool outputs replayed each turn) exhausts the native 32 K window within 4–5 steps. Those two variants extend to **65 K** via YaRN rope scaling (factor=2.0, `original_max_position_embeddings=32768`) — the standard inference-time technique documented on the [Qwen3.5 model card](https://huggingface.co/Qwen/Qwen3.5-27B-Instruct). Pass this to vLLM as `--hf-overrides '{"rope_scaling": {...}}'`, which overrides the HuggingFace config.json at engine init. Perplexity degradation at factor=2.0 is well under 1 % in the 28 K–60 K regime where these loops actually consume the budget. Tier-1 / tier-2 / tier-3b qwen variants stay at native 32 K because they don't need the extended window. Configuration lives on the `_qwen35_27b_yarn_64k` YAML anchor in `models.yaml`.
 
 ## Prompt Caching
 
@@ -376,7 +185,7 @@ Closed-source backends report cache hits via different fields. ``Prediction.usag
 
 ## KG Layout (tier-3a / 3c)
 
-Production knowledge graphs live at `benchmark/kgs/<kg_name>/` as Delta tables of `(subject, predicate, object)` triples (osmh3kg additionally has a `date` column). Two optional Z-ordered sidecar tables sit alongside the main table to keep query latency bounded — `subject_index/` for fast subject-keyed reads, `name_index/` for fuzzy `find_entity(name)` substring search. Both sidecars are built once via `scripts/build_kg_indexes.py`; the bridge auto-detects them and falls back to the slower main-table scan if missing.
+Production knowledge graphs live at `benchmark/kgs/<kg_name>/` as Delta tables of `(subject, predicate, object)` triples (osmh3kg additionally has a `date` column). Two optional Z-ordered sidecar tables sit alongside the main table to keep query latency bounded — `subject_index/` for fast subject-keyed reads, `name_index/` for fuzzy `find_entity(name)` substring search. The bridge auto-detects both sidecars and falls back to the slower main-table scan when they are absent.
 
 ```
 benchmark/kgs/
@@ -393,8 +202,8 @@ benchmark/kgs/
 └── worldkg/   (same layout)
 ```
 
-The SLURM generator invokes one runner per `(lang, kg)` cell and passes `--kg-source <kg>`; the runner resolves `kg_path = kg_root / kg_source` (default root `benchmark/kgs/`, overridable via `--kg-root` or the `BENCHMARK_KGS_ROOT` env var) and passes it to `EntityService(TripleBridge(...))`. The bridge expects a Delta-format directory (parquet shards + `_delta_log/`).
-- **vLLM-served (open weights)**: the SLURM template starts a per-cell `vllm serve` and the harness talks to it over the OpenAI Chat-Completions API. Structured output via `response_format={"type": "json_schema", ...}` (vLLM serve supports the same envelope as OpenAI for guided decoding under the hood). The SLURM template's `--enable-prefix-caching` lets vLLM reuse KV cache across questions in the same cell. Thinking-toggle handling (Qwen 3+ / Gemma 4) is driven via the per-variant `thinking` field and serialised through the chat-completions request — no in-process tokenizer-template gymnastics needed.
+Invoke one runner per `(lang, kg)` cell and pass `--kg-source <kg>`; the runner resolves `kg_path = kg_root / kg_source` (default root `benchmark/kgs/`, overridable via `--kg-root` or the `BENCHMARK_KGS_ROOT` env var) and passes it to `EntityService(TripleBridge(...))`. The bridge expects a Delta-format directory (parquet shards + `_delta_log/`).
+- **vLLM-served (open weights)**: start a per-cell `vllm serve`; the harness talks to it over the OpenAI Chat-Completions API. Structured output via `response_format={"type": "json_schema", ...}` (vLLM serve supports the same envelope as OpenAI for guided decoding under the hood). `--enable-prefix-caching` lets vLLM reuse KV cache across questions in the same cell. Thinking-toggle handling (Qwen 3+ / Gemma 4) is driven via the per-variant `thinking` field and serialised through the chat-completions request — no in-process tokenizer-template gymnastics needed.
 
 ## Output Format
 

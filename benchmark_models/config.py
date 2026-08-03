@@ -267,7 +267,7 @@ class VLLMHttpVariantConfig(VariantConfigBase):
 
     See ``benchmark_models/backends/vllm_http.py`` for the client; see
     the ``_VLLM_HTTP_*`` templates in
-    ``scripts/benchmark_models/generate_slurm.py`` for the serve side.
+    the job template that starts the serve.
     """
 
     backend: Literal["vllm_http"]

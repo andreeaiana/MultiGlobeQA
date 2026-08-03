@@ -1,9 +1,9 @@
 """Task 3: Translate template variants using Google Cloud Translation LLM.
 
 Usage:
-    uv run python scripts/translation/prepare_and_translate.py --dry-run
-    uv run python scripts/translation/prepare_and_translate.py --languages all
-    uv run python scripts/translation/prepare_and_translate.py --languages de,fr,it
+    uv run python pipelines/translation/prepare_and_translate.py --dry-run
+    uv run python pipelines/translation/prepare_and_translate.py --languages all
+    uv run python pipelines/translation/prepare_and_translate.py --languages de,fr,it
 
 Environment variables:
     GOOGLE_CLOUD_PROJECT  - GCP project ID (required)

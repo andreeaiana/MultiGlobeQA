@@ -15,10 +15,10 @@ benchmark denominator. The ``selected_model`` / ``decision`` attribution comes
 from ``output/postedit`` (``final`` carries neither field).
 
 Usage:
-    uv run python scripts/postedit/postedit_statistics.py
-    uv run python scripts/postedit/postedit_statistics.py --languages deu,fra
-    uv run python scripts/postedit/postedit_statistics.py --no-final   # skip the join
-    uv run python scripts/postedit/postedit_statistics.py --input output/postedit/results_en.jsonl
+    uv run python pipelines/postedit/postedit_statistics.py
+    uv run python pipelines/postedit/postedit_statistics.py --languages deu,fra
+    uv run python pipelines/postedit/postedit_statistics.py --no-final   # skip the join
+    uv run python pipelines/postedit/postedit_statistics.py --input output/postedit/results_en.jsonl
 """
 
 import argparse

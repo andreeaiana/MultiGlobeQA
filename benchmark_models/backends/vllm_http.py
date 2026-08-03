@@ -9,13 +9,11 @@ and just override the OpenAI client's ``base_url``.
 Why HTTP rather than in-process: (1) uniform OpenAI-compat surface
 across providers, (2) vLLM's continuous batching benefits more from
 N concurrent HTTP requests than from one in-process caller doing
-batched calls, and (3) Helix (RHEL 8, glibc 2.28) can't load any
-in-tree vLLM wheel — the SLURM template wraps ``vllm serve`` in a
-Singularity container that ships its own glibc. See
-``scripts/benchmark_models/generate_slurm.py`` for the templates.
+batched calls, and (3) hosts whose glibc predates the in-tree vLLM
+wheel can still serve from a container.
 
-This backend does **not** start the serve itself; the SLURM script
-does. Local development can point at any reachable ``vllm serve``
+This backend does **not** start the serve itself. Local development
+can point at any reachable ``vllm serve``
 via ``base_url`` on the variant config.
 """
 

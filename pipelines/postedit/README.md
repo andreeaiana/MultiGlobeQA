@@ -1,4 +1,4 @@
-# scripts/postedit
+# pipelines/postedit
 
 
 After templates are translated and post-edited by humans, they are instantiated with concrete entities (e.g., `{{entity_A}}` → `"Eiffel Tower"`). The instantiation can introduce minor grammar issues — wrong articles, missing prepositions, declension mismatches, etc. — that vary by language. The LLM ensemble post-editing pipeline automates these fixes; the per-row `decision` label (`unanimous` / `majority` / `fallback_gemini`) records voting confidence so downstream workflows can sample low-confidence cases if needed.
@@ -20,7 +20,7 @@ Three LLMs are queried in parallel for each question:
 
 ## Edit Taxonomy (13 categories)
 
-The taxonomy is the single source of truth in [`scripts/postedit/config.py`](scripts/postedit/config.py) (the `TAXONOMY_WITH_DESCRIPTIONS` constant). The same descriptions are injected into the LLM system prompt at runtime, so the models see both the acronym and its meaning when assigning categories.
+The taxonomy is the single source of truth in [`pipelines/postedit/config.py`](pipelines/postedit/config.py) (the `TAXONOMY_WITH_DESCRIPTIONS` constant). The same descriptions are injected into the LLM system prompt at runtime, so the models see both the acronym and its meaning when assigning categories.
 
 | Acronym | Description |
 |---|---|
@@ -89,22 +89,22 @@ SLURM granularity is **per (language, kg)**: 16 langs × 4 kgs = up to
 uv sync
 
 # Dry run — counts cells + rows without making API calls
-uv run python scripts/postedit/postedit_pipeline.py --language deu --kg kwg --dry-run
+uv run python pipelines/postedit/postedit_pipeline.py --language deu --kg kwg --dry-run
 
 # Process every cell of one language (typical SLURM-job granularity is per (lang, kg))
-uv run python scripts/postedit/postedit_pipeline.py --language deu --kg kwg
+uv run python pipelines/postedit/postedit_pipeline.py --language deu --kg kwg
 
 # Process one cell only (for debugging)
-uv run python scripts/postedit/postedit_pipeline.py --language deu --kg kwg --sfid sfid_a
+uv run python pipelines/postedit/postedit_pipeline.py --language deu --kg kwg --sfid sfid_a
 
 # Resume after a kill: skip qids that already wrote a row
-uv run python scripts/postedit/postedit_pipeline.py --language deu --kg kwg --resume skip-done
+uv run python pipelines/postedit/postedit_pipeline.py --language deu --kg kwg --resume skip-done
 
 # Re-run only rows where any model previously failed
-uv run python scripts/postedit/postedit_pipeline.py --language deu --kg kwg --resume retry-failed
+uv run python pipelines/postedit/postedit_pipeline.py --language deu --kg kwg --resume retry-failed
 
 # Run with only one model (e.g., for testing without vLLM)
-uv run python scripts/postedit/postedit_pipeline.py \
+uv run python pipelines/postedit/postedit_pipeline.py \
     --language deu --kg multimodal \
     --models gemini --limit 10 --skip-vllm-health-check
 ```
@@ -134,7 +134,7 @@ uv run python scripts/postedit/postedit_pipeline.py \
 ### Per-language prompt riders
 
 Each of the 16 target languages ships a markdown rider at
-`scripts/postedit/prompts/language_riders/<lang>.md` covering the
+`pipelines/postedit/prompts/language_riders/<lang>.md` covering the
 language-specific gotchas the LLM should watch for (case agreement,
 particles, script-specific punctuation, etc.). Each rider is
 intentionally short (3–4 bullets, ~700–870 chars) so it doesn't bloat
@@ -196,7 +196,7 @@ only, ~50 questions per language, ~2 min wall-clock:
 ### 1. Generate the curated sample
 
 ```bash
-uv run python scripts/postedit/select_smoke_sample.py
+uv run python pipelines/postedit/select_smoke_sample.py
 ```
 
 Writes:
@@ -214,7 +214,7 @@ same 100 rows. Add ``--languages bul,deu,...`` for other languages or
 
 ```bash
 export GEMINI_API_KEY=...
-uv run python scripts/postedit/postedit_pipeline.py \
+uv run python pipelines/postedit/postedit_pipeline.py \
     --input output/postedit/smoke/eng.jsonl \
     --output output/postedit/smoke/eng_results.jsonl \
     --language eng \
@@ -227,7 +227,7 @@ uv run python scripts/postedit/postedit_pipeline.py \
 ### 3. Run on Romanian
 
 ```bash
-uv run python scripts/postedit/postedit_pipeline.py \
+uv run python pipelines/postedit/postedit_pipeline.py \
     --input output/postedit/smoke/ron.jsonl \
     --output output/postedit/smoke/ron_results.jsonl \
     --language ron \
@@ -271,13 +271,13 @@ After running the pipeline (which writes one JSONL per language at `output/poste
 
 ```bash
 # Export per-language JSONL/CSV/XLSX files plus a combined all-languages workbook
-uv run python scripts/postedit/export_postedit.py
+uv run python pipelines/postedit/export_postedit.py
 
 # Filter to specific languages or formats
-uv run python scripts/postedit/export_postedit.py --languages en,fr,de --format csv
+uv run python pipelines/postedit/export_postedit.py --languages en,fr,de --format csv
 
 # Compute per-language and aggregate statistics
-uv run python scripts/postedit/postedit_statistics.py
+uv run python pipelines/postedit/postedit_statistics.py
 ```
 
 Both scripts auto-discover every `results_*.jsonl` file in `output/postedit/` by default, but you can also pass `--input` to point at a single file.

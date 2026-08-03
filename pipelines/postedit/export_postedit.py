@@ -7,10 +7,10 @@ By default discovers every per-cell ``results.jsonl`` under
 a flattened set of files per language plus a combined "all languages" file.
 
 Usage:
-    uv run python scripts/postedit/export_postedit.py
-    uv run python scripts/postedit/export_postedit.py --input output/postedit/results_en.jsonl
-    uv run python scripts/postedit/export_postedit.py --languages en,fr,de
-    uv run python scripts/postedit/export_postedit.py --format csv
+    uv run python pipelines/postedit/export_postedit.py
+    uv run python pipelines/postedit/export_postedit.py --input output/postedit/results_en.jsonl
+    uv run python pipelines/postedit/export_postedit.py --languages en,fr,de
+    uv run python pipelines/postedit/export_postedit.py --format csv
 """
 
 import argparse
