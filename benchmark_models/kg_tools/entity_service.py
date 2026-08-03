@@ -52,7 +52,6 @@ from benchmark_models.kg_tools.triple_bridge import TripleBridge
 from benchmark_models.oracle import _strip_typed_literal
 from benchmark_models.oracle_simplify import simplify_wkt
 
-
 # Default WKT simplification tolerance — same as oracle simplifier so
 # the methodology footnote covers both surfaces uniformly. ε = 0.001°
 # ≈ 111 m on the equator; reduces a typical ZCTA polygon from ~50 K

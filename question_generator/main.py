@@ -13,13 +13,13 @@ from loguru import logger
 from pyspark.sql import DataFrame, SparkSession
 
 from question_generator.config import (
+    MULTIGLOBEQA_CHECKPOINT_ENABLED,
     SEDONA_PACKAGES,
     SPARK_CHECKPOINT_DIR,
     SPARK_DRIVER_MEMORY,
     SPARK_EXECUTOR_MEMORY,
     SPARK_MASTER,
     SPARK_TEMP_DIR,
-    MULTIGLOBEQA_CHECKPOINT_ENABLED,
 )
 from question_generator.tracker import (
     setup_mlflow,

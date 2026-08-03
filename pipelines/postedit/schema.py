@@ -2,7 +2,7 @@
 
 import json
 import re
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -43,7 +43,7 @@ class ModelRawOutput(BaseModel):
 
     needs_edit: bool
     edits: list[Edit] = Field(default_factory=list)
-    corrected_question: Optional[str] = None
+    corrected_question: str | None = None
 
 
 class ModelResult(BaseModel):
@@ -56,13 +56,13 @@ class ModelResult(BaseModel):
     which is the common case.
     """
 
-    raw: Optional[dict[str, Any]] = None
+    raw: dict[str, Any] | None = None
     ops: list[str] = Field(default_factory=list)
     final_text: str = ""
     prompt_tokens: int = 0
     completion_tokens: int = 0
     ok: bool = False
-    error: Optional[str] = None
+    error: str | None = None
     entity_edits: list[dict[str, str]] = Field(default_factory=list)
 
 
@@ -86,7 +86,7 @@ class EnsembleRecord(BaseModel):
     model_outputs: dict[str, ModelResult]
     decision: str  # unanimous | majority | fallback_gemini
     final_question: str
-    selected_model: Optional[str] = None  # name of the model whose output became final
+    selected_model: str | None = None  # name of the model whose output became final
 
 
 # ---------------------------------------------------------------------------
@@ -95,7 +95,7 @@ class EnsembleRecord(BaseModel):
 _JSON_FENCE_RE = re.compile(r"^```(?:json)?\s*|\s*```$", re.IGNORECASE | re.MULTILINE)
 
 
-def _extract_first_json_object(text: str) -> Optional[str]:
+def _extract_first_json_object(text: str) -> str | None:
     """Find and return the first complete top-level JSON object in ``text``.
 
     Performs a brace-balancing scan that respects strings (so ``{`` and ``}``

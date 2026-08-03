@@ -21,7 +21,8 @@ conventions when given a bridge-shaped mock.
 from __future__ import annotations
 
 import json
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 import pytest
 
@@ -30,7 +31,6 @@ from benchmark_models.kg_tools.schemas import (
     KWG_SCHEMA,
     OSMH3KG_SCHEMA,
     WORLDKG_SCHEMA,
-    KGSchema,
     schema_for,
 )
 from benchmark_models.kg_tools.tools import (
@@ -39,7 +39,6 @@ from benchmark_models.kg_tools.tools import (
     GetEntityTool,
     ListCategoriesTool,
 )
-
 
 # ---------------------------------------------------------------------------
 # KGSchema

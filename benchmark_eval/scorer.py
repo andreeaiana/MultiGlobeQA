@@ -40,6 +40,10 @@ from typing import Any
 
 from loguru import logger
 
+# ---------------------------------------------------------------------------
+# Config
+# ---------------------------------------------------------------------------
+from benchmark_eval._paths import spec_path as _spec_path
 from benchmark_eval.aliases import AliasStore
 from benchmark_eval.base import (
     GoldRow,
@@ -69,13 +73,6 @@ from benchmark_eval.distances import (
 )
 from benchmark_eval.units import convert_to_gold_unit
 from benchmark_models.base import Prediction
-
-# ---------------------------------------------------------------------------
-# Config
-# ---------------------------------------------------------------------------
-
-
-from benchmark_eval._paths import spec_path as _spec_path
 
 SCORING_SPEC_PATH = _spec_path()
 """Canonical scoring rules. Every :class:`ScorerConfig` default is

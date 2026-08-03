@@ -50,15 +50,13 @@ from pathlib import Path
 from typing import Any
 
 import click
-from loguru import logger
 
 from pipelines.translation._template_matcher import (
-    PLACEHOLDER_RE,
     ENTITY_PLACEHOLDER_TO_FIELD,
+    PLACEHOLDER_RE,
     find_variant,
     get_image_slots,
 )
-
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_TEMPLATES_CSV = REPO_ROOT / "benchmark" / "templates.csv"

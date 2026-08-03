@@ -22,7 +22,6 @@ from dataclasses import dataclass
 
 from benchmark_models.config import VariantConfig
 
-
 # ---------------------------------------------------------------------------
 # Provider price table
 # ---------------------------------------------------------------------------

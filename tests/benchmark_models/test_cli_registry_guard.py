@@ -15,8 +15,6 @@ the regen command before any model call.
 
 from __future__ import annotations
 
-from typing import Any
-
 import click
 import pytest
 

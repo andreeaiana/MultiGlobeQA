@@ -19,7 +19,6 @@ from pydantic import ValidationError
 from benchmark_models.config import load_models_catalogue
 from benchmark_models.registry import create_model
 
-
 _CATALOGUE = load_models_catalogue()
 
 

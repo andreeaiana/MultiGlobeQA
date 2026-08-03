@@ -19,7 +19,6 @@ import argparse
 import logging
 import os
 import sys
-from typing import Optional
 
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
@@ -129,7 +128,7 @@ def _extract_local_name_expr(col: F.Column) -> F.Column:
     )
 
 
-def _build_edges(spark: SparkSession, triples_path: str) -> Optional[DataFrame]:
+def _build_edges(spark: SparkSession, triples_path: str) -> DataFrame | None:
     """Load triples and extract entity-to-entity edges.
 
     Returns:
@@ -259,7 +258,7 @@ def compute_pagerank(
     triples_path: str,
     damping: float = PAGERANK_DAMPING,
     max_iter: int = PAGERANK_MAX_ITER,
-) -> Optional[DataFrame]:
+) -> DataFrame | None:
     """Compute PageRank, auto-selecting igraph or GraphFrames.
 
     Uses igraph (fast, single-machine) for graphs below PAGERANK_IGRAPH_MAX_EDGES.

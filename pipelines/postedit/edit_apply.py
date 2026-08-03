@@ -99,7 +99,7 @@ def validate_and_strip(
         )
 
     entity_edits: list[dict] = []
-    for obs, exp in zip(observed_markers, expected_markers):
+    for obs, exp in zip(observed_markers, expected_markers, strict=False):
         result = match_entity(obs, exp)
         if not result.matches:
             return (

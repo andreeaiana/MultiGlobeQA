@@ -213,6 +213,7 @@ def _build_smolagents_model(
         )
     elif provider == "google":
         import os
+
         from smolagents import LiteLLMModel
 
         # Route through Vertex AI when GOOGLE_GENAI_USE_VERTEXAI is set,
@@ -250,6 +251,7 @@ def _build_smolagents_model(
         # from the variant config; default matches the SLURM template's
         # in-job binding.
         import os
+
         from smolagents import LiteLLMModel
 
         base_url = kwargs.pop("base_url", None) or os.environ.get(
@@ -341,6 +343,7 @@ def _build_web_tools(
     so the default code path is unchanged for local/dev runs.
     """
     import os
+
     from smolagents import VisitWebpageTool
 
     if os.environ.get("SERPER_API_KEY"):
@@ -493,7 +496,7 @@ class SmolagentsModel(Model):
         max_concurrent: int = _DEFAULT_MAX_CONCURRENT,
         max_tokens: int | None = None,
         web_search_timeout_seconds: float = _DEFAULT_WEB_SEARCH_TIMEOUT_SECONDS,
-        multimodal_mode: "MultimodalMode" = "off",  # type: ignore[name-defined]  # noqa: F821
+        multimodal_mode: MultimodalMode = "off",  # type: ignore[name-defined]  # noqa: F821
     ) -> None:
         """Construct a tier-3 Smolagents model.
 
@@ -1458,7 +1461,7 @@ class SmolagentsOracleModel(SmolagentsModel):
         seed: int = 42,
         max_concurrent: int = _DEFAULT_MAX_CONCURRENT,
         max_tokens: int | None = None,
-        multimodal_mode: "MultimodalMode" = "off",  # type: ignore[name-defined]  # noqa: F821
+        multimodal_mode: MultimodalMode = "off",  # type: ignore[name-defined]  # noqa: F821
     ) -> None:
         """Construct a tier-3 oracle Smolagents model.
 

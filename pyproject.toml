@@ -110,6 +110,11 @@ target-version = "py310"
 select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
 ignore = ["E501", "N812", "SIM108"]
 
+[tool.ruff.lint.per-file-ignores]
+# Backend tests name their injected class mocks after the class they patch
+# (OpenAI_cls, Client_cls), which is the convention for class mocks.
+"tests/benchmark_models/test_backend_*.py" = ["N803", "N806"]
+
 [tool.mypy]
 python_version = "3.10"
 ignore_missing_imports = true

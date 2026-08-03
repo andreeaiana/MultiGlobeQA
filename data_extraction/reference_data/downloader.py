@@ -32,9 +32,8 @@ import json
 import logging
 import zipfile
 from pathlib import Path
-from typing import Optional
-from urllib.request import urlopen, Request
 from urllib.error import URLError
+from urllib.request import Request, urlopen
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +107,9 @@ def _download_countries_geojson(dest: Path) -> None:
 
         # Extract to a temporary in-memory VFS via fiona/pyogrio
         # We write all members to a temp dir then read the shapefile
-        import tempfile, shutil, os
+        import os
+        import shutil
+        import tempfile
 
         tmp_dir = tempfile.mkdtemp(prefix="ne_countries_")
         try:
@@ -204,8 +205,8 @@ def _download_wb_income_groups(dest: Path) -> None:
 
 
 def ensure_reference_data(
-    countries_path: Optional[Path] = None,
-    income_groups_path: Optional[Path] = None,
+    countries_path: Path | None = None,
+    income_groups_path: Path | None = None,
 ) -> None:
     """Download reference data files if they do not already exist.
 
@@ -250,7 +251,7 @@ def ensure_reference_data(
         logger.info("Income groups already cached at %s", income_groups_path)
 
 
-def load_countries_geodataframe(countries_path: Optional[Path] = None):
+def load_countries_geodataframe(countries_path: Path | None = None):
     """Load the cached countries GeoDataFrame.
 
     Calls ``ensure_reference_data()`` first so the file is downloaded if
@@ -275,7 +276,7 @@ def load_countries_geodataframe(countries_path: Optional[Path] = None):
     return gpd.read_file(countries_path)
 
 
-def load_eez_geodataframe(eez_path: Optional[Path] = None):
+def load_eez_geodataframe(eez_path: Path | None = None):
     """Load the Marine Regions World EEZ v12 shapefile.
 
     Not auto-downloaded — Marine Regions requires a free academic
@@ -319,7 +320,7 @@ def load_eez_geodataframe(eez_path: Optional[Path] = None):
 
 
 def load_income_groups(
-    income_groups_path: Optional[Path] = None,
+    income_groups_path: Path | None = None,
 ) -> dict[str, str]:
     """Load the cached World Bank income group mapping.
 

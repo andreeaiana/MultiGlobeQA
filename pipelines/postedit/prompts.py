@@ -24,7 +24,6 @@ from loguru import logger
 
 from pipelines.postedit.config import TAXONOMY_WITH_DESCRIPTIONS
 
-
 _TAXONOMY_BLOCK = "\n".join(
     f"- {op}: {desc}" for op, desc in TAXONOMY_WITH_DESCRIPTIONS
 )

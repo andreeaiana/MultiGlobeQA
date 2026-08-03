@@ -6,7 +6,6 @@ from spatial knowledge graphs using PySpark and Apache Sedona.
 """
 
 from question_generator.config import (
-    TEMPLATES_TSV,
     EXCLUDED_TIDS,
     FAIL_ON_TEMPLATE_ERROR,
     KWG_ENTITIES_PATH,
@@ -20,6 +19,7 @@ from question_generator.config import (
     SPARK_EXECUTOR_MEMORY,
     SPARK_MASTER,
     STANDARD_SPARK_SFIDS,
+    TEMPLATES_TSV,
     WORLDKG_NODES_PATH,
     WORLDKG_TRIPLES_PATH,
 )

@@ -14,15 +14,12 @@ Covers:
 
 from __future__ import annotations
 
-import pytest
-
 from benchmark_models.oracle import OracleContext, Triple
 from benchmark_models.oracle_simplify import (
     SimplifyStats,
     simplify_triples,
     simplify_wkt,
 )
-
 
 # A polygon with enough vertices to actually shrink under ε=0.001.
 # Square-ish ring around (0,0) with stair-step intermediate points so

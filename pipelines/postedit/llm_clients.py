@@ -16,7 +16,7 @@ import threading
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 from loguru import logger
 
@@ -62,7 +62,7 @@ class BaseLLMClient(ABC):
 
     def generate(self, system: str, user: str) -> GenerationResult:
         """Call the model with retry on transient errors."""
-        last_error: Optional[Exception] = None
+        last_error: Exception | None = None
         for attempt in range(MAX_RETRIES):
             try:
                 start = time.time()
@@ -127,9 +127,9 @@ class GeminiClient(BaseLLMClient):
     # value is the cache resource name, or None if creation failed
     # (negative cache to short-circuit retries).
     _cache_lock: threading.Lock = threading.Lock()
-    _caches: dict[tuple[str, str], Optional[str]] = {}
+    _caches: dict[tuple[str, str], str | None] = {}
 
-    def __init__(self, api_key: Optional[str] = None, model_id: str = GEMINI_MODEL):
+    def __init__(self, api_key: str | None = None, model_id: str = GEMINI_MODEL):
         super().__init__("gemini", model_id)
         from google import genai
 
@@ -140,7 +140,7 @@ class GeminiClient(BaseLLMClient):
         else:
             self._client = genai.Client(api_key=api_key or os.environ.get("GEMINI_API_KEY"))
 
-    def _get_or_create_cache(self, system: str) -> Optional[str]:
+    def _get_or_create_cache(self, system: str) -> str | None:
         """Return the cache resource name for this system prompt, creating
         the cache on first use. Returns None on creation failure (caller
         falls back to per-call ``system_instruction``)."""
@@ -227,7 +227,7 @@ class DeepSeekClient(BaseLLMClient):
       our :class:`BaseLLMClient` retry loop catches them.
     """
 
-    def __init__(self, api_key: Optional[str] = None,
+    def __init__(self, api_key: str | None = None,
                  model_id: str = DEEPSEEK_MODEL,
                  base_url: str = DEEPSEEK_BASE_URL):
         super().__init__("deepseek", model_id)

@@ -226,6 +226,8 @@ def cmd_enrich(args: argparse.Namespace) -> int:
     if not args.skip_population:
         from data_extraction.population_aggregation import (
             aggregate_population,
+        )
+        from data_extraction.population_aggregation import (
             init_spark_session as init_pop_spark,
         )
 

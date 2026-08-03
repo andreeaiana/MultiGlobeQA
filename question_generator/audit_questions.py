@@ -24,14 +24,11 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 from pathlib import Path
 
 from pyspark.sql import functions as F
-from pyspark.sql.types import StringType
 
 from question_generator.main import init_spark
-
 
 # Labels that indicate a TID is using a heterogeneous category in place
 # of a specific subcategory. Match against entity_a/b/c_name. The

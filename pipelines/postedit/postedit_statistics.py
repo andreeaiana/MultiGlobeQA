@@ -26,10 +26,10 @@ import json
 import statistics as stats_mod
 import sys
 from collections import Counter, defaultdict
+from collections.abc import Iterable
 from difflib import SequenceMatcher
 from itertools import combinations
 from pathlib import Path
-from typing import Iterable, Optional
 
 from pipelines.postedit.cell_walker import (
     iter_cells,
@@ -39,7 +39,6 @@ from pipelines.postedit.cell_walker import (
 )
 from pipelines.postedit.config import DEFAULT_FINAL_ROOT, DEFAULT_OUTPUT_DIR, MODEL_NAMES, TAXONOMY
 from pipelines.postedit.ensemble import normalize_for_compare
-
 
 # Edit-distance buckets
 EDIT_DISTANCE_BUCKETS = [
@@ -51,7 +50,7 @@ EDIT_DISTANCE_BUCKETS = [
 
 
 def load_jsonl(path: Path) -> Iterable[dict]:
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if not line:
@@ -198,7 +197,7 @@ def get_final_ops(record: dict) -> list[str]:
     return []
 
 
-def disagreement_pattern(record: dict) -> Optional[str]:
+def disagreement_pattern(record: dict) -> str | None:
     """Classify the disagreement pattern among the 3 models, or None if agreed.
 
     Agreement is measured on normalised text (same rule as the ensemble
@@ -233,7 +232,7 @@ def disagreement_pattern(record: dict) -> Optional[str]:
 # ---------------------------------------------------------------------------
 # Per-language statistics
 # ---------------------------------------------------------------------------
-def compute_language_stats(records: list[dict], total_final: Optional[int] = None) -> dict:
+def compute_language_stats(records: list[dict], total_final: int | None = None) -> dict:
     """Compute statistics over a language's post-edit records.
 
     ``records`` are the ensemble rows from ``output/postedit`` (rows that
@@ -712,9 +711,9 @@ def _discover_languages(out_root: Path) -> list[str]:
 
 def gather_records(
     out_root: Path,
-    final_root: Optional[Path],
+    final_root: Path | None,
     languages: list[str],
-    explicit_input: Optional[str],
+    explicit_input: str | None,
 ) -> tuple[dict[str, list[dict]], dict[str, int], dict[str, dict[str, int]]]:
     """Load post-edit records and (optionally) join against the final benchmark.
 

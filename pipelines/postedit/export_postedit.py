@@ -18,8 +18,8 @@ import csv
 import json
 import sys
 from collections import defaultdict
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable, Optional
 
 from pipelines.postedit.cell_walker import iter_output_results
 from pipelines.postedit.config import DEFAULT_OUTPUT_DIR
@@ -67,7 +67,7 @@ FLAT_COLUMNS = [
 
 def load_jsonl(path: Path) -> Iterable[dict]:
     """Yield each JSON object from a JSONL file."""
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if not line:
@@ -75,7 +75,7 @@ def load_jsonl(path: Path) -> Iterable[dict]:
             yield json.loads(line)
 
 
-def discover_input_files(input_arg: Optional[str], default_dir: Path) -> list[Path]:
+def discover_input_files(input_arg: str | None, default_dir: Path) -> list[Path]:
     """Resolve the post-edit result files to read.
 
     With ``--input`` set, use that single file. Otherwise discover every

@@ -9,11 +9,13 @@ The KG includes:
 """
 
 import h3_pyspark
+
 # NOTE: delta.configure_spark_with_delta_pip in delta-spark 4.1.0 computes an
 # incorrect Maven coordinate (io.delta:delta-spark_4.1_2.13:4.1.0) which does
 # not exist on Maven Central. We set spark.jars.packages manually below with
 # the canonical io.delta:delta-spark_2.13:4.1.0 coordinate instead.
 from loguru import logger
+from pyspark import StorageLevel
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import (
     col,
@@ -25,7 +27,6 @@ from pyspark.sql.functions import (
     lit,
 )
 from pyspark.sql.types import MapType, StringType
-from pyspark import StorageLevel
 from sedona.spark import SedonaContext
 from sedona.sql.st_functions import ST_AsText
 

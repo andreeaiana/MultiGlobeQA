@@ -25,7 +25,6 @@ from benchmark_models.cost_estimator import (
     format_estimate_table,
 )
 
-
 _CATALOGUE = load_models_catalogue()
 
 

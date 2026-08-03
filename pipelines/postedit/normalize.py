@@ -4,8 +4,8 @@ import json
 import re
 import unicodedata
 from collections import Counter
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator, Optional
 
 from loguru import logger
 
@@ -98,7 +98,7 @@ def build_instantiations(record: dict, placeholders: list[str]) -> dict[str, str
         if qualifier == "category" and slot:
             candidates.append(f"entity_{slot}_node_type")
 
-        value: Optional[str] = None
+        value: str | None = None
         for key in candidates:
             if key in record_lookup:
                 value = record_lookup[key]
@@ -192,8 +192,8 @@ def _apply_marker_spans(question: str, spans: list[tuple[int, int]]) -> str:
 def _mark_question_with_reason(
     question: str,
     instantiations: dict[str, str],
-    placeholder_occurrences: Optional[list[str]] = None,
-) -> tuple[Optional[str], Optional[str]]:
+    placeholder_occurrences: list[str] | None = None,
+) -> tuple[str | None, str | None]:
     """Return a safely marked question or an error explaining why it was skipped."""
     # NFC-normalise both the question and the entity values so that decomposed
     # diacritics (e.g. "a" + U+0301) match the composed form ("á") that
@@ -234,8 +234,8 @@ def _mark_question_with_reason(
 def mark_question(
     question: str,
     instantiations: dict[str, str],
-    placeholder_occurrences: Optional[list[str]] = None,
-) -> Optional[str]:
+    placeholder_occurrences: list[str] | None = None,
+) -> str | None:
     """Wrap entity spans in ``question`` with double curly braces.
 
     Matches are found on the original instantiated question text, not rebuilt
@@ -251,7 +251,7 @@ def mark_question(
     return marked
 
 
-def normalize_record(record: dict, language: str = "en") -> Optional[InputQuestion]:
+def normalize_record(record: dict, language: str = "en") -> InputQuestion | None:
     """Convert one benchmark record to an InputQuestion.
 
     Returns ``None`` if the record is missing required fields or no
@@ -343,7 +343,7 @@ def normalize_record(record: dict, language: str = "en") -> Optional[InputQuesti
 
 def load_jsonl(path: Path) -> Iterator[dict]:
     """Yield each JSON object from a JSONL file."""
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if not line:

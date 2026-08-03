@@ -31,7 +31,6 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-
 # Kappa estimates with very small n are unreliable — the
 # chance-correction denominator is itself noisy. 30 is a common
 # rule-of-thumb threshold for "small sample" warning.

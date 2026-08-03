@@ -1,6 +1,8 @@
+from delta import DeltaTable
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql.functions import col
+from sedona.spark import SedonaContext
 
 from question_generator.config import (
     SEDONA_PACKAGES,
@@ -9,8 +11,6 @@ from question_generator.config import (
     SPARK_MASTER,
     SPARK_TEMP_DIR,
 )
-from sedona.spark import SedonaContext
-from delta import DeltaTable
 
 
 def init_spark_session():

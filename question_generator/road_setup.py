@@ -22,8 +22,6 @@ unmerged geometry survives if LineMerge produces an empty collection.
 """
 from __future__ import annotations
 
-from typing import Optional
-
 from loguru import logger
 from pyspark.sql import SparkSession
 
@@ -39,8 +37,8 @@ def _table_exists(spark: SparkSession, name: str) -> bool:
 def register_road_aggregation_views(
     spark: SparkSession,
     kg_label: str,
-    nodes_path: Optional[str] = None,
-    strata_path_override: Optional[str] = None,
+    nodes_path: str | None = None,
+    strata_path_override: str | None = None,
 ) -> None:
     """Register ``<kg_label>_roads_aggregated`` as a temp view.
 

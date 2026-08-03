@@ -3,7 +3,6 @@
 import unicodedata
 from collections import Counter
 from dataclasses import dataclass
-from typing import Optional
 
 from pipelines.postedit.config import MODEL_NAMES
 from pipelines.postedit.schema import ModelResult
@@ -13,7 +12,7 @@ from pipelines.postedit.schema import ModelResult
 class Decision:
     final_text: str
     decision: str  # "unanimous" | "majority" | "fallback_gemini"
-    selected_model: Optional[str]  # name of the model whose text became final_text
+    selected_model: str | None  # name of the model whose text became final_text
 
 
 def normalize_for_compare(text: str) -> str:

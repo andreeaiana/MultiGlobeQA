@@ -16,9 +16,7 @@ and dedups last-wins. Both surface the duplicate loudly.
 from __future__ import annotations
 
 import json
-import logging
 from pathlib import Path
-from unittest.mock import MagicMock
 
 from benchmark_eval.aliases import AliasStore
 from benchmark_eval.loaders import load_gold_rows

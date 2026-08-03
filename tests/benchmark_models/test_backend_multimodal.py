@@ -24,7 +24,7 @@ import base64
 import importlib
 from pathlib import Path
 from typing import Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 

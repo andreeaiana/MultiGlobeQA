@@ -104,7 +104,7 @@ def encode_image_b64(image: ImageContent) -> str:
     return base64.b64encode(read_image_bytes(image)).decode("ascii")
 
 
-def load_pil_images(example: Example) -> list["PIL.Image.Image"] | None:  # type: ignore[name-defined]  # noqa: F821
+def load_pil_images(example: Example) -> list[PIL.Image.Image] | None:  # type: ignore[name-defined]  # noqa: F821
     """Load the example's images as a list of ``PIL.Image.Image``.
 
     Used by the tier-3 wrapper (``SmolagentsModel`` /
@@ -120,8 +120,9 @@ def load_pil_images(example: Example) -> list["PIL.Image.Image"] | None:  # type
     """
     if not example.images:
         return None
-    from PIL import Image  # type: ignore[import-not-found]
     import io as _io
+
+    from PIL import Image  # type: ignore[import-not-found]
 
     out = []
     for img in example.images:

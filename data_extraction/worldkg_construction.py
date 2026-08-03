@@ -9,7 +9,7 @@ import logging
 import sys
 import time
 import urllib.parse
-from typing import Any, Optional
+from typing import Any
 
 import osmium
 import pandas as pd
@@ -120,7 +120,7 @@ class OSM2RDFHandler(osmium.SimpleHandler):
         word = word.replace(":", "_")
         return "".join(x.capitalize() or "_" for x in word.split("_"))
 
-    def to_camel_case_class_append(self, key: str, val: str) -> Optional[str]:
+    def to_camel_case_class_append(self, key: str, val: str) -> str | None:
         """Get the appended class name from the ontology mapping."""
         try:
             result = self.supersub.loc[

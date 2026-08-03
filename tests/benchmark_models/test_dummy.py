@@ -24,7 +24,6 @@ real registry is small enough that test setup time is negligible.
 
 from __future__ import annotations
 
-
 from benchmark_models.base import Example, Prediction
 from benchmark_models.dummy import DummyModel, DummyStrategy, _type_default
 from benchmark_models.schemas import TYPE_REGISTRY

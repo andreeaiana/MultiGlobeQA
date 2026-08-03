@@ -17,14 +17,12 @@ normalized metrics.
 from __future__ import annotations
 
 import json
-from pathlib import Path
 from typing import Any
 
 from loguru import logger
 
-from benchmark_eval.canonicalize import canonicalize_unit
-
 from benchmark_eval._paths import spec_path as _spec_path
+from benchmark_eval.canonicalize import canonicalize_unit
 
 SCORING_SPEC_PATH = _spec_path()
 """Single source of truth for the spec path — see ``_paths.py`` (D6)."""

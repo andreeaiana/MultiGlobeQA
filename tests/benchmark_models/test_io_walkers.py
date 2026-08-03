@@ -19,7 +19,6 @@ from benchmark_models.io import (
     discover_gold_shards,
 )
 
-
 # ----------------------------------------------------------------------------
 # Layout fixture — mimics benchmark/final/<kg>/<sfid>/<lang>/benchmark.jsonl/
 # ----------------------------------------------------------------------------

@@ -36,7 +36,6 @@ from typing import Any
 
 from smolagents import Tool
 
-
 # Cached separators tuple: no spaces, so JSON output stays compact in
 # the agent's context window (saves ~5-10% per tool call vs default).
 _JSON_SEP = (",", ":")

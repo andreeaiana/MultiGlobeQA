@@ -8,12 +8,11 @@ Usage:
     uv run python -m data_extraction.country_enrichment
 """
 
+import pyspark.sql.functions as F
+from loguru import logger
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import broadcast, col, lit, regexp_extract, row_number, when
 from pyspark.sql.window import Window
-import pyspark.sql.functions as F
-from loguru import logger
-
 
 # US-domestic data sources whose entities, when geometry falls outside any
 # country polygon (offshore islands, coastal edge cases), should be
@@ -43,14 +42,15 @@ _KWG_US_DOMESTIC_PREFIXES = frozenset({
     "roadSegment",
 })
 
+from delta.tables import DeltaTable
+from sedona.spark import SedonaContext
+
 from question_generator.config import (
     REFERENCE_DATA_PATH,
     SEDONA_PACKAGES,
     SPARK_MASTER,
     SPARK_TEMP_DIR,
 )
-from sedona.spark import SedonaContext
-from delta.tables import DeltaTable
 
 
 def init_spark_session() -> SparkSession:

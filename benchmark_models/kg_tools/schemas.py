@@ -41,9 +41,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
-from data_extraction.nt_to_delta.config import NtToDeltaConfig
 from benchmark_models.oracle import _normalize_subject
-
+from data_extraction.nt_to_delta.config import NtToDeltaConfig
 
 KGName = Literal["kwg", "osmh3kg", "worldkg"]
 

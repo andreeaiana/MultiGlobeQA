@@ -36,7 +36,7 @@ def test_numeric_kind_by_unit_suffix_matches_spec(spec: dict) -> None:
         if isinstance(v, str) and v in ("distance", "area", "count")
     }
     # The live map is loaded from spec → matches verbatim.
-    assert NUMERIC_KIND_BY_UNIT_SUFFIX == spec_map
+    assert spec_map == NUMERIC_KIND_BY_UNIT_SUFFIX
     # Hardcoded fallback is a subset of (or equal to) the spec — any
     # entry present in code must also be in the spec.
     for unit, kind in _FALLBACK_NUMERIC_KIND_BY_UNIT_SUFFIX.items():
@@ -64,23 +64,23 @@ def test_scale_buckets_match_spec(spec: dict) -> None:
 
     buckets = spec["numeric"]["scale_from_magnitude_buckets"]
     # Spec → live constants.
-    assert SCALE_BREAK_URBAN_REGIONAL == buckets["urban"]["upper_exclusive"]
-    assert SCALE_BREAK_REGIONAL_NATIONAL == buckets["regional"]["upper_exclusive"]
+    assert buckets["urban"]["upper_exclusive"] == SCALE_BREAK_URBAN_REGIONAL
+    assert buckets["regional"]["upper_exclusive"] == SCALE_BREAK_REGIONAL_NATIONAL
     # Area breakpoints are independent of the linear distance breakpoints (#13).
     assert (
-        SCALE_BREAK_URBAN_REGIONAL_AREA
-        == buckets["urban"]["upper_exclusive_area_km2"]
+        buckets["urban"]["upper_exclusive_area_km2"]
+        == SCALE_BREAK_URBAN_REGIONAL_AREA
     )
     assert (
-        SCALE_BREAK_REGIONAL_NATIONAL_AREA
-        == buckets["regional"]["upper_exclusive_area_km2"]
+        buckets["regional"]["upper_exclusive_area_km2"]
+        == SCALE_BREAK_REGIONAL_NATIONAL_AREA
     )
-    assert URBAN_DELTA_KM == buckets["urban"]["delta_distance_km"]
-    assert REGIONAL_DELTA_KM == buckets["regional"]["delta_distance_km"]
-    assert NATIONAL_DELTA_KM == buckets["national"]["delta_distance_km"]
-    assert URBAN_DELTA_KM2 == buckets["urban"]["delta_area_km2"]
-    assert REGIONAL_DELTA_KM2 == buckets["regional"]["delta_area_km2"]
-    assert NATIONAL_DELTA_KM2 == buckets["national"]["delta_area_km2"]
+    assert buckets["urban"]["delta_distance_km"] == URBAN_DELTA_KM
+    assert buckets["regional"]["delta_distance_km"] == REGIONAL_DELTA_KM
+    assert buckets["national"]["delta_distance_km"] == NATIONAL_DELTA_KM
+    assert buckets["urban"]["delta_area_km2"] == URBAN_DELTA_KM2
+    assert buckets["regional"]["delta_area_km2"] == REGIONAL_DELTA_KM2
+    assert buckets["national"]["delta_area_km2"] == NATIONAL_DELTA_KM2
 
     # Fallback dict matches spec exactly (used only when spec absent).
     for bucket_name in ("urban", "regional", "national"):
@@ -102,7 +102,7 @@ def test_default_delta_ratio_matches_spec(spec: dict) -> None:
     from benchmark_eval.scorer import _FALLBACK_DEFAULTS, load_scoring_spec
 
     spec_val = spec["numeric"]["default_delta_ratio"]
-    assert DEFAULT_RATIO_DELTA == spec_val
+    assert spec_val == DEFAULT_RATIO_DELTA
     assert _FALLBACK_DEFAULTS["default_delta_ratio"] == spec_val
     assert load_scoring_spec()["default_delta_ratio"] == spec_val
 
@@ -125,8 +125,8 @@ def test_date_precision_tolerances_match_spec(spec: dict) -> None:
     )
 
     spec_tols = spec["dates"]["precision_tolerance_days"]
-    assert _DATE_PRECISION_TOLERANCE == spec_tols
-    assert _FALLBACK_DATE_PRECISION_TOLERANCE == spec_tols
+    assert spec_tols == _DATE_PRECISION_TOLERANCE
+    assert spec_tols == _FALLBACK_DATE_PRECISION_TOLERANCE
 
 
 def test_coord_separator_chars_match_spec(spec: dict) -> None:
@@ -138,7 +138,7 @@ def test_coord_separator_chars_match_spec(spec: dict) -> None:
 
     spec_chars = spec["coordinates"]["separator_chars"]
     assert _load_coord_separator_chars() == spec_chars
-    assert _FALLBACK_COORD_SEPARATOR_CHARS == spec_chars
+    assert spec_chars == _FALLBACK_COORD_SEPARATOR_CHARS
 
 
 def test_unit_conversion_groups_match_spec(spec: dict) -> None:
@@ -149,7 +149,7 @@ def test_unit_conversion_groups_match_spec(spec: dict) -> None:
         group_name: dict(group["factors_to_canonical"])
         for group_name, group in spec["unit_conversion"]["groups"].items()
     }
-    assert _FALLBACK_GROUPS == spec_groups
+    assert spec_groups == _FALLBACK_GROUPS
 
 
 def test_spec_has_no_versioning_surface(spec: dict) -> None:
@@ -203,11 +203,12 @@ def test_tid_override_map_single_source(spec: dict) -> None:  # noqa: ARG001
     If the build script ever falls back to defining its own copy
     inline, this test fails and forces a re-import.
     """
-    from benchmark_models.schemas.type_registry import (
-        TID_TO_CANONICAL_OVERRIDE,
-    )
     from scripts.build_template_registry_from_benchmark import (
         _TID_TO_CANONICAL_OVERRIDE as BUILD_SCRIPT_COPY,
+    )
+
+    from benchmark_models.schemas.type_registry import (
+        TID_TO_CANONICAL_OVERRIDE,
     )
 
     # The build script imports the runtime constant under its old

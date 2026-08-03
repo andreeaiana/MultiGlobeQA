@@ -7,27 +7,24 @@ the benchmark question generator's sampler.
 
 import logging
 import re
+from pathlib import Path
 
 import h3
+from delta import DeltaTable
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql.functions import broadcast, coalesce, col, first, lit
-from pyspark.sql.types import DoubleType, StringType
+from pyspark.sql.types import StringType
+from sedona.spark import SedonaContext
 
 from data_extraction.nt_to_delta.config import NtToDeltaConfig
-from delta import DeltaTable
 
 # Optional dependencies
 from question_generator.config import (
+    SEDONA_PACKAGES,
     SPARK_MASTER,
     SPARK_TEMP_DIR,
-    SEDONA_PACKAGES,
-    H3_DENSITY_RESOLUTION,
-    REFERENCE_DATA_PATH,
 )
-from sedona.spark import SedonaContext
-from pyspark.sql import SparkSession
-from pathlib import Path
 
 logger = logging.getLogger(__name__)
 

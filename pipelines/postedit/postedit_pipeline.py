@@ -47,16 +47,19 @@ import argparse
 import json
 import os
 import sys
+from collections.abc import Iterable
 from concurrent.futures import (
     ThreadPoolExecutor,
-    TimeoutError as FuturesTimeoutError,
     as_completed,
 )
+from concurrent.futures import (
+    TimeoutError as FuturesTimeoutError,
+)
 from pathlib import Path
-from typing import Iterable, Optional
 
 from loguru import logger
 
+from pipelines.postedit import mlflow_logging
 from pipelines.postedit.cell_walker import Cell, iter_cells, iter_records, output_path_for
 from pipelines.postedit.config import (
     DEFAULT_BATCH_SIZE,
@@ -77,7 +80,6 @@ from pipelines.postedit.edit_apply import strip_entity_braces, validate_and_stri
 from pipelines.postedit.ensemble import decide
 from pipelines.postedit.llm_clients import BaseLLMClient, LLMError, VLLMClient, build_clients
 from pipelines.postedit.logging_setup import setup_logging
-from pipelines.postedit import mlflow_logging
 from pipelines.postedit.normalize import normalize_record
 from pipelines.postedit.prompts import build_user_prompt, get_system_prompt
 from pipelines.postedit.resume import (
@@ -641,7 +643,7 @@ def _run_cell(
     question_concurrency: int,
     per_question_timeout_s: float,
     batch_size: int,
-    limit: Optional[int],
+    limit: int | None,
     final_root: Path | None = None,
 ) -> tuple[int, int, dict[str, int], Path]:
     """Process one cell end-to-end.

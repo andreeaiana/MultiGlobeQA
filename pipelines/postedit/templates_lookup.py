@@ -16,7 +16,6 @@ from pathlib import Path
 
 from loguru import logger
 
-
 _LANG_COLS = (
     "eng", "bul", "deu", "ell", "spa", "fra", "ita", "jpn", "kat",
     "por_PT", "ron", "rus", "sqi", "tur", "urd", "vie", "zho_CN",
@@ -51,7 +50,7 @@ class TemplateRegistry:
         self._warn_lock = threading.Lock()
 
     @classmethod
-    def load(cls, templates_dir: Path) -> "TemplateRegistry":
+    def load(cls, templates_dir: Path) -> TemplateRegistry:
         """Load every ``templates_<lang>.tsv`` under ``templates_dir``."""
         by_vid_lang: dict[tuple[str, str], str] = {}
         missing = []

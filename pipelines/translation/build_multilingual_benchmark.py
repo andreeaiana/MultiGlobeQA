@@ -87,7 +87,6 @@ from pipelines.translation._template_matcher import (
     get_image_slots,
 )
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_RAW_ROOT = REPO_ROOT / "benchmark" / "raw_eng"
 DEFAULT_FINAL_ROOT = REPO_ROOT / "benchmark" / "raw_multilingual"
@@ -417,9 +416,9 @@ class CellGenStats:
 
     def __post_init__(self):
         if self.rows_emitted is None:
-            self.rows_emitted = {lang: 0 for lang in ALL_LANGUAGES}
+            self.rows_emitted = dict.fromkeys(ALL_LANGUAGES, 0)
         if self.fallbacks is None:
-            self.fallbacks = {lang: 0 for lang in ALL_LANGUAGES}
+            self.fallbacks = dict.fromkeys(ALL_LANGUAGES, 0)
 
 
 def generate_for_cell(
@@ -632,11 +631,11 @@ def main(
             stats.skipped_render_failure,
         )
 
-    print(f"\n=== Summary ===")
+    print("\n=== Summary ===")
     print(f"Cells processed: {len(cells)}")
     print(f"Source rows scanned: {grand_in:,}")
     print(f"Render failures (skipped): {grand_skipped}")
-    print(f"\nPer-language emission counts (and English-fallback share):")
+    print("\nPer-language emission counts (and English-fallback share):")
     print(f'{"lang":<8} {"emitted":>10} {"fallbacks":>10} {"%fb":>6}')
     for lang in languages:
         emitted = grand_emitted[lang]

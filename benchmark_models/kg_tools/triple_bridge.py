@@ -48,8 +48,9 @@ bridge's session; the bridge itself doesn't use Sedona ops.
 from __future__ import annotations
 
 import os
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 from loguru import logger
 

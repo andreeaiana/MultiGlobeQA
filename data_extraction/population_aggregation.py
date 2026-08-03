@@ -8,19 +8,19 @@ Usage:
     uv run python -m data_extraction.population_aggregation
 """
 
-from pyspark.sql import SparkSession
 import pyspark.sql.functions as F
+from delta.tables import DeltaTable
 from loguru import logger
+from pyspark.sql import SparkSession
+from sedona.spark import SedonaContext
 
 from question_generator.config import (
-    SPARK_MASTER,
-    SPARK_TEMP_DIR,
-    SEDONA_PACKAGES,
     H3_DENSITY_RESOLUTION,
     REFERENCE_DATA_PATH,
+    SEDONA_PACKAGES,
+    SPARK_MASTER,
+    SPARK_TEMP_DIR,
 )
-from sedona.spark import SedonaContext
-from delta.tables import DeltaTable
 
 RASTER_PATH = "data/population/global_pop_2025.tif"
 OUTPUT_PATH = str(REFERENCE_DATA_PATH / "population_h3_res3")

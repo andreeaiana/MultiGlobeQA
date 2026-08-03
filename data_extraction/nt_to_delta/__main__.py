@@ -99,6 +99,8 @@ def run_spark_transformer(config: NtToDeltaConfig) -> None:
     Args:
         config: Pipeline configuration.
     """
+    from sedona.spark import SedonaContext
+
     from question_generator.config import (
         SEDONA_PACKAGES,
         SPARK_DRIVER_MEMORY,
@@ -106,7 +108,6 @@ def run_spark_transformer(config: NtToDeltaConfig) -> None:
         SPARK_MASTER,
         SPARK_TEMP_DIR,
     )
-    from sedona.spark import SedonaContext
 
     logger.info(
         "Initializing Spark session (master=%s, driver=%s, executor=%s)",

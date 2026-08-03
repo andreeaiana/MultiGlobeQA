@@ -19,7 +19,7 @@ from pathlib import Path
 import pandas as pd
 from google.cloud import translate_v3
 
-from pipelines.translation.config import VARIANTS_FILE, TRANSLATIONS_DIR, TARGET_LANGUAGES
+from pipelines.translation.config import TARGET_LANGUAGES, TRANSLATIONS_DIR, VARIANTS_FILE
 from pipelines.translation.placeholder_utils import (
     normalize_whitespace,
     protect_placeholders,
@@ -181,13 +181,13 @@ def main():
     if args.dry_run:
         total_chars = df["Template variant"].str.len().sum()
         protected_chars = df["Template variant"].apply(protect_placeholders).str.len().sum()
-        print(f"\n--- Dry Run ---")
+        print("\n--- Dry Run ---")
         print(f"Texts to translate:    {len(df)}")
         print(f"Raw characters:        {total_chars:,}")
         print(f"Characters with markup: {protected_chars:,}")
         print(f"Languages:             {len(languages)}")
         print(f"Total API calls:       ~{len(languages) * ((len(df) + 99) // 100)}")
-        print(f"\nNo API calls made. Remove --dry-run to translate.")
+        print("\nNo API calls made. Remove --dry-run to translate.")
         return
 
     # Set up API client

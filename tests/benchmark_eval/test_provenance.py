@@ -13,7 +13,6 @@ from benchmark_eval._provenance import (
     compute_benchmark_snapshot_sha256,
 )
 
-
 # ---------------------------------------------------------------------------
 # Alias store content hash
 # ---------------------------------------------------------------------------

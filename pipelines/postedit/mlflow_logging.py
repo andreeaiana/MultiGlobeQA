@@ -25,7 +25,6 @@ from typing import Any
 
 from loguru import logger
 
-
 DEFAULT_EXPERIMENT_NAME = "Postedit"
 DEFAULT_TRACKING_URI = "sqlite:///logs/mlflow.db"
 

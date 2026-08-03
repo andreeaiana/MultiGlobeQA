@@ -188,13 +188,13 @@ def log_run(
         logger.warning("No predictions to log for variant '{}'", variant_name)
         return None
 
-    import mlflow
-
     # When ``parent_run_id`` is given, reopen the parent run so the
     # subsequent ``nested=True`` start_run actually attaches to it.
     # Without reopening, calling this function with ``parent_run_id``
     # outside an active run wouldn't nest at all.
     from contextlib import ExitStack
+
+    import mlflow
 
     try:
         with ExitStack() as stack:

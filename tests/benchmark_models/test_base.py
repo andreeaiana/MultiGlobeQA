@@ -636,8 +636,8 @@ class TestExampleImages:
         # script land in ``raw`` so analysis code can surface them,
         # but without producing schema-drift warnings.
         from benchmark_models.base import (
-            reset_schema_drift_warnings,
             _WARNED_UNKNOWN_FIELDS,
+            reset_schema_drift_warnings,
         )
 
         reset_schema_drift_warnings()

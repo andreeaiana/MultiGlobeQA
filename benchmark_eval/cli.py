@@ -27,7 +27,8 @@ from benchmark_eval.aggregate import build_report
 from benchmark_eval.aliases import AliasStore
 from benchmark_eval.loaders import load_gold_rows, load_predictions
 from benchmark_eval.mlflow_logging import init_experiment, log_eval_run
-from benchmark_eval.scorer import _SPEC as _SCORING_SPEC, Scorer, ScorerConfig
+from benchmark_eval.scorer import _SPEC as _SCORING_SPEC
+from benchmark_eval.scorer import Scorer, ScorerConfig
 
 
 @click.group()

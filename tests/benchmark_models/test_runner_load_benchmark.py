@@ -128,8 +128,9 @@ class TestLoadBenchmarkSchemaDriftWarnOnce:
     def test_schema_drift_warns_once_per_field(
         self, tmp_path: Path
     ) -> None:
-        from benchmark_models.base import reset_schema_drift_warnings
         from loguru import logger as loguru_logger
+
+        from benchmark_models.base import reset_schema_drift_warnings
 
         reset_schema_drift_warnings()
 

@@ -219,7 +219,7 @@ class TestPolygonIoU:
 
         class _BrokenTransformer:
             @classmethod
-            def from_crs(cls, *_a: object, **_kw: object) -> "_BrokenTransformer":
+            def from_crs(cls, *_a: object, **_kw: object) -> _BrokenTransformer:
                 raise RuntimeError("simulated reprojection failure")
 
         monkeypatch.setattr(pyproj, "Transformer", _BrokenTransformer)

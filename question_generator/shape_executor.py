@@ -403,7 +403,7 @@ def close_kg_context(ctx: KgContext) -> None:
 
 def build_pool_view(
     spark: SparkSession,
-    entities_path_or_df: "str | DataFrame",
+    entities_path_or_df: str | DataFrame,
     pool_filter: str,
     view_name: str,
     *,

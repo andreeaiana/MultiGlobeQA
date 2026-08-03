@@ -8,14 +8,13 @@ logger`` and use it directly.
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 from loguru import logger
 
 
 def setup_logging(
     language: str,
-    log_dir: Optional[Path] = None,
+    log_dir: Path | None = None,
     console_level: str = "INFO",
 ) -> Path:
     """Configure loguru with a console sink and a file sink.

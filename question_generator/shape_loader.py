@@ -23,7 +23,6 @@ from typing import Literal
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-
 # --------------------------------------------------------------------------- #
 # Meta models (one TidMeta per <tid>.meta.yaml)
 # --------------------------------------------------------------------------- #
@@ -175,7 +174,7 @@ class TidMeta(BaseModel):
     )
 
     @model_validator(mode="after")
-    def _per_kg_keys_subset_of_parameters(self) -> "TidMeta":
+    def _per_kg_keys_subset_of_parameters(self) -> TidMeta:
         # parameters_per_kg keys must be a subset of the union of
         # shape-wide parameters AND any variant-level parameters. Variants
         # can introduce new keys (per-variant scope) — a per-KG override

@@ -312,7 +312,7 @@ def _assert_registry_covers_examples(
     default=None,
     help="Override the tier-3 predict_batch concurrency. Defaults to "
     "the variant's models.yaml setting, falling back to "
-    f"_DEFAULT_MAX_CONCURRENT (4). Tier-3 only — rejected on "
+    "_DEFAULT_MAX_CONCURRENT (4). Tier-3 only — rejected on "
     "tier-1 / tier-2 variants.",
 )
 @click.option(
@@ -448,8 +448,8 @@ def smoke(
             and config.tier == "tool_agent"
             and config.sub_tier in ("3a", "3c")
         ):
-            from benchmark_models.kg_tools.executor_bridge import resolve_kg_path
             from benchmark_models.kg_tools.entity_service import EntityService
+            from benchmark_models.kg_tools.executor_bridge import resolve_kg_path
             from benchmark_models.kg_tools.schemas import schema_for
             from benchmark_models.kg_tools.triple_bridge import TripleBridge
 

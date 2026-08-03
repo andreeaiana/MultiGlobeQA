@@ -27,7 +27,6 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
-
 __all__ = [
     "compute_alias_store_sha256",
     "compute_benchmark_snapshot_sha256",
@@ -112,5 +111,5 @@ def compute_benchmark_snapshot_sha256(benchmark_root: Path) -> str:
     entries.sort()
     h = hashlib.sha256()
     for rel, size, content_sha in entries:
-        h.update(f"{rel}\t{size}\t{content_sha}\n".encode("utf-8"))
+        h.update(f"{rel}\t{size}\t{content_sha}\n".encode())
     return h.hexdigest()

@@ -48,7 +48,6 @@ from benchmark_models.schemas import (
     resolve_canonical_answer_type,
 )
 
-
 # Per-TID unit corrections for benchmark rows whose ``ground_truth_type``
 # tag is dimensionally wrong. ``answer_unit`` is normally derived per-row
 # from ``ground_truth_type`` via ``default_unit_for``; when that tag is a

@@ -22,7 +22,6 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-
 # Sedona packages for Spark 4.x — must match what question_generator uses.
 SEDONA_PACKAGES = (
     "org.apache.sedona:sedona-spark-shaded-4.0_2.13:1.8.1,"

@@ -131,7 +131,7 @@ class OracleContext:
     mode: OracleMode
     gold_triples_map: dict[str, list[Triple]]
     wkt_simplify_tolerance: float | None = 0.001
-    simplify_stats: dict[str, list["SimplifyStats"]] = field(default_factory=dict)
+    simplify_stats: dict[str, list[SimplifyStats]] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not self.wkt_simplify_tolerance:

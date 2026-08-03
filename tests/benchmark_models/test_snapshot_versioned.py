@@ -24,7 +24,6 @@ import re
 
 import pytest
 
-
 _VERSIONED_RE = re.compile(r"^[0-9a-f]{12}@[0-9a-f]{12}$")
 
 

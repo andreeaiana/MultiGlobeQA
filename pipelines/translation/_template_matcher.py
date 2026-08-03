@@ -20,7 +20,6 @@ from __future__ import annotations
 import re
 from typing import Any
 
-
 PLACEHOLDER_RE = re.compile(r"\{([^}]+)\}")
 
 # Entity-style placeholders backed by row fields. The value is

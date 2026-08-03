@@ -10,20 +10,18 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import (
     col,
     concat,
-    input_file_name,
+    expr,
     lit,
-    regexp_extract,
     to_date,
 )
-from pyspark.sql.functions import expr
 from sedona.spark import SedonaContext
 from sedona.sql.st_functions import ST_GeoHash
 
 from data_extraction.osmh3kg.helper.constants import (
     geo_hash_level,
     geometry_file_path,
-    sedona_packages,
     osm_parquet_path,
+    sedona_packages,
     spark_driver_memory,
     spark_executor_memory,
     spark_master,
