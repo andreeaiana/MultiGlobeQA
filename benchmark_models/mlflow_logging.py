@@ -5,10 +5,9 @@ runs. Each (variant × seed) becomes a separate MLflow child run under
 a parent run for the experiment. The runner calls :func:`log_run`
 after a batch of predictions is complete.
 
-The module reuses the project's existing MLflow setup from
-``benchmark_generation`` (``MLFLOW_TRACKING_URI``,
-``MLFLOW_EXPERIMENT_NAME``). The model section uses a separate
-experiment name (``Benchmarked_Models``) by default.
+Tracking configuration comes from the ``MLFLOW_TRACKING_URI`` and
+``MLFLOW_EXPERIMENT_NAME`` environment variables. The model section
+uses a separate experiment name (``Benchmarked_Models``) by default.
 
 Usage::
 
@@ -60,7 +59,7 @@ def init_experiment(
         experiment_name: Override the experiment name. Defaults to
             ``MLFLOW_EXPERIMENT_NAME`` env var or ``"Benchmarked_Models"``.
         tracking_uri: Override the tracking URI. Defaults to
-            ``MLFLOW_TRACKING_URI`` env var or ``"file://./logs/mlruns"``.
+            ``MLFLOW_TRACKING_URI`` env var or ``"sqlite:///logs/mlflow.db"``.
     """
     import mlflow
 
@@ -293,10 +292,10 @@ def log_run(
 
             # Tier 3 tool metrics. Filter on ``tool_calls is not None``
             # for both the numerator and the denominator so the rate
-            # is over the same population (M4 fix). v1 mixed
-            # ``cap_hit`` from all predictions with the tool-call-only
-            # denominator, producing a rate inconsistent with the
-            # eval-side ``cap_hit_rate`` over the same data.
+            # is over the same population. Counting ``cap_hit`` over
+            # all predictions against the tool-call-only denominator
+            # would produce a rate inconsistent with the eval-side
+            # ``cap_hit_rate`` over the same data.
             tier3_predictions = [
                 p for p in predictions if p.tool_calls is not None
             ]
@@ -311,19 +310,18 @@ def log_run(
                 )
 
             # --- Tables ---
-            # Import pandas once so both tables can use it (the v1
-            # path imported only inside the predictions_table branch,
-            # making ``pd`` unbound when only the traces_table was
-            # populated).
+            # Import pandas once so both tables can use it; importing
+            # inside the predictions_table branch would leave ``pd``
+            # unbound when only the traces_table is populated.
             import pandas as pd
 
             # Predictions summary table (viewable in MLflow UI).
-            # m23: log full ``answer`` value rather than truncated to
-            # 200 chars. Notebooks that pull the table can otherwise
-            # not recover the full answer for long sets / geometry
-            # without separately reading predictions.jsonl. The full
-            # JSONL is also logged as an artefact below; the table
-            # stays self-contained.
+            # The full ``answer`` value is logged, not a truncation:
+            # notebooks that pull the table can otherwise not recover
+            # the full answer for long sets / geometry without
+            # separately reading predictions.jsonl. The full JSONL is
+            # also logged as an artefact below; the table stays
+            # self-contained.
             predictions_table = []
             for p in predictions:
                 row = {

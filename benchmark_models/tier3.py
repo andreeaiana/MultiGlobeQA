@@ -56,8 +56,8 @@ SubTier = Literal["3a", "3b", "3c"]
 # ``get_entity``; the model rarely needs to write large WKT literals
 # itself. 4096 is enough headroom for the largest agent code blocks
 # observed in practice while leaving 28 K of input budget on a 32 K
-# context window — a 1-token overflow at 8192 was what made
-# qwen35-27b tier-3a cap-hit on every question.
+# context window. At 8192 a single-token overflow is enough to make
+# a 32 K-context model cap-hit on every tier-3a question.
 # The oracle subclass uses tier-3a's value (4096) since its output
 # behavior matches.
 #
@@ -410,12 +410,12 @@ def _build_tools(
     *,
     web_search_timeout_seconds: float = _DEFAULT_WEB_SEARCH_TIMEOUT_SECONDS,
 ) -> list[Any]:
-    """Build the tool list for a given sub-tier (legacy entry point).
+    """Build the tool list for a given sub-tier (convenience entry point).
 
     Equivalent to combining :func:`_build_kg_tools` and
-    :func:`_build_web_tools`. Retained for callers that don't need
-    the per-call concurrency-isolation distinction (e.g.
-    diagnostic / smoke scripts).
+    :func:`_build_web_tools`. For callers that don't need the
+    per-call concurrency-isolation distinction (e.g. diagnostic /
+    smoke scripts).
     """
     if sub_tier == "3a":
         return _build_kg_tools(kg_backend)
@@ -507,7 +507,7 @@ class SmolagentsModel(Model):
             web_search_timeout_seconds: Per-request timeout for the
                 ``WebSearchTool`` (tier-3b / tier-3c only). Defaults
                 to :data:`_DEFAULT_WEB_SEARCH_TIMEOUT_SECONDS`.
-            multimodal_mode: G from the round-2 plan.
+            multimodal_mode: How the example's images reach the agent.
                 ``"image"`` plumbs the example's images through to
                 ``agent.run(images=...)``; ``"name"`` uses text
                 substitution (no images attached). ``"off"`` (default)
@@ -566,18 +566,18 @@ class SmolagentsModel(Model):
         #   bridge's get_entity simplifying WKT before handing it to
         #   the agent, the model rarely needs to emit large geometry
         #   literals itself. 4096 leaves 28 K of input budget on a
-        #   32 K context — the previous 8192 default caused a
-        #   1-token overflow on qwen35-27b tier-3a runs.
+        #   32 K context; at 8192 a single-token overflow is enough
+        #   to break tier-3a runs on a 32 K-context model.
         effective_max_tokens = (
             max_tokens
             if max_tokens is not None
             else _MAX_TOKENS_BY_SUB_TIER[sub_tier]
         )
         self._max_tokens = effective_max_tokens
-        # Md19: store the construction params and build the
-        # smolagents model fresh in every ``_build_agent`` call
-        # rather than reusing one instance across concurrent agent
-        # sessions. Smolagents' model classes (LiteLLMModel,
+        # Store the construction params and build the smolagents
+        # model fresh in every ``_build_agent`` call rather than
+        # reusing one instance across concurrent agent sessions.
+        # Smolagents' model classes (LiteLLMModel,
         # OpenAIModel, VLLMModel) are not documented as stateless
         # for concurrent generate calls — they typically carry
         # mutable last_input_token_count / messages buffers that
@@ -638,8 +638,8 @@ class SmolagentsModel(Model):
         isolated agent, memory, and executor — smolagents mutates
         these during ``run()``. The smolagents model class
         (``LiteLLMModel`` / ``OpenAIModel`` / ``VLLMModel``) is also
-        constructed per-call (Md19) since the upstream classes are
-        not documented as thread-safe for shared use. Web tools are
+        constructed per-call, since the upstream classes are not
+        documented as thread-safe for shared use. Web tools are
         also constructed per-call (stateful in stock smolagents); KG
         tools are stateless wrappers over a shared ``EntityService``
         and are reused.
@@ -662,13 +662,12 @@ class SmolagentsModel(Model):
             model=smol_model,
             max_steps=self.max_steps,
             additional_authorized_imports=self._authorized_imports,
-            # Smolagents 1.24.0 changed the default code_block_tags from
-            # markdown fences to ``("<code>", "</code>")``. Most LLMs
-            # (Gemini, Claude, GPT) zero-shot-emit Python in
-            # ```python ... ``` fences, so the version default produced
-            # ~94% parse errors on tier-3b smoke runs. ``"markdown"``
-            # restores the previous behaviour and matches the model's
-            # natural output format.
+            # Smolagents 1.24.0 defaults code_block_tags to
+            # ``("<code>", "</code>")``. Most LLMs (Gemini, Claude,
+            # GPT) zero-shot-emit Python in ```python ... ``` fences,
+            # so that default produces ~94% parse errors on tier-3b
+            # smoke runs. ``"markdown"`` selects fence tags and
+            # matches the model's natural output format.
             code_block_tags="markdown",
             # Bridge Smolagents' rich-console output into loguru so
             # per-run ``run.log`` captures tier-3 agent traces (step
@@ -978,13 +977,12 @@ class SmolagentsModel(Model):
             # recover correctly — Claude in particular often appends
             # auxiliary numeric metadata.
             #
-            # Md9 tightening: when no preferred key is present and
-            # the payload has 2+ numeric fields, refuse to guess.
-            # The earlier behaviour silently fell through to the
-            # ``len(numeric_fields) == 1`` branch which already
-            # handles the unambiguous case; the explicit fail-fast
-            # here makes the intermediate-state-dict failure mode
-            # visible in error analysis.
+            # When no preferred key is present and the payload has
+            # 2+ numeric fields, refuse to guess: only the
+            # unambiguous ``len(numeric_fields) == 1`` case is
+            # recovered. Failing fast here makes the
+            # intermediate-state-dict failure mode visible in error
+            # analysis instead of scoring an arbitrary number.
             preferred_keys = (
                 "answer", "value", "distance_km", "area_km2",
                 "count", "result", "answer_value",
@@ -1047,8 +1045,8 @@ class SmolagentsModel(Model):
             return result_str, None
         return result, None
 
-    # Hex-only H3 cell IDs (the legacy ``Entity hex string (single)``
-    # canonical). Decimal / signed-int forms are accepted via
+    # Hex-only H3 cell IDs, as used by the ``Entity hex string
+    # (single)`` canonical. Decimal / signed-int forms are accepted via
     # ``_canonicalize_h3_hex`` for the H3 / S2 cell-index canonicals.
     _H3_RE = re.compile(r"^[0-9a-f]{14,16}$")
 
@@ -1102,8 +1100,8 @@ class SmolagentsModel(Model):
                 return None, False, True
 
         if answer_type == "Entity hex string (single)":
-            # Legacy hex-only H3 form. Decimal / signed-int forms
-            # belong to the ``H3 cell index`` / ``S2 cell index``
+            # Hex-only H3 form. Decimal / signed-int forms belong
+            # to the ``H3 cell index`` / ``S2 cell index``
             # canonicals below.
             if isinstance(answer, str) and self._H3_RE.match(answer.strip().lower()):
                 return answer.strip().lower(), False, False
@@ -1328,10 +1326,10 @@ class SmolagentsModel(Model):
         compute steps. On a normal answered run the last step is the
         ``final_answer`` step and is excluded; on ``cap_hit`` /
         ``no_final_answer`` runs every action step was a real
-        tool call and the count equals ``step_count``. The earlier
-        ``max(0, step_count - 1)`` formula undercounted by one
-        specifically on the failure cases — exactly where it
-        mattered most for the paper's tool-use analysis.
+        tool call and the count equals ``step_count``. A blanket
+        ``max(0, step_count - 1)`` would undercount by one on
+        exactly those failure cases, which is where the tool-use
+        analysis most needs the count to be exact.
         """
         total_input = 0
         total_output = 0
@@ -1507,7 +1505,7 @@ class SmolagentsOracleModel(SmolagentsModel):
             else _MAX_TOKENS_BY_SUB_TIER["3a"]
         )
         self._max_tokens = effective_max_tokens
-        # Md19: per-call smolagents model construction. See parent's
+        # Per-call smolagents model construction. See the parent's
         # ``__init__`` for rationale.
         self._smol_model_kwargs: dict[str, Any] = {
             "provider": provider,
@@ -1539,7 +1537,8 @@ class SmolagentsOracleModel(SmolagentsModel):
         Overrides :meth:`SmolagentsModel._build_agent` because the
         parent's per-call factory would attempt to construct KG / web
         tools — incompatible with the oracle's "compute-only" design.
-        Smolagents model is built per-call too (Md19).
+        The smolagents model is built per-call too, for the same
+        thread-safety reason as in the parent.
 
         ``tools`` argument is accepted for parent-class signature
         parity but ignored: the oracle agent is always tools-empty

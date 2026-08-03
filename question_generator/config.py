@@ -58,7 +58,7 @@ SPARK_DRIVER_MEMORY: str = os.getenv("SPARK_DRIVER_MEMORY", "8g")
 SPARK_EXECUTOR_MEMORY: str = os.getenv("SPARK_EXECUTOR_MEMORY", "8g")
 SPARK_TEMP_DIR: str | None = os.getenv("SPARK_TEMP_DIR")
 
-# Default entities per template (overridden by plan defaults or CLI)
+# Default entities per template (override with ENTITIES_PER_TEMPLATE)
 DEFAULT_ENTITIES_PER_TEMPLATE: int = int(os.getenv("ENTITIES_PER_TEMPLATE", "30"))
 
 # Planet-scale safety rails: cap per-pool row count before temp-view register
@@ -119,8 +119,8 @@ FAIL_ON_TEMPLATE_ERROR: bool = os.getenv("SPATIALBENCH_FAIL_ON_ERROR", "false").
 #   45, 46       — pathfinding via Overpass API (UDF not implemented)
 #   48, 49.1-3   — OSRM/Valhalla route pre-materialization pending
 #   50, 51       — same router pre-materialization
-# TIDs 47.1-3 were previously excluded but are pure Sedona SQL (linear
-# referencing via ST_LineLocatePoint); re-enabled 2026-04-23.
+# TIDs 47.1-3 are not excluded: their linear referencing
+# (ST_LineLocatePoint) is pure Sedona SQL and needs no extra infrastructure.
 EXCLUDED_TIDS: frozenset[str] = frozenset(
     t.strip()
     for t in os.getenv(
@@ -132,7 +132,7 @@ EXCLUDED_TIDS: frozenset[str] = frozenset(
 
 # TIDs to include (comma-separated). When set, ONLY these TIDs are processed.
 # Empty string (default) means all TIDs are included. Useful for debugging.
-# e.g. "1,22,112" to only generate distance, intersection, and coordinate questions.
+# e.g. "1,13,64" to only generate distance, intersection, and grid-cell questions.
 _included_raw = os.getenv("SPATIALBENCH_INCLUDED_TIDS", "")
 INCLUDED_TIDS: frozenset[str] | None = (
     frozenset(t.strip() for t in _included_raw.split(",") if t.strip())

@@ -1,9 +1,8 @@
 """KG snapshot identifier construction.
 
-Per the plan (Option A from the snapshot_id discussion), every saved
-:class:`benchmark_models.base.Prediction` carries a ``snapshot_id``
-string that lets re-runs and the eval pipeline verify they're working
-against the same KG state.
+Every saved :class:`benchmark_models.base.Prediction` carries a
+``snapshot_id`` string that lets re-runs and the eval pipeline verify
+they're working against the same KG state.
 
 The id has two forms depending on what's available at construction time:
 
@@ -196,7 +195,6 @@ _VERSIONED_RE = __import__("re").compile(
 def is_versioned(snapshot_id: str) -> bool:
     """Return ``True`` if ``snapshot_id`` is the tier-3 (versioned) form.
 
-    m18: tighter shape check than the v1 ``"@" in snapshot_id``.
     Snapshot ids are produced by :func:`build_versioned_snapshot_id`
     which guarantees ``<12-hex>@<12-hex>``; reject strings that
     happen to contain ``@`` but don't match the structure (defence

@@ -175,9 +175,10 @@ def get_final_ops(record: dict) -> list[str]:
     """Return the ops of the model whose output became the final question.
 
     Uses ``selected_model`` from the record if present (the explicit name set
-    by the ensemble). Falls back to text-matching for backwards compatibility
-    with records written before that field existed; the fallback only matches
-    successful models so failed-model fallback text never gets attributed.
+    by the ensemble). When a record carries no ``selected_model``, matches
+    ``final_question`` against each model's text instead; that path only
+    matches successful models so failed-model fallback text never gets
+    attributed.
     """
     model_outputs = record.get("model_outputs") or {}
 
@@ -188,7 +189,7 @@ def get_final_ops(record: dict) -> list[str]:
             return m.get("ops") or []
         return []
 
-    # Backwards-compat fallback for older output files without selected_model
+    # Text-match fallback for output files that carry no selected_model
     final_text = record.get("final_question", "")
     for name in MODEL_NAMES:
         m = model_outputs.get(name) or {}
@@ -359,9 +360,8 @@ def compute_language_stats(records: list[dict], total_final: Optional[int] = Non
             cooccurrence[f"{a}+{b}"] += 1
 
     # 9. Disagreement pattern tally — only over rows that fell back
-    # to Gemini (the ensemble's "low-confidence" bucket). Pre-2026-05
-    # this was filtered by the now-removed ``needs_human_review`` flag;
-    # decision == "fallback_gemini" is the equivalent signal.
+    # to Gemini (the ensemble's "low-confidence" bucket), i.e. the rows
+    # whose decision == "fallback_gemini".
     disagreement_tally: Counter = Counter()
     for r in records:
         if r.get("decision") != "fallback_gemini":
@@ -527,8 +527,8 @@ def compute_aggregate_stats(by_language: dict[str, dict]) -> dict:
     # Top 10 templates by global edit rate, computed from every TID — not
     # from each language's truncated per_tid_top10. Reads the internal
     # `_per_tid_full` emitted by compute_language_stats; falls back to
-    # `per_tid_top10` for backwards compatibility with caller-supplied dicts
-    # that only contain the public fields.
+    # `per_tid_top10` when a caller-supplied dict carries only the
+    # public fields.
     tid_totals: dict = defaultdict(lambda: {"total": 0, "edited": 0})
     for s in by_language.values():
         source = s.get("_per_tid_full") or s.get("per_tid_top10", [])

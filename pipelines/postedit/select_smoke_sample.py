@@ -1,6 +1,6 @@
 """Hand-curated smoke-sample selector for the post-edit pipeline.
 
-Picks ~50 representative questions per language from the renumbered
+Picks ~50 representative questions per language from the
 multilingual benchmark, mixed across three buckets:
 
 * **NO-EDIT (20 rows)** — templates with single entity, ASCII-only
@@ -22,7 +22,7 @@ multilingual benchmark, mixed across three buckets:
 Output:
 
 * ``output/postedit/smoke/<lang>.jsonl`` — the sampled rows in their
-  original schema (drop-in for the pipeline's legacy ``--input``).
+  original schema (drop-in for the pipeline's ``--input``).
 * ``output/postedit/smoke/<lang>_manifest.csv`` — bucket + heuristic
   reasoning per qid, so you can review what got picked.
 
@@ -30,9 +30,9 @@ Determinism: fixed seed; re-running produces the same sample.
 
 Usage::
 
-    uv run python scripts/postedit/select_smoke_sample.py
-    uv run python scripts/postedit/select_smoke_sample.py --languages eng,ron
-    uv run python scripts/postedit/select_smoke_sample.py --per-bucket 20,20,10
+    uv run python pipelines/postedit/select_smoke_sample.py
+    uv run python pipelines/postedit/select_smoke_sample.py --languages eng,ron
+    uv run python pipelines/postedit/select_smoke_sample.py --per-bucket 20,20,10
 """
 
 from __future__ import annotations
@@ -63,7 +63,7 @@ _HARD_ENTITY_RE = re.compile(
     r"^.{60,}$"                            # ≥60 chars
 )
 
-# TID prefixes that historically tend to NEED an edit on non-English
+# TID prefixes that tend to NEED an edit on non-English
 # (gender flips, preposition contractions, etc.). Used as a hint for
 # the SINGLE-EDIT bucket.
 _EDIT_PRONE_TID_PREFIXES = (
@@ -226,7 +226,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--benchmark-root", type=Path, default=DEFAULT_BENCHMARK_ROOT,
-        help="Root of the renumbered multilingual benchmark "
+        help="Root of the multilingual benchmark "
              "(default: %(default)s)",
     )
     parser.add_argument(

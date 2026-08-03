@@ -52,13 +52,13 @@ def _sample_countries_for_cell(
     """Pick ``countries_per_cell`` countries that have ≥ 1 candidate entity
     in **every** pool for this cell.
 
-    Earlier behaviour drew uniformly from ``strata.country_iso3.distinct()``
-    within the stratum, which let tiny countries with zero matching entities
-    win the lottery (e.g. HIC_high → LVA + RUS yielded 11 strata rows and 0
-    POIs). The fix: only sample from countries whose intersection across all
-    ``pool_filters`` is non-empty for this stratum cell. Asymmetric pools
-    (e.g. POI × Region) are handled by intersecting the per-pool country
-    sets — a country is eligible only if both pools have entities there.
+    Only countries whose intersection across all ``pool_filters`` is
+    non-empty for this stratum cell are sampled. Drawing uniformly from
+    ``strata.country_iso3.distinct()`` within the stratum instead lets tiny
+    countries with zero matching entities win the lottery (e.g. HIC_high
+    drawing LVA + RUS yields 11 strata rows and 0 POIs). Asymmetric pools
+    (e.g. POI x Region) are handled by intersecting the per-pool country
+    sets: a country is eligible only if both pools have entities there.
 
     Deterministic under ``cell_seed``: same inputs always yield the same
     pick. Returning an empty list means no country satisfies all pool
@@ -253,9 +253,9 @@ def _materialize_gold_triples(
     with a small broadcast probe set (~tens to hundreds of URIs per cell).
     A per-file bloom on ``subject`` lets the scan skip the vast majority of
     files via per-row-group membership lookup. Hash-bucket partitioning on
-    ``subject`` was tried (v4) and lost ~6× on cell wall vs bloom because
+    ``subject`` costs ~6x more cell wall clock than the bloom, because
     Spark does not auto-derive a partition predicate from a broadcast-driven
-    IN-list, so all partition files were scanned anyway.
+    IN-list, so all partition files get scanned anyway.
 
     Also writes a sibling ``_predicates.json`` next to the Delta containing
     the cache-key inputs ({kg, version, predicates, written_at}). This makes
@@ -313,9 +313,9 @@ def load_kg_context(
     caller must pass to ``close_kg_context`` (typically in a ``finally``)
     to release the strata cache.
 
-    ``prefix_map`` may be ``None`` only for legacy callers that don't use
+    ``prefix_map`` may be ``None`` for callers that don't use
     gold-triples SQL; in that case ``gold_triples_view`` falls back to the
-    raw triples view (pre-tuning behaviour).
+    raw triples view.
     """
     paths = resolve_kg_paths(kg)
 
@@ -324,7 +324,7 @@ def load_kg_context(
     # version flags, etc.) but share the same (entity_id, country, stratum).
     # Each such duplicate would otherwise become its own pool-view row, get a
     # separate ROW_NUMBER rank, and produce repeated entity_b values at
-    # adjacent ranks — surfaced visibly by the countries_per_cell=30 run.
+    # adjacent ranks.
     strata_df = (
         spark.read.format("delta")
         .load(paths.strata)
@@ -339,11 +339,11 @@ def load_kg_context(
     triples_df = spark.read.format("delta").load(paths.triples)
     triples_df.createOrReplaceTempView(triples_view)
 
-    # Persisted, Z-ordered gold-triples Delta. The first run for a (kg,
-    # prefix_map) combo materializes the filtered subset to disk and runs
-    # OPTIMIZE ZORDER BY (subject); subsequent runs skip straight to read.
-    # This replaces the prior lazy-filter-on-temp-view approach, which made
-    # the gold SQL re-evaluate the 9 B-row predicate scan on every CTE join
+    # Persisted gold-triples Delta. The first run for a (kg,
+    # prefix_map) combo materializes the filtered subset to disk with a
+    # bloom filter on ``subject``; subsequent runs skip straight to read.
+    # Filtering lazily on a temp view instead makes the gold SQL
+    # re-evaluate the 9 B-row predicate scan on every CTE join
     # (two scans per cell, no caching across cells).
     if prefix_map is not None and kg in prefix_map:
         # Union of every IRI declared for this KG across all roles. Roles
@@ -413,7 +413,7 @@ def build_pool_view(
 ) -> None:
     """Filter entities, inner-join strata, register as ``view_name``.
 
-    ``entities_path_or_df`` may be either a Delta path (back-compat; re-reads
+    ``entities_path_or_df`` may be either a Delta path (re-reads
     on every call) or a pre-loaded DataFrame (preferred; the caller holds the
     single read). Likewise ``strata_df`` is preferred over ``strata_path``
     for the same caching reason. The cached-DataFrame path reads once per
@@ -537,7 +537,7 @@ def render_main_sql(
     # (the contract checker enforces both directions).
     if shape.meta.join_condition is not None:
         substitutions["{join_condition}"] = shape.meta.join_condition
-    # Legacy cross-join sampling placeholders: only substituted when the
+    # Cross-join sampling placeholders: only substituted when the
     # corresponding sampling field is declared in meta.yaml. TIDs that
     # don't use the cross-join + bucket-rank structure leave these unset.
     # The contract checker enforces that any reference to a sampling-tied
@@ -566,7 +566,7 @@ def render_main_sql(
     # shape-wide → per-variant → per-KG (later wins). Per-KG handles
     # data-density tuning (radius_km on kwg vs osmh3kg); per-variant
     # handles category-label substitution (sfid_i 72/73/75/76's
-    # event_a_label without the brittle SQL CASE workaround).
+    # event_a_label, which a SQL CASE would otherwise have to encode).
     rendered_params = _resolve_parameters(shape.meta, kg, shape.variant_id)
     for key, value in rendered_params.items():
         substitutions[f"{{{key}}}"] = str(value)
@@ -745,10 +745,10 @@ def execute_tid_kg(
     # 1a. Country sub-sample: pick N deterministic country_iso3 values per
     #     (stratum, tid, variant, run_seed) restricted to countries that have
     #     candidate entities in EVERY pool for this cell. Bounds cross-join
-    #     volume and prevents tiny-country-with-no-entities draws (the bug
-    #     that gave HIC_high osmh3kg poi 0 rows). Only applies when we have
-    #     a stratum + a strata DF; pool-across-all mode keeps legacy
-    #     behaviour.
+    #     volume and prevents tiny-country-with-no-entities draws, which
+    #     yield empty cells. Only applies when we have
+    #     a stratum + a strata DF; pool-across-all mode does no country
+    #     narrowing.
     narrowed_strata = strata_src_df
     if stratum is not None and strata_src_df is not None:
         # Resolve entities_src to a DataFrame for the country sampler. In
@@ -873,9 +873,9 @@ def execute_tid_kg(
     main_df.createOrReplaceTempView(gt_result_view)
 
     # 5. Render and execute gold SQL with _gt_result swapped in. Output is
-    #    flat (entity_id, subject, predicate, object) — no GROUP BY. The
-    #    earlier collect_list aggregate was a single-task reducer that
-    #    stalled per-cell wall clock; emitting flat rows lets every join
+    #    flat (entity_id, subject, predicate, object) — no GROUP BY. A
+    #    collect_list aggregate here would be a single-task reducer that
+    #    stalls per-cell wall clock; emitting flat rows lets every join
     #    downstream parallelise normally. Output is keyed by entity_id;
     #    the exporter joins it to question_id via entity_a_id / entity_b_id.
     gold_sql = render_gold_sql(

@@ -40,12 +40,11 @@ def _assert_registry_covers_examples(
 
     The template registry must cover every TID present in the loaded
     benchmark slice. If it doesn't, the OpenAI/vLLM schema-build path
-    raises ``unknown tid 'X.Y'`` per row and ~50% of predictions
-    become silent ``error_class=config`` records (observed 2026-05-15
-    on the 2026-05-09 renumbered share — the registry hadn't been
-    regenerated, so 107/180 tids were unknown). Catching this at
-    startup turns a partially-corrupt run into a loud, actionable
-    error before any model call.
+    raises ``unknown tid 'X.Y'`` per row, and every row on an
+    uncovered TID lands as a silent ``error_class=config`` record, so
+    a registry that does not match the benchmark can void a large
+    share of a run. Catching this at startup turns a partially-corrupt
+    run into a loud, actionable error before any model call.
 
     Raises ``click.ClickException`` on missing TIDs so the CLI exits
     cleanly with the regen command in the error message.
@@ -456,10 +455,10 @@ def smoke(
 
             # Resolve the per-runner KG path from CLI args. When
             # --kg-source is not set, ``resolve_kg_path`` returns None
-            # and we error rather than fall back — the triple-native
-            # bridge needs a KG path AND a matching ``KGSchema``; the
-            # legacy env-var / fixture fallback path no longer makes
-            # sense without a schema.
+            # and we error rather than fall back: the triple-native
+            # bridge needs a KG path AND a matching ``KGSchema``, and
+            # an env-var or fixture path carries no schema to pair
+            # with it.
             resolved_kg_path = resolve_kg_path(
                 kg_source=kg_source,
                 kg_root=str(kg_root) if kg_root is not None else None,
@@ -623,7 +622,7 @@ def smoke(
     _assert_registry_covers_examples(examples, registry)
 
     # For oracle runs, verify every example's question_id is covered
-    # BEFORE the first predict call. Fail-loud policy decided in plan.
+    # BEFORE the first predict call; a gap raises immediately.
     if oracle_context is not None:
         from benchmark_models.oracle import assert_coverage
 

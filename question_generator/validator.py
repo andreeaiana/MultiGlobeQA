@@ -19,8 +19,8 @@ class BenchmarkValidator:
     """
     Validates benchmark ground truth values against per-type rules.
 
-    Dispatches validation by ``ground_truth_type`` when available, falling
-    back to SFID-based rules for backward compatibility.
+    Dispatches validation by ``ground_truth_type`` when that column is
+    present, and by SFID-based rules when it is not.
 
     Adds 'is_valid' (boolean) and 'validation_errors' (string) columns
     to the benchmark DataFrame.
@@ -215,7 +215,7 @@ class BenchmarkValidator:
                 .otherwise(default_errors)
             )
         else:
-            # Legacy SFID-based dispatch
+            # SFID-based dispatch: no ground_truth_type column on this frame
             sfid = F.col(sfid_col)
 
             is_valid_expr = (

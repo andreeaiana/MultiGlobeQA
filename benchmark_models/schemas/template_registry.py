@@ -2,9 +2,8 @@
 
 The template registry is the per-TID metadata the runner, scorer, and
 analysis code consult at startup: canonical answer type, SFID, and a
-few optional tags. It is generated from the finalized ``benchmark.jsonl``
-by ``scripts/build_template_registry_from_benchmark.py`` and versioned
-in git.
+few optional tags. It is derived from the finalized ``benchmark.jsonl``
+and ships as a versioned JSON file alongside this module.
 
 This module provides:
 

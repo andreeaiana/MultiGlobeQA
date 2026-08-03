@@ -309,8 +309,7 @@ class DateComponents:
     ``year`` is required; ``month`` and ``day`` may be ``None`` for
     year-level or month-level dates. :func:`date_to_midpoint`
     collapses a :class:`DateComponents` to a representative full
-    ``date`` object for day-distance arithmetic (Option B/C from
-    the eval-pipeline design discussion).
+    ``date`` object for day-distance arithmetic.
     """
 
     year: int
@@ -413,7 +412,7 @@ def date_components_match(pred: DateComponents, gold: DateComponents) -> bool:
     """Return True if every gold-specified component matches the
     prediction.
 
-    Implements the Option-C EM rule for dates: only compare fields
+    EM rule for dates: compare only the fields
     that the gold specifies; prediction-only extra precision is
     ignored. A year-only gold of 2019 matches a prediction of
     2019-06-15 (both specify year 2019); a day-level gold of
@@ -471,8 +470,8 @@ def date_precision_tolerance_days(pred: DateComponents, gold: DateComponents) ->
     prediction and gold precision.
 
     Tolerances are loaded from
-    ``scoring_spec.json:dates.precision_tolerance_days`` at import time
-    (D3); the default values are 365 / 15 / 1 for year / month / day.
+    ``scoring_spec.json:dates.precision_tolerance_days`` at import time;
+    the default values are 365 / 15 / 1 for year / month / day.
 
     The rule takes the coarser precision to avoid over-penalizing
     the model when the gold itself only specifies year.

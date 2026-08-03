@@ -6,14 +6,12 @@ segment (``images/<filename>``) interpreted as relative to
 directory whose immediate child is ``multimodal/`` — discovered at
 load time by walking up from the JSONL shard's path.
 
-This module also handles a **legacy** format the question generator
-emitted for prior versions of the benchmark: any path containing a
-``multimodal/<kg>/`` segment is re-rooted against the actual dataset
-root, the bogus prefix in front of ``multimodal/`` is discarded, and
-the ``<kg>`` segment from the legacy path is replaced with the row's
-``kg_source``. This shim lets us load benchmarks that haven't yet
-been migrated through :mod:`scripts.normalize_multimodal_image_paths`
-without changing the loader's contract.
+This module also handles a second, prefixed form: any path containing
+a ``multimodal/<kg>/`` segment is re-rooted against the actual dataset
+root, the prefix in front of ``multimodal/`` is discarded, and the
+``<kg>`` segment of the stored path is replaced with the row's
+``kg_source``. Both forms therefore resolve to the same location under
+a single loader contract.
 """
 
 from __future__ import annotations
@@ -30,13 +28,13 @@ def resolve_image_path(stored: str, source_path: Path, kg_source: str) -> str:
        any path that does not contain a ``multimodal/`` segment.
        Resolved as ``<dataset_root>/multimodal/<kg_source>/<stored>``.
 
-    2. **Legacy form**: any path containing a ``multimodal/<kg>/``
-       segment from the generator's stored stub (e.g. the literal
-       ``benchmark/eng/multimodal/<kg>/images/<file>`` that early
-       benchmark builds emitted). The segment from ``multimodal/``
-       onwards is extracted, its first component (the legacy ``<kg>``)
-       is replaced with the caller-supplied ``kg_source``, and the
-       remainder is composed under the discovered ``<dataset_root>``.
+    2. **Prefixed form**: any path containing a ``multimodal/<kg>/``
+       segment behind some other prefix (e.g.
+       ``<prefix>/multimodal/<kg>/images/<file>``). The segment from
+       ``multimodal/`` onwards is extracted, its first component (the
+       stored ``<kg>``) is replaced with the caller-supplied
+       ``kg_source``, and the remainder is composed under the
+       discovered ``<dataset_root>``.
 
     Args:
         stored: The ``path`` value as written on an ``images[*]`` entry.
@@ -44,9 +42,9 @@ def resolve_image_path(stored: str, source_path: Path, kg_source: str) -> str:
             (typically the leaf ``benchmark.jsonl/`` directory, or any
             descendant thereof). Used to discover ``<dataset_root>``.
         kg_source: The row's ``kg_source`` field — canonical KG name.
-            Wins over any KG segment that appears in a legacy stored
-            path so the resolved location matches the row's identity
-            rather than the legacy prefix's claim.
+            Wins over any KG segment that appears in a prefixed
+            stored path so the resolved location matches the row's
+            identity rather than the stored prefix's claim.
 
     Returns:
         The resolved path as a string. Returns the original ``stored``
@@ -74,7 +72,7 @@ def resolve_image_path(stored: str, source_path: Path, kg_source: str) -> str:
 
     parts = stored_path.parts
     if "multimodal" in parts:
-        # Legacy form: skip everything up to and including the legacy
+        # Prefixed form: skip everything up to and including the
         # ``<kg>`` segment that follows ``multimodal/``.
         idx = parts.index("multimodal")
         after = parts[idx + 1 :]

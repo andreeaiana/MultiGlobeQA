@@ -55,7 +55,7 @@ class SamplingConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     strategy: Literal["row_number_hash"] = "row_number_hash"
-    # All three legacy knobs are optional. They drive the {diversity_partition}
+    # All three knobs are optional. They drive the {diversity_partition}
     # / {per_bucket_cap} / {pool_cap} placeholders, which only appear in SQLs
     # that use the cross-join + bucket-rank sampling structure. TIDs using
     # rank-equality joins (or other structures) leave these unset and rely
@@ -92,14 +92,13 @@ class VariantConfig(BaseModel):
     one ftid need different SQL-substituted values that aren't expressible
     via the variant's ``applicable_kgs[*].pool_X.filter`` alone.
 
-    Concrete example: sfid_i 72/73/75/76 (Track 2.3 Phase B) needed each
-    variant to substitute a different display label into ``{{event_A}}``
-    via the SQL projection ``'{event_a_label}' AS event_a_name``. Without
-    per-variant ``parameters``, the shipped workaround used a shape-wide
-    SQL ``CASE node_type WHEN ... THEN ... END`` — brittle when adding a
-    4th category. With per-variant ``parameters: { event_a_label: ... }``,
-    each variant declares its own literal and the SQL just substitutes
-    ``{event_a_label}`` directly.
+    Concrete example: sfid_i variants each substitute a different display
+    label into ``{{event_A}}`` via the SQL projection
+    ``'{event_a_label}' AS event_a_name``. With per-variant
+    ``parameters: { event_a_label: ... }`` every variant declares its own
+    literal and the SQL just substitutes ``{event_a_label}`` directly.
+    The alternative, one shape-wide SQL ``CASE node_type WHEN ... THEN
+    ... END``, has to be edited every time a category is added.
 
     Resolution order at render time:
       1. start with ``TidMeta.parameters`` (shape-wide defaults)
@@ -153,8 +152,8 @@ class TidMeta(BaseModel):
     # either main or gold SQL. Validated by shape_contract.check_shape:
     # every key listed here MUST appear in at least one SQL; every
     # {placeholder} in either SQL must be either built-in or declared here;
-    # keys may not collide with built-in token names. Defaults to {} so
-    # existing meta.yaml files (which don't declare it) load unchanged.
+    # keys may not collide with built-in token names. Defaults to {}, so a
+    # meta.yaml that declares no substitutions is valid.
     parameters: dict[str, str | int | float] = Field(default_factory=dict)
 
     # Per-KG parameter overrides. Outer key is a KG name (osmh3kg, worldkg,

@@ -29,7 +29,7 @@ from loguru import logger
 
 @dataclass(slots=True, frozen=True)
 class Cell:
-    """One (kg, sfid_dir, language) leaf in the renumbered tree.
+    """One (kg, sfid_dir, language) leaf in the sampled tree.
 
     ``kg`` is the top-level KG bucket name. For the multimodal subtree
     ``kg == "multimodal"`` and ``sfid_dir`` carries the inner KG name
@@ -54,7 +54,7 @@ def iter_cells(
     kg: str | None = None,
     sfid: str | None = None,
 ) -> Iterator[Cell]:
-    """Yield every cell in the renumbered tree matching the filters.
+    """Yield every cell in the sampled tree matching the filters.
 
     * ``kg`` — restrict to one of ``kwg`` / ``osmh3kg`` / ``worldkg`` /
       ``multimodal``. ``None`` walks all four.

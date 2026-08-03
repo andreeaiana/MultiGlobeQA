@@ -12,7 +12,7 @@ class NtToDeltaConfig:
         input_path: Path to the input N-Triples file.
         triples_delta_path: Path for intermediate triples Delta table.
         entities_delta_path: Path for final entities Delta table.
-        h3_resolution: H3 resolution for spatial indexing (0-15, default 4).
+        h3_resolution: H3 resolution for spatial indexing (0-15, default 7).
         batch_size: Batch size for Rust parser (default 100000).
         rust_binary_path: Path to the nt_parser Rust binary.
         overwrite: Whether to overwrite existing Delta tables.
@@ -100,15 +100,15 @@ class NtToDeltaConfig:
             self.rust_binary_path = Path(self.rust_binary_path)
 
         # Predicate presets per KG source. Defaults above target worldkg/kwg
-        # (full URIs). The current osmh3kg pipeline (kg_creation in
+        # (full URIs). The osmh3kg pipeline (kg_creation in
         # data_extraction/osmh3kg/data_preparation/osm_kg_data_preparation.py)
         # writes full URIs for rdf:type / geo:hasGeometry / geo:asWKT, but
-        # bare OSM tag keys for labels (name, name:en). Older planet triples
-        # at /ceph/mboeckli/stkg/gold/knowledge_graph used short prefixes
-        # (rdf:type, geo:asWKT, ...) — that format is deprecated here; the
-        # 12-country subgraph at data/osmh3kg/osmh3kg_triples_subgraph is
-        # canonical. Without matching predicates every filter matches zero
-        # rows and the transformer silently writes an empty entity table.
+        # bare OSM tag keys for labels (name, name:en); the 12-country
+        # subgraph at data/osmh3kg/osmh3kg_triples_subgraph is the canonical
+        # input. Triples that use short prefixes (rdf:type, geo:asWKT, ...)
+        # are not matched by any preset. Without matching predicates every
+        # filter matches zero rows and the transformer silently writes an
+        # empty entity table.
         if self.kg_source == "osmh3kg":
             self.name_en_predicate = "name:en"
             self.label_predicates = ["name"]

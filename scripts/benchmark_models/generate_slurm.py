@@ -82,7 +82,7 @@ from benchmark_models.config import VariantConfig, load_models_catalogue
 
 # Project conventions: 17 target languages (English + the 16 multilingual
 # translations) and 4 KG buckets. Listed inline rather than imported from
-# scripts/postedit/config so the generator can be exercised without
+# pipelines/postedit/config so the generator can be exercised without
 # pulling in the postedit dependency chain.
 TARGET_LANGUAGES: tuple[str, ...] = (
     "eng",
@@ -92,8 +92,8 @@ TARGET_LANGUAGES: tuple[str, ...] = (
 
 KG_BUCKETS: tuple[str, ...] = ("kwg", "osmh3kg", "worldkg", "multimodal")
 
-# 14 SFIDs (a..n) emitted by the renumbering migration. This is the
-# full alphabet; per-KG coverage in ``SFIDS_BY_KG`` is a subset.
+# 14 SFIDs (a..n). This is the full alphabet; per-KG coverage in
+# ``SFIDS_BY_KG`` is a subset.
 SFIDS: tuple[str, ...] = tuple(f"sfid_{c}" for c in "abcdefghijklmn")
 
 # Per-KG SFID coverage, mirroring what's actually populated under
@@ -101,7 +101,7 @@ SFIDS: tuple[str, ...] = tuple(f"sfid_{c}" for c in "abcdefghijklmn")
 # after the postedit pass). Generating jobs for a (kg, sfid) cell that
 # doesn't exist on disk burns a SLURM allocation on a no-op walker.
 #
-# Coverage gaps (as of 2026-05-09 renumbering):
+# Coverage gaps:
 #   * kwg     — 13 SFIDs (no ``sfid_d``).
 #   * osmh3kg — 13 SFIDs (no ``sfid_i``).
 #   * worldkg —  9 SFIDs ({a, b, c, f, h, j, l, m, n}); the missing
@@ -146,7 +146,7 @@ JOBS_ROOT = REPO_ROOT / "jobs" / "benchmark_models"
 # Per-question cost is keyed by ``(tier, mode_key)`` where mode_key is
 # built by ``_mode_key_for_time_budget`` from the variant's tier,
 # sub_tier, ``--oracle-mode``, and ``--use-kg`` flags. Numbers come from
-# May 2026 observed run latencies (see ``benchmark_models/README.md``
+# observed run latencies (see ``benchmark_models/README.md``
 # for the audit). Conservative — uses the slower observed value when
 # API and vLLM differ, since oversize is harmless under the runner's
 # resume default while undersize burns time.
@@ -186,7 +186,7 @@ _COLD_START_OVERHEAD_S: dict[tuple[str, bool], int] = {
 
 # Safety buffer added on top of the linear estimate. Covers: network /
 # API retry storms, occasional long agent steps, vLLM kv-cache flush
-# pauses on long sessions. 30 min is the user-chosen value.
+# pauses on long sessions. Fixed at 30 min.
 _TIME_BUFFER_S: int = 30 * 60
 
 # Partition wall caps (minutes). Both Helix ``gpu-single`` and bwUC3
@@ -279,8 +279,8 @@ class _Cell:
     seed: int | None = None
     """When set, the generated script passes ``--seed <N>`` to the runner
     and the output / log / job-name paths embed the seed so multiple
-    seed-different runs don't collide on disk. ``None`` keeps the
-    pre-multi-seed paths untouched (backward compatible)."""
+    seed-different runs don't collide on disk. ``None`` leaves the
+    seed out of both the runner flags and those paths."""
 
     kg_dispatch: str = ""
     """The actual KG name passed to ``--kg-source`` and used to drill
@@ -400,8 +400,8 @@ fi
 
 # vLLM-HTTP header for BwUniCluster: 1×H100, launches ``vllm serve``
 # in the background, waits for /health, runs the smoke, traps to kill
-# serve on exit. Mirrors the postedit pattern at
-# ``scripts/postedit/generate_slurm.py`` lines 76-150.
+# serve on exit. Same vLLM-serve pattern as the postedit generator at
+# ``pipelines/postedit/generate_slurm.py``.
 _VLLM_HTTP_HEADER_BWUC3 = """#!/bin/bash
 #SBATCH --partition={gpu_partition}
 #SBATCH --nodes=1
@@ -499,7 +499,7 @@ export VLLM_BASE_URL=http://localhost:$VLLM_PORT/v1
 
 # vLLM-HTTP header for Helix: wraps ``vllm serve`` in a Singularity
 # container because the host glibc is too old for in-tree vLLM
-# wheels. Mirrors postedit lines 153-242.
+# wheels. Same container pattern as the postedit generator.
 _VLLM_HTTP_HEADER_HELIX = """#!/bin/bash
 #SBATCH --partition={gpu_partition}
 #SBATCH --nodes=1
@@ -600,8 +600,6 @@ export VLLM_BASE_URL=http://localhost:$VLLM_PORT/v1
 #   2. (No CUDA module load — irrelevant for API jobs, but DWS has no
 #      LMOD installed at all, so we couldn't ``module load`` even on
 #      the GPU side.)
-#
-# See docs/superpowers/specs/2026-05-21-dws-cluster-support-design.md §3.
 _API_HEADER_DWS = """#!/bin/bash
 #SBATCH --partition={cpu_partition}
 #SBATCH --nodes=1
@@ -637,7 +635,7 @@ export JAVA_HOME=/usr/lib/jvm/java-21-openjdk
 
 
 # vLLM-HTTP header for DWS Mannheim. Mirrors _VLLM_HTTP_HEADER_BWUC3
-# with three deltas (see spec §2):
+# with three deltas required by the DWS environment:
 #
 #   1. No ``module load devel/cuda/12.8``. DWS has no LMOD; CUDA is
 #      provided by the partition node image (``/usr/local/cuda*``,
@@ -926,7 +924,7 @@ def _enumerate_cells(
     """Expand (lang, kg, [sfid]) × seeds into one cell per job.
 
     When ``seeds`` is ``None`` or empty, each (lang, kg, [sfid]) produces a
-    single cell with ``seed=None`` and the legacy paths apply. When
+    single cell with ``seed=None`` and no seed segment in the paths. When
     ``seeds`` has one or more values, each (lang, kg, [sfid]) is
     multiplied by the seed list — i.e., ``--seeds 42,43,44`` triples the
     script count and embeds each seed in the output path.
@@ -984,9 +982,9 @@ def _mode_tag(
     """One-token disambiguator for runs that share (variant, lang, kg, sfid)
     but differ in evaluation regime.
 
-    The bare variant invocation has tag ``""`` (paths unchanged, so existing
-    runs and downstream eval keep working). ``--oracle-mode <m>`` tags as
-    ``oracle-<m>``; ``--use-kg`` on a tier-3a/3c variant tags as ``usekg``.
+    The bare variant invocation has tag ``""`` (no extra path segment).
+    ``--oracle-mode <m>`` tags as ``oracle-<m>``; ``--use-kg`` on a
+    tier-3a/3c variant tags as ``usekg``.
 
     Oracle wins over use-kg when both are passed — the runner short-circuits
     ``use_kg`` whenever ``oracle_mode`` is set (cli.py:387-393), so the two
@@ -1349,8 +1347,8 @@ def render_script(
     """Render the full SLURM script body for one cell.
 
     ``cluster`` picks the partition / GPU type / workspace path bundle.
-    Default ``bwuc3`` keeps existing behaviour; pass ``"helix"`` to
-    emit Helix-compatible scripts (Singularity-wrapped vllm serve,
+    Default ``bwuc3`` emits bwUniCluster 3.0 scripts; pass ``"helix"``
+    to emit Helix-compatible scripts (Singularity-wrapped vllm serve,
     H200 GPU type, cpu-single partition for API runs).
 
     ``workspace_root`` overrides the per-cluster default scratch root

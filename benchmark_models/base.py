@@ -7,7 +7,7 @@ Defines:
     - ``Prediction``: single flat pydantic model for a model's answer to one example.
     - ``Model``: abstract base class with ``predict()`` and ``predict_batch()``.
 
-Design notes (see the plan file for full rationale):
+Design notes:
 
 * Single flat ``Prediction`` model (not three subclasses) — tier-specific
   extras are optional fields. Same shape for tier 1 / tier 2 / tier 3.
@@ -169,9 +169,9 @@ def parse_bool_or_none(value: Any) -> bool | None:
     """Coerce a gold-field boolean that may be a real bool, a
     ``"true"`` / ``"false"`` string, or ``None``.
 
-    The upstream benchmark generator (in ``benchmark_generation``)
-    writes ``is_true_premise`` as the **string** ``"false"`` /
-    ``"true"`` rather than a JSON boolean. A naive
+    The upstream benchmark generator writes ``is_true_premise`` as
+    the **string** ``"false"`` / ``"true"`` rather than a JSON
+    boolean. A naive
     ``if row.get("is_true_premise"):`` then treats the string
     ``"false"`` as truthy, silently inverting premise-aware scoring.
 
@@ -219,12 +219,11 @@ def parse_bool_or_none(value: Any) -> bool | None:
 class ImageContent(BaseModel):
     """One image attached to a multimodal example.
 
-    The 2026-05-07 share onwards ships images by URL reference: the
-    benchmark JSON carries the target ``path`` and ``mime_type`` per
-    image, and the matching ``multimodal:image_url`` gold-triple
-    points at the source URL. Image bytes are downloaded out-of-band
-    by ``scripts/download_multimodal_images.py``, which writes each
-    file to ``{question_id}_{slot}.{ext}`` under
+    Images are shipped by URL reference: the benchmark JSON carries
+    the target ``path`` and ``mime_type`` per image, and the matching
+    ``multimodal:image_url`` gold-triple points at the source URL.
+    Image bytes are downloaded out-of-band, each file landing as
+    ``{question_id}_{slot}.{ext}`` under
     ``benchmark/final/<size>/multimodal/<kg>/images/``.
 
     The runner consumes ``ImageContent`` records when
@@ -253,15 +252,15 @@ class ImageContent(BaseModel):
     JSONL location via :func:`benchmark_models.image_paths.resolve_image_path`
     and writes back the absolute path, so by the time downstream code
     (backends, ``read_image_bytes``) sees an ``ImageContent`` the value
-    is an absolute filesystem path. A legacy-format shim accepts the
-    earlier ``benchmark/eng/multimodal/<kg>/images/<file>`` shape that
-    the generator emitted before the published-dataset migration —
-    see :func:`benchmark_models.image_paths.resolve_image_path` for
-    the resolution rules. Backends open this lazily — the runner does
+    is an absolute filesystem path. The resolver also accepts a
+    prefixed form, ``<prefix>/multimodal/<kg>/images/<file>``, which
+    it re-roots against the discovered dataset root — see
+    :func:`benchmark_models.image_paths.resolve_image_path` for the
+    resolution rules. Backends open this lazily — the runner does
     not pre-load bytes."""
 
     mime_type: str
-    """MIME type as written by the cleanup script
+    """MIME type recorded for the image file
     (``"image/jpeg"`` / ``"image/png"`` / ``"image/webp"`` / ...).
     Each backend adapter passes this through to the provider so the
     upload is correctly tagged."""
@@ -469,18 +468,17 @@ class Example(BaseModel):
     does not carry the field."""
 
     image_path: str | None = None
-    """Single-image path field. Populated only by shares that carry
-    one image per row at the top level; current multimodal shares
-    populate :attr:`images` instead and leave this ``None``."""
+    """Single-image path field. Populated only when a row carries one
+    image at the top level; multimodal rows populate :attr:`images`
+    instead and leave this ``None``."""
 
     images: list[ImageContent] = Field(default_factory=list)
     """Images attached to this example, in slot order
     (``"A"``, ``"B"``, ...). Empty for non-multimodal rows. The
     benchmark generator emits this list directly with ``slot``,
     ``path``, and ``mime_type`` per image; image bytes are
-    downloaded out-of-band via
-    ``scripts/download_multimodal_images.py``. The question text
-    uses ``[IMAGE_<slot>]`` placeholders that align with each entry's
+    downloaded out-of-band. The question text uses
+    ``[IMAGE_<slot>]`` placeholders that align with each entry's
     :attr:`ImageContent.slot`. The runner routes images to the
     backend (image mode) or substitutes names into the placeholders
     (name mode); see ``--multimodal-mode``."""
@@ -667,15 +665,15 @@ class Example(BaseModel):
                     break
                 letter_part, attr = tail.rsplit("_", 1)
                 # ``category`` is canonically read from ``parameters``
-                # for entities, but transient share versions have
-                # placed it at the top level. Accept both —
-                # ``_build_refs`` prefers the top-level value when
-                # present and falls back to ``parameters`` otherwise.
+                # for entities, but some rows carry it at the top
+                # level instead. Accept both — ``_build_refs`` prefers
+                # the top-level value when present and falls back to
+                # ``parameters`` otherwise.
                 # Anything outside the known set lands in ``raw`` with
                 # a warning so genuine schema drift remains visible.
                 if attr not in {"id", "name", "subcategory", "category"}:
                     break
-                # m1: require a single-letter slot key. Multi-letter
+                # Require a single-letter slot key. Multi-letter
                 # keys (e.g., ``entity_aaa_id``) would otherwise pass
                 # the ``.isalpha()`` check and land as slot "AAA",
                 # which the templates and downstream code don't
@@ -723,8 +721,8 @@ class Example(BaseModel):
                     )
                     continue
                 if not has_id and not has_name and subcategory is None:
-                    # Truly empty slot — nothing to record. Silent,
-                    # same as before.
+                    # Truly empty slot — nothing to record, and
+                    # nothing to warn about.
                     continue
 
                 # Resolve category. Top-level ``<prefix><letter>_category``
@@ -914,13 +912,12 @@ class Usage(BaseModel):
     of agent steps; 0 for predictions that never reached the model
     such as registry-miss errors).
 
-    m2: default is 0, not 1 — backends explicitly set to 1 (or the
-    tier-3 step count) when a real call was made. The previous
-    default-1 value silently inflated api_call_count on records
-    where no API call happened (e.g., DummyModel non-error and the
-    error-prediction helpers in every backend that explicitly
-    overrode to 0). Defaulting to 0 makes the implicit contract
-    explicit: only set non-zero when a call was actually made."""
+    The default is 0, not 1 — backends explicitly set 1 (or the
+    tier-3 step count) when a real call was made. A default of 1
+    would silently inflate api_call_count on records where no API
+    call happened (e.g., DummyModel non-error paths and the
+    error-prediction helpers in the backends). Defaulting to 0 keeps
+    the contract explicit: non-zero only when a call was made."""
 
 
 class ToolCall(BaseModel):
@@ -958,8 +955,8 @@ class Prediction(BaseModel):
     Single flat schema across all tiers; tier-specific fields are
     optional. Serialized as one JSON line per record into
     ``results/<experiment>/<variant>/predictions.jsonl``. The eval
-    pipeline (separate branch) reads these records and applies per-type
-    matchers and metric aggregations.
+    pipeline reads these records and applies per-type matchers and
+    metric aggregations.
     """
 
     # Provenance — always present.
@@ -980,9 +977,9 @@ class Prediction(BaseModel):
     """Identifier of the prompt template used (e.g., ``"tier1.canonical"``)."""
     seed: int
     snapshot_id: str
-    """KG snapshot pinning identifier (Option A from the plan
-    discussion). Recorded so re-runs can verify they hit the same KG
-    state. Constructed by :mod:`benchmark_models.snapshot`:
+    """KG snapshot pinning identifier. Recorded so re-runs can verify
+    they hit the same KG state. Constructed by
+    :mod:`benchmark_models.snapshot`:
 
     * Tier 1 / tier 2: a 12-char hash of the KG path env vars
       (``WORLDKG_*``, ``OSMH3KG_*``, ``KWG_*``). No Spark required.
@@ -992,10 +989,10 @@ class Prediction(BaseModel):
       session), separated by ``@`` — e.g.,
       ``"a1b2c3d4e5f6@9f8e7d6c5b4a"``.
 
-    Code provenance (which ``benchmark_models`` / ``benchmark_generation``
-    commit produced these predictions) is *not* on the prediction
-    record — it lives in MLflow run-level params instead, since it's
-    constant across all predictions in a run."""
+    Code provenance (which commit produced these predictions) is
+    *not* on the prediction record — it lives in MLflow run-level
+    params instead, since it's constant across all predictions in a
+    run."""
 
     # Response — always present (answer can be ``None`` for refusal).
     answer: Any

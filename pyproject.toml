@@ -1,0 +1,122 @@
+[project]
+name = "multiglobeqa"
+version = "1.0.0"
+description = "A multilingual, globally distributed benchmark for execution-verified geospatial reasoning"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+
+# Scoring predictions and running tier-1 / tier-2 inference needs only these.
+# Spark, the knowledge-graph stack and the model runtimes are extras, because
+# most users score a prediction file and never build a knowledge graph.
+dependencies = [
+    "click>=8.0.3",
+    "geopy>=2.4.1",
+    "h3>=4.0.0",
+    "httpx>=0.28.1",
+    "loguru>=0.7.0",
+    "mlflow>=2.9.0",
+    "pandas>=2.0.0",
+    "pillow>=10.0.0",
+    "pydantic>=2.0.0",
+    "pyproj>=3.6.0",
+    "pyyaml>=6.0.0",
+    "requests>=2.31.0",
+    "shapely>=2.0.0",
+]
+
+[project.optional-dependencies]
+# Model inference. google-genai and openai cover the hosted and the
+# OpenAI-compatible (vLLM) surfaces; smolagents drives the tier-3 agent loop.
+models = [
+    "google-genai>=1.70.0",
+    "openai>=2.24.0",
+    "tiktoken>=0.8.0",
+    # Pinned: the tier-3 wrapper depends on smolagents' code_block_tags="markdown"
+    # semantics and on the CodeAgent.run(images=...) signature. Re-verify both,
+    # and the multimodal tier-3 variants, before widening this range.
+    "smolagents[litellm,toolkit]>=1.24.0,<1.25.0",
+]
+
+# Serving open weights locally. CUDA-only and large; needed only on machines
+# that will run `vllm serve`.
+vllm = [
+    "vllm>=0.6",
+    "accelerate>=1.0.0",
+    "torch>=2.4.0",
+    "transformers>=4.45.0",
+]
+
+# Tier-3 knowledge-graph retrieval reads the KG Delta tables through Spark.
+kg = [
+    "apache-sedona>=1.7.0",
+    "delta-spark>=3.0.0",
+    "pyspark>=3.5.0",
+]
+
+# Rebuilding the questions from a knowledge graph.
+generate = [
+    "apache-sedona>=1.7.0",
+    "delta-spark>=3.0.0",
+    "networkx>=3.0",
+    "numpy>=1.24.0",
+    "osmnx>=2.0.0",
+    "pyspark>=3.5.0",
+]
+
+# Rebuilding a knowledge graph from its source dumps.
+kg-build = [
+    "geopandas>=0.14.0",
+    "graphframes-py==0.10.0",
+    "h3-pyspark>=1.2.0",
+    "igraph>=1.0.0",
+    "osmium>=4.0.0",
+    "osmpythontools>=0.3.6",
+    "rdflib>=7.0.0",
+    "sparqlwrapper>=2.0.0",
+    "tqdm>=4.67.1",
+]
+
+# Translation and LLM post-editing.
+pipelines = [
+    "google-cloud-translate>=3.18.0",
+    "google-genai>=1.70.0",
+    "openai>=2.24.0",
+    "openpyxl>=3.1.0",
+]
+
+dev = [
+    "mypy>=1.0.0",
+    "pytest>=9.0.2",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.1.0",
+]
+
+[project.scripts]
+multiglobeqa = "question_generator.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["benchmark_eval", "benchmark_models", "data_extraction", "question_generator"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
+ignore = ["E501", "N812", "SIM108"]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-q --tb=short"

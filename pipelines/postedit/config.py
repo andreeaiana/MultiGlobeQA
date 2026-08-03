@@ -8,7 +8,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DEFAULT_BENCHMARK_ROOT = PROJECT_ROOT / "benchmark" / "sampled_multilingual"
 DEFAULT_TEMPLATES_CSV = PROJECT_ROOT / "benchmark" / "raw_eng_renumbered" / "templates.csv"
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "output" / "postedit"
-# The renumbered, post-edited benchmark the pipeline writes. Has the same
+# The post-edited benchmark the pipeline writes. Has the same
 # layout as DEFAULT_BENCHMARK_ROOT (<kg>/sfid_*/<lang>/benchmark.jsonl/part-*,
 # plus multimodal/<inner_kg>/<lang>/...), so cell_walker.iter_cells walks it
 # unchanged. Stats join against it to recover the true per-language row
@@ -78,5 +78,5 @@ TARGET_LANGUAGES = (
     "por_PT", "ron", "rus", "sqi", "tur", "urd", "vie", "zho_CN",
 )
 
-# --- KG buckets in the renumbered layout ---
+# --- KG buckets in the benchmark layout ---
 KG_BUCKETS = ("kwg", "osmh3kg", "worldkg", "multimodal")

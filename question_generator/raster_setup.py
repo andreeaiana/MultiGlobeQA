@@ -1,11 +1,9 @@
 """Shared raster + population grid view registration.
 
-Both the legacy ``ComputeFirst`` pipeline and the newer shape-based pipeline
-need population-related Spark temp views (``pop_tiles``, ``pop_by_cell``,
-``h3_cells_df``) for raster-dependent TIDs (e.g. TID 21.1 — radius population
-buffer). Originally this lived inside ``ComputeFirst._register_population_view``
-and was therefore unreachable from the shape pipeline; this module is the
-single source of truth that both call sites now delegate to.
+The question-generation pipelines need population-related Spark temp views
+(``pop_tiles``, ``pop_by_cell``, ``h3_cells_df``) for raster-dependent TIDs
+(e.g. TID 21.1, radius population buffer). This module is the single source
+of truth that every call site delegates to.
 
 Idempotent: calling ``register_population_views`` repeatedly per session is
 safe — already-present views short-circuit before any expensive raster parse.
@@ -90,8 +88,8 @@ def register_population_views(spark: SparkSession, kg_label: str) -> None:
                 # partition. A downstream CROSS JOIN against pop_tiles
                 # then inherits the single-partition layout and collapses
                 # to a single task evaluating RS_ZonalStats sequentially
-                # across every (anchor × tile) pair — TID 21.1 smoke
-                # 242399 hung 22+ min in this exact pattern.
+                # across every (anchor x tile) pair, which can stall a
+                # raster-dependent TID for tens of minutes.
                 #
                 # Repartition by defaultParallelism (= spark.master's
                 # local[N] thread count, e.g. 16 in our SLURM config) so

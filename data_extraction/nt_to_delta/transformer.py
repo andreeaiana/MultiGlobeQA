@@ -38,9 +38,9 @@ RDFS_LABEL = "http://www.w3.org/2000/01/rdf-schema#label"
 # collect_list size per task to ~max_parts_per_entity / SALT_BUCKETS, so a
 # mega-multipolygon (e.g. a planet-scale admin boundary with millions of
 # exploded parts) fans out across 256 tasks instead of piling onto a
-# single partition. Bumped from 64 → 256 after observing one task write
-# 12.2 GiB (vs 135 MiB median) on an entity whose exploded parts all fell
-# into the same salt bucket.
+# single partition. A lower count (e.g. 64) still leaves enough of one
+# entity's exploded parts in a single bucket for one task to write 12.2 GiB
+# against a 135 MiB median.
 SALT_BUCKETS = 256
 
 
@@ -124,8 +124,8 @@ def compute_h3_index(lat: float, lon: float, resolution: int) -> str | None:
 def _extract_local_name_expr(uri_col: F.Column) -> F.Column:
     """Extract the local name from a URI column using native Spark SQL.
 
-    Equivalent to the old ``extract_local_name`` Python UDF but runs entirely
-    in the JVM, avoiding per-row Python serialization overhead.
+    Equivalent to the ``extract_local_name`` Python helper above but runs
+    entirely in the JVM, avoiding per-row Python serialization overhead.
 
     Examples::
 
@@ -187,9 +187,10 @@ def _literal_date_expr(raw_literal_col: F.Column) -> F.Column:
 def _h3_index_expr(geometry_col: F.Column, resolution: int) -> F.Column:
     """Compute H3 cell ID from a WKT geometry column using Sedona's ST_H3CellIDs.
 
-    Replaces the old Python UDF chain of extract_coords_from_wkt → compute_h3_index
-    with a pure JVM expression. Uses ST_GeomFromWKT to parse WKT and ST_H3CellIDs
-    to compute the covering H3 cells; takes the first cell as the primary index.
+    Computes the index as a pure JVM expression (no Python UDF chain through
+    extract_coords_from_wkt / compute_h3_index). Uses ST_GeomFromWKT to parse WKT
+    and ST_H3CellIDs to compute the covering H3 cells; takes the first cell as the
+    primary index.
 
     Returns NULL for invalid or empty geometries.
     """
@@ -412,10 +413,11 @@ class TriplesTransformer:
         #   Stage 1 groups by (entity_uri, salt) so a hot entity (e.g. a
         #     planet-scale admin boundary with thousands of exploded parts)
         #     fans out across SALT_BUCKETS sub-partitions, bounding per-task
-        #     collect_list size. The prior code used ST_Union_Aggr here, which
-        #     is a streaming aggregate but crashed on JTS non-noded intersection
-        #     errors in OverlayOp on pathological OSM vertex pairs. ST_Collect
-        #     does no JTS overlay math, so the crash path is eliminated.
+        #     collect_list size. ST_Collect is used here rather than
+        #     ST_Union_Aggr: ST_Union_Aggr is a streaming aggregate but crashes
+        #     on JTS non-noded intersection errors in OverlayOp on pathological
+        #     OSM vertex pairs. ST_Collect does no JTS overlay math, so that
+        #     crash path cannot arise.
         #   Stage 2 merges the ≤SALT_BUCKETS partials per entity into one
         #     MultiGeometry (memory-bounded by construction).
         # rand seed is fixed so stage retries are idempotent across failures.
@@ -427,8 +429,8 @@ class TriplesTransformer:
         # collect_list aggregate. 1e-4 deg ≈ 10 m tolerance, which is at
         # the edge of OSM's nominal 1-5 m accuracy and well below the
         # granularity that H3-res-7 indexing (~5 km edge) or downstream
-        # spatial-join metrics care about. Previous value 1e-6 (≈ 10 cm)
-        # was too fine to materially shrink mega-entity WKT.
+        # spatial-join metrics care about. A tolerance of 1e-6 (about 10 cm)
+        # is too fine to materially shrink mega-entity WKT.
         # PreserveTopology variant prevents self-intersection on concave
         # inputs; pays a constant factor in simplification cost vs plain
         # ST_Simplify but is the only safe option for polygon data.

@@ -72,8 +72,8 @@ class Triple(TypedDict):
     Predicate is a full URI.
 
     ``entity_role`` is optional — populated by :func:`load_gold_triples`
-    from the per-row ``entity_role`` field on the new flat-format share.
-    Older callers that built ``Triple`` dicts manually omit it; the
+    from the per-row ``entity_role`` field of the gold-triples share.
+    Callers that build ``Triple`` dicts directly may omit it; the
     formatters do not require it.
     """
 
@@ -117,7 +117,7 @@ class OracleContext:
     matches the runtime default in
     :class:`benchmark_models.kg_tools.entity_service.EntityService`
     so oracle and tier-3a/3c use-kg modes simplify uniformly without
-    explicit configuration. Originally added because raw ZCTA / country
+    explicit configuration. It matters because raw ZCTA / country
     polygons can exceed the 32 K context window of open-weights
     backends and silently truncate; with the default on, even a
     32-K-context model serves oracle modes correctly out of the box.
@@ -469,7 +469,7 @@ def _is_aswkt(pred: str) -> bool:
 
 
 def format_verbalized(triples: list[Triple]) -> str:
-    """Render triples as natural-language prose (Option B: entity-aggregated).
+    """Render triples as natural-language prose, aggregated per entity.
 
     Triples are grouped by subject. For each subject, emit one sentence
     that combines its ``rdf:type`` (if present) and its geometry (via
@@ -486,12 +486,10 @@ def format_verbalized(triples: list[Triple]) -> str:
     predicate-level template (``Entity X has <pred-suffix> Y.``), so
     unusual schemas still render losslessly.
 
-    Bug history: the previous implementation only matched
-    ``hasGeometry`` as the chain predicate, so WorldKG entities (which
-    use ``spatialObject``) had their geometries silently dropped from
-    the rendered output. That biased tier-1 ``oracle_verbalized``
-    baselines downward on coordinate-dependent WorldKG questions and
-    also affected any future tier-3 use of this format.
+    Matching only ``hasGeometry`` as the chain predicate would silently
+    drop the geometries of WorldKG entities, which link via
+    ``spatialObject``, and bias tier-1 ``oracle_verbalized`` baselines
+    downward on coordinate-dependent WorldKG questions.
     """
     # Group triples by subject while preserving first-seen order for
     # deterministic output.

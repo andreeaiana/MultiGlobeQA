@@ -168,8 +168,8 @@ def create_model(
 
         # Resolve tier-3 knobs in priority order:
         #   CLI override → models.yaml variant config → built-in default
-        # ``getattr`` lets variants that predate the new fields fall
-        # through cleanly without YAML migration.
+        # ``getattr`` lets variants that don't declare these optional
+        # fields fall through cleanly.
         max_steps = (
             max_steps_override
             if max_steps_override is not None
@@ -191,7 +191,7 @@ def create_model(
             else getattr(config, "web_search_timeout_seconds", None)
         )
 
-        # G: resolve multimodal mode for tier-3 (same priority as
+        # Resolve the multimodal mode for tier-3 (same priority as
         # tiers 1+2 below). Tier-3 only honours "image" / "name" /
         # "off"; non-multimodal variants leave it "off".
         tier3_multimodal_mode: MultimodalMode = (

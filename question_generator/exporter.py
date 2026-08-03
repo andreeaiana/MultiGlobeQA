@@ -191,11 +191,11 @@ class BenchmarkExporter:
             )
 
         # Entity names. Event placeholders ({{event_A}}, {{event_B}}) get
-        # their own column family (event_a_name / event_b_name) instead of
-        # collapsing onto entity_a_name / entity_b_name. The collapse was
-        # broken for ftids whose question template uses BOTH placeholders
-        # in the same row (e.g. sfid_i 77.1 / 81.1: "When did {{event_A}}
-        # hit {{entity_A}}?"). The new event_* columns are projected
+        # their own column family (event_a_name / event_b_name) rather than
+        # collapsing onto entity_a_name / entity_b_name, so a template that
+        # uses BOTH placeholder families in one row (e.g. sfid_i 77.1 /
+        # 81.1: "When did {{event_A}} hit {{entity_A}}?") resolves each
+        # slot independently. The event_* columns are projected
         # directly by the per-ftid SQL when the slot is an event INSTANCE
         # (vs a category LABEL — those use meta.parameters substitution
         # via the executor, not column substitution here).
@@ -374,9 +374,9 @@ class BenchmarkExporter:
                 ``gold_triples.parquet`` (and ``gold_triples.jsonl``) after
                 inner-joining on the surviving question_ids in ``df`` — so
                 gold rows tied to dropped questions become orphans and are
-                excluded. When ``None``, falls back to the legacy path of
-                deriving gold from a ``gold_triples`` JSON column on ``df``
-                (only used by older callers / direct tests).
+                excluded. When ``None``, gold is derived instead from a
+                ``gold_triples`` JSON column on ``df`` (the path direct
+                exporter tests use).
 
         Returns:
             Dictionary mapping format names to their output file paths.
@@ -400,8 +400,8 @@ class BenchmarkExporter:
 
             # Hard gate: a row is either valid or it does not ship. The
             # validator has already populated is_valid upstream; absence of
-            # the column (older callers that skipped validation) is treated
-            # as True so direct exporter tests keep working.
+            # the column (callers that skip validation) is treated as True
+            # so direct exporter tests keep working.
             if "is_valid" in df.columns:
                 df = df.filter(
                     F.coalesce(F.col("is_valid"), F.lit(True)) == True  # noqa: E712
@@ -426,15 +426,16 @@ class BenchmarkExporter:
             # Split gold triples into a separate DataFrame. Derive from
             # export_df (post-gate, post-dedup) via inner join so every gold
             # row has a matching benchmark row. Taking gold from the pre-dedup
-            # df previously produced 371 orphan gold-triple rows in a full run.
+            # df emits orphan gold-triple rows whose question never ships.
             #
             # Two paths:
             #   * gold_triples_df supplied — flat triples keyed by entity_id.
             #     Join each role column (entity_a_id, entity_b_id, …) on the
             #     post-dedup df to attach question_id and emit one flat row
             #     per (question, role, triple).
-            #   * gold_triples_df not supplied — fall back to the legacy JSON
-            #     column on df. Kept for direct exporter-only tests.
+            #   * gold_triples_df not supplied — gold comes from the
+            #     ``gold_triples`` JSON column on df, the path that direct
+            #     exporter-only tests use.
             gold_export_df: DataFrame | None = None
             if gold_triples_df is not None:
                 # Discover role columns by convention: anything matching

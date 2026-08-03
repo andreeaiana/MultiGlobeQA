@@ -23,8 +23,8 @@ Four query primitives:
 
 Sidecar indexes
 ---------------
-The bridge auto-detects two optional Z-ordered Delta tables built by
-``scripts/build_kg_indexes.py``:
+The bridge auto-detects two optional Z-ordered Delta tables, when they
+are present alongside the KG's triples table:
 
 * ``<kg_path>/subject_index/`` — same triples, Z-ordered on
   ``subject``. Lets ``filter(subject == X)`` get parquet row-group
@@ -53,12 +53,9 @@ from typing import Any, Iterable
 
 from loguru import logger
 
-# Re-use the JAR-coordinate constant declared on the old module so the
-# transition between bridges doesn't drift on Spark dependency
-# versioning. ``executor_bridge`` will become a re-export shim of
-# this module after the migration, but during the transition both
-# modules live side-by-side; pointing at the existing constant
-# avoids divergence.
+# Share the JAR-coordinate constant with ``executor_bridge`` rather
+# than declaring a second copy, so both bridges pin exactly the same
+# Spark dependency versions and cannot drift apart.
 from benchmark_models.kg_tools.executor_bridge import (
     SEDONA_PACKAGES,
     _is_delta_table,
@@ -141,9 +138,9 @@ class TripleBridge:
             # Memory sizing — both heap and JVM off-heap direct buffers
             # need headroom for a persistent agent session.
             #
-            # ``spark.driver.memory=16g`` (was 8g, originally 4g) bumps
-            # the JVM heap so Spark's Catalyst planner + Parquet column
-            # readers have room across many small per-call queries.
+            # ``spark.driver.memory=16g`` gives the JVM heap room for
+            # Spark's Catalyst planner + Parquet column readers across
+            # many small per-call queries.
             #
             # ``spark.driver.extraJavaOptions=-XX:MaxDirectMemorySize=16g``
             # caps the JVM's off-heap direct ByteBuffer pool at 16 GiB
@@ -151,12 +148,12 @@ class TripleBridge:
             # set it explicitly so the cap doesn't silently track heap
             # changes).
             #
-            # Bump history:
-            #   * 4 GiB default OOM'd on gemini tier-3a get_entity
-            #     against kwg — ~107 parquet shards read in parallel
-            #     via async NIO file channels, each holding a direct
-            #     buffer until GC. Fatal at 4.28 GiB allocated.
-            #   * 8 GiB OOM'd on qwen35-27b tier-3a-image against
+            # Why 16 GiB rather than less:
+            #   * 4 GiB is exhausted by a tier-3a get_entity against
+            #     kwg — ~107 parquet shards read in parallel via async
+            #     NIO file channels, each holding a direct buffer until
+            #     GC. Fatal at 4.28 GiB allocated.
+            #   * 8 GiB is exhausted by a tier-3a-image run against
             #     osmh3kg multimodal — the slice's broader name /
             #     category searches scan more shards than kwg, and the
             #     agent's 10 KG-calls-per-question accumulates buffers
@@ -165,11 +162,10 @@ class TripleBridge:
             #     OutOfMemoryError: Cannot reserve ~133MB direct buffer
             #     ... limit: 8589934592`` at
             #     ``SimpleAsynchronousFileChannelImpl``.
-            # The SLURM allocation is 128 GiB so 16 GiB heap + 16 GiB
+            # On a 128 GiB SLURM allocation, 16 GiB heap + 16 GiB
             # direct = 32 GiB still leaves ~96 GiB for OS, Python,
-            # vLLM client buffers, etc. Plenty of headroom for a
-            # potential fourth bump if a larger KG / slice exhausts
-            # this too.
+            # vLLM client buffers, etc., so both caps have room to be
+            # raised again if a larger KG / slice exhausts them too.
             .config("spark.driver.memory", "16g")
             .config("spark.driver.extraJavaOptions", "-XX:MaxDirectMemorySize=16g")
             .config("spark.sql.shuffle.partitions", "8")
@@ -199,9 +195,8 @@ class TripleBridge:
         )
         if not _is_delta_table(subject_index_path):
             logger.warning(
-                "No subject_index/ sidecar at {}; subject-keyed reads "
-                "fall back to the full triples table (slow at production scale). "
-                "Build with: uv run python scripts/build_kg_indexes.py --kg {}",
+                "No subject_index/ sidecar at {} for {}; subject-keyed reads "
+                "fall back to the full triples table (slow at production scale).",
                 subject_index_path, schema.name,
             )
         self._name_df = (
@@ -318,12 +313,11 @@ class TripleBridge:
                 df = df.filter(F.col("predicate").isin(*preds))
             df = df.limit(limit)
             # The name_index Delta carries (subject, predicate, object,
-            # name_lower) per scripts/build_kg_indexes.py, so the
-            # original-cased ``object`` column is always present —
-            # access it directly rather than via the dict-style
-            # ``.get(default)`` which Spark Row doesn't support
-            # (raises PySparkAttributeError: Attribute 'get' is not
-            # supported, observed live on the first tier-3a smoke).
+            # name_lower) columns, so the original-cased ``object``
+            # column is always present — access it directly rather
+            # than via the dict-style ``.get(default)`` which Spark Row
+            # doesn't support (raises PySparkAttributeError: Attribute
+            # 'get' is not supported).
             return [
                 {
                     "subject": r["subject"],
@@ -404,8 +398,7 @@ class TripleBridge:
         which refuses relative paths and produces
         ``TABLE_OR_VIEW_NOT_FOUND`` for any path that isn't a registered
         table. The Python API takes a literal filesystem path, so it
-        works on the bare Delta directories the bridge loads. Same
-        rationale as ``scripts/build_kg_indexes.py:_zorder_via_python_api``.
+        works on the bare Delta directories the bridge loads.
 
         Returns an empty dict when every probe fails — the snapshot
         then stays paths-only with a logger warning per missed table.

@@ -16,9 +16,8 @@ Defines:
 
 :class:`ScoreRecord` is deliberately a flat schema (nullable
 per-type drill-down fields) so the JSONL file reads cleanly into a
-pandas DataFrame for downstream analysis. An alternative dict-based
-``drill_down`` field was rejected because it forces unnesting before
-analysis.
+pandas DataFrame for downstream analysis; a nested dict-based
+``drill_down`` field would force unnesting before analysis.
 """
 
 from __future__ import annotations
@@ -102,9 +101,9 @@ class GoldRow(BaseModel):
     rows where the question's premise does not hold and the expected
     answer is abstention; ``True`` marks rows explicitly validated as
     real-premise; ``None`` when the benchmark row omits the field.
-    Used by the scorer to flip abstention from EM=0 (old default, which
-    penalised correct abstentions) to EM=1 when ``ground_truth is
-    None``."""
+    Used by the scorer to score an abstention as EM=1 when
+    ``ground_truth is None``, so a correct abstention is not
+    penalised."""
 
 
 # ---------------------------------------------------------------------------
@@ -156,18 +155,18 @@ class ScoreRecord(BaseModel):
     # ``mean_latency_ms`` / ``total_input_tokens`` / ``total_output_tokens``
     # without joining against the predictions JSONL. Useful for paper
     # tables that report latency / cost alongside accuracy. Defaults
-    # mirror :class:`benchmark_models.base.Usage` so older score-record
-    # files deserialize cleanly.
+    # mirror :class:`benchmark_models.base.Usage` so score-record files
+    # that omit these fields deserialize cleanly.
     input_tokens: int = 0
     output_tokens: int = 0
     cached_tokens: int = 0
-    """I: prompt-caching hits denormalised from
+    """Prompt-caching hits denormalised from
     :attr:`benchmark_models.base.Usage.cached_tokens`. ``0`` when the
     backend doesn't expose cache info (vLLM) or no cache was hit
     on this prediction. Rolls up to
     :attr:`AggregateReport.total_cached_tokens`."""
     cache_creation_tokens: int = 0
-    """I: Anthropic-specific cache-seed premium. ``0`` for other
+    """Anthropic-specific cache-seed premium. ``0`` for other
     backends. Rolls up to
     :attr:`AggregateReport.total_cache_creation_tokens`."""
     latency_ms: float = 0.0
@@ -214,14 +213,14 @@ class ScoreRecord(BaseModel):
     format_error: bool = False
     """``True`` when the prediction couldn't be parsed into the
     expected type. Implies ``em=0``, ``ne=1``, ``covered=False``.
-    Distinct from :attr:`gold_missing` (v2): a format error blames the
+    Distinct from :attr:`gold_missing`: a format error blames the
     prediction; gold-missing blames the upstream gold."""
     gold_missing: bool = False
-    """v2: ``True`` when the gold row carries no usable answer
+    """``True`` when the gold row carries no usable answer
     (refusal on a row with ``ground_truth is None`` AND
     ``is_true_premise`` is not False — i.e., neither a real-premise
     row with a gold answer nor an explicit false-premise marker).
-    Split from ``format_error`` so the aggregator can separate
+    Kept distinct from ``format_error`` so the aggregator can separate
     upstream gold-defect counts from scorer-side parse failures.
     Implies ``em=0``, ``ne=1``, ``covered=False``."""
     resolve_failure: bool | None = None
@@ -229,9 +228,9 @@ class ScoreRecord(BaseModel):
     :func:`benchmark_eval.aliases.resolve` returned ``None`` for the
     prediction. ``None`` when the type isn't alias-backed."""
     refusal: bool = False
-    """v2: ``True`` when the prediction was a refusal
+    """``True`` when the prediction was a refusal
     (``answer is None`` or ``Prediction.refusal``). Counted as
-    not-covered in v2 ``coverage_rate``. Distinct from ``format_error``
+    not-covered in ``coverage_rate``. Distinct from ``format_error``
     and ``gold_missing``: a refusal is a deliberate model output, a
     format error is unparseable, gold-missing is a data defect."""
 
@@ -258,8 +257,8 @@ class ScoreRecord(BaseModel):
     # Spatial-proximity companions (grid-cell types only: MGRS-like
     # grid cell, Composite string (H3+S2)). ``None`` for every other
     # answer type — the aggregator filters those out when averaging.
-    # ``em`` stays the strict exact-ID match (backward-compatible; it
-    # feeds the universal ``em_micro``), while these companions
+    # ``em`` stays the strict exact-ID match (it feeds the universal
+    # ``em_micro``), while these companions
     # recompute EM/NE after decoding both sides to a geographic
     # location and scoring by geodesic proximity. This credits a
     # prediction that identifies the right place under a different but
@@ -337,7 +336,7 @@ class GroupStats(BaseModel):
     n_covered: int
     em: float | None
     """Mean EM over the group. Equivalent to "accuracy at tolerance τ"
-    for the group's answer type. ``None`` for empty groups (B5 fix);
+    for the group's answer type. ``None`` for empty groups;
     in the normal aggregation path the group is non-empty by
     construction, so ``None`` only appears for defensive direct
     callers of :func:`_group_stats`.
@@ -361,16 +360,16 @@ class GroupStats(BaseModel):
     unconditional :attr:`ne` blends real error magnitude with fiat
     max-error padding; restricting to ``covered`` rows removes the padding
     and leaves the informative signal. ``None`` when ``n_covered=0`` or the
-    group is empty. Default ``None`` keeps old score-record / report files
-    deserializing cleanly."""
+    group is empty. Default ``None`` keeps score-record / report files
+    that omit the field deserializing cleanly."""
 
-    # False-premise stratification, per group. Added so every per-group
+    # False-premise stratification, per group. Every per-group
     # rollup (per_answer_type / per_sfid / per_kg / per_strata_cell /
     # per_income_tier) exposes a true-premise-only EM, mirroring the
     # global ``em_true_premise`` / ``negative_rejection_rate``. Without
-    # these, a group's headline ``em`` silently credited correct
-    # false-premise refusals as capability. Defaults keep old
-    # score-record / report files deserializing cleanly.
+    # these, a group's headline ``em`` silently credits correct
+    # false-premise refusals as capability. Defaults keep
+    # score-record / report files that omit them deserializing cleanly.
     n_true_premise: int = 0
     n_false_premise: int = 0
     em_true_premise: float | None = None
@@ -419,7 +418,7 @@ class AggregateReport(BaseModel):
 
     # Coverage / formatting.
     #
-    # v2 redefinition: ``coverage_rate`` is the fraction of rows whose
+    # ``coverage_rate`` is the fraction of rows whose
     # prediction was parseable AND non-refusal AND not gold-missing.
     # Refusals, format errors, and gold-missing rows are counted
     # separately so the four categories ``answer_rate`` /
@@ -431,7 +430,7 @@ class AggregateReport(BaseModel):
     n_covered: int
     coverage_rate: float
     """Fraction of rows where the prediction was parseable AND
-    non-refusal AND not gold-missing. **Important caveat (C3)**:
+    non-refusal AND not gold-missing. **Important caveat**:
     on a *false-premise* row (``is_true_premise=False``) a refusal
     is the correct answer and counts as ``covered=True``. So
     ``coverage_rate`` does NOT mean "fraction of questions the model
@@ -443,20 +442,20 @@ class AggregateReport(BaseModel):
     n_format_errors: int
     format_error_rate: float
     n_refusals: int = 0
-    """v2: count of rows where the prediction was a refusal (model
-    returned ``answer=None``). Default 0 for backward compatibility
-    when an old report is loaded by a v2 aggregator."""
+    """Count of rows where the prediction was a refusal (model
+    returned ``answer=None``). Default 0 so reports that omit the
+    field deserialize cleanly."""
     refusal_rate: float = 0.0
-    """v2: ``n_refusals / n_total``."""
+    """``n_refusals / n_total``."""
     n_gold_missing: int = 0
-    """v2: count of rows where the gold answer is missing
+    """Count of rows where the gold answer is missing
     (``ground_truth is None`` without a false-premise marker).
-    Separated from ``format_error`` so upstream gold defects don't
+    Kept separate from ``format_error`` so upstream gold defects don't
     inflate the scorer-side failure count."""
     gold_missing_rate: float = 0.0
-    """v2: ``n_gold_missing / n_total``."""
+    """``n_gold_missing / n_total``."""
     answer_rate: float = 0.0
-    """v2 alias for ``coverage_rate`` (same value). Provided so
+    """Alias for ``coverage_rate`` (same value). Provided so
     paper-table writers can use the more descriptive name without
     re-deriving it. ``answer_rate + refusal_rate + format_error_rate
     + gold_missing_rate ≈ 1.0`` (within rounding) when no substrate-error
@@ -509,8 +508,8 @@ class AggregateReport(BaseModel):
     correct false-premise refusals (NE=1 there), so on a mixed population
     this averages attempted-answer error together with false-premise
     non-answers; read alongside :attr:`ne_true_premise` for the
-    real-premise-only view. Default ``None`` for backward compatibility —
-    old reports without the field deserialize cleanly."""
+    real-premise-only view. Default ``None`` so reports without the
+    field deserialize cleanly."""
 
     # Majority-class baseline (the no-reasoning floor). Model-independent
     # — computed from the gold label distribution alone: for each TID,
@@ -538,19 +537,20 @@ class AggregateReport(BaseModel):
     # the strict EM/NE (never more lenient than the strict pair).
     # Fields are ``None`` when the run has zero numeric predictions.
     #
-    # DENOMINATOR POLICY (fixed): these are computed over **all
+    # DENOMINATOR POLICY: these are computed over **all
     # Numeric-typed rows**, scoring a refusal / format-error / harness
     # error as its actual EM (0 for a real-premise miss; a correct
     # false-premise refusal keeps EM=1, exactly as ``em_micro`` does).
-    # This makes ``numeric_em_strict`` finally equal "``em_micro``
+    # This makes ``numeric_em_strict`` equal "``em_micro``
     # restricted to numeric rows" (its documented contract) and, crucially,
     # COMPARABLE across models: a model cannot inflate it by refusing the
-    # hard rows. The old computation averaged only over the scored-success
-    # subset (``unit_match is not None``), a model-chosen denominator that
-    # produced 36× gaps and ranking inversions. The scored-subset numbers
-    # are preserved as the ``*_conditional`` companions below, and
-    # ``numeric_retained_fraction`` exposes how much of the population they
-    # cover. ``None`` when the run has zero Numeric-typed rows.
+    # hard rows. Averaging over the scored-success subset
+    # (``unit_match is not None``) instead is a model-chosen denominator
+    # that produces gaps of up to 36x and ranking inversions. The
+    # scored-subset numbers are available as the ``*_conditional``
+    # companions below, and ``numeric_retained_fraction`` exposes how much
+    # of the population they cover. ``None`` when the run has zero
+    # Numeric-typed rows.
     numeric_em_strict: float | None = None
     """Mean EM over ALL Numeric-typed rows under strict unit matching —
     ``em_micro`` restricted to numeric rows. Comparable across models."""
@@ -566,15 +566,14 @@ class AggregateReport(BaseModel):
     numeric_ne_unit_normalized: float | None = None
     """Mean NE over ALL Numeric-typed rows with unit-normalized
     distance. Lower than ``numeric_ne_strict`` when the model was
-    off-by-a-unit (e.g. m vs km), since the per-row NE is no longer
+    off-by-a-unit (e.g. m vs km), since the per-row NE is not
     pinned to 1.0 by the unit-induced 1000× gap."""
     numeric_em_conditional: float | None = None
     """DIAGNOSTIC (model-chosen denominator — NOT comparable across
     models): mean EM over the scored-success subset only (numeric rows
     that produced a parseable number; refusals / format-errors
-    excluded). The old ``numeric_em_strict``. Read as "accuracy when the
-    model attempted a number", never as a headline. ``None`` when no
-    numeric row was scored."""
+    excluded). Read as "accuracy when the model attempted a number",
+    never as a headline. ``None`` when no numeric row was scored."""
     n_numeric_typed: int = 0
     """Count of Numeric-typed rows — the denominator of the unconditional
     numeric metrics above."""
@@ -603,7 +602,7 @@ class AggregateReport(BaseModel):
     grid_ne_spatial: float | None = None
     n_grid_spatial: int = 0
     """Count of grid-cell predictions that received a spatial companion
-    score (non-null ``em_spatial``). Default 0 for backward compat."""
+    score (non-null ``em_spatial``). Default 0 on reports that omit it."""
 
     # Capability vs harness split.
     # ``em_micro`` counts errors as wrong so harness failures depress
@@ -616,21 +615,20 @@ class AggregateReport(BaseModel):
     """EM over predictions that are not harness failures. Equivalent
     to ``em_micro`` over the subset where ``error_class`` is not in
     ``{infra, code_gen}``. Matches the "capability-only" number
-    readers can apply their own adjustment to. Default 0.0 for
-    backward compatibility — old reports without the field deserialize
-    cleanly."""
+    readers can apply their own adjustment to. Default 0.0 so reports
+    without the field deserialize cleanly."""
     ne_adjusted: float = 0.0
     """Mean NE over predictions that are not harness failures — the NE
     analogue of :attr:`em_adjusted` (rows whose ``error_class`` is in
     ``{infra, context_overflow, code_gen}`` are excluded from the
     denominator). Since NE is padded to 1.0 on harness failures, dropping
     those rows separates model-side error magnitude from harness-induced
-    fiat max-error. Default 0.0 for backward compatibility."""
+    fiat max-error. Default 0.0 on reports that omit the field."""
     n_harness_errors: int = 0
     """Count of predictions classified as harness errors (``infra`` +
     ``context_overflow`` + ``code_gen``). Complementary to
     ``n_format_errors`` which counts scorer-side parse failures rather
-    than model/runtime failures. Default 0 for backward compatibility."""
+    than model/runtime failures. Default 0 on reports that omit it."""
     n_missing_predictions: int = 0
     """Count of current-benchmark gold qids that have NO prediction in
     this cell (gold size minus scored rows). Scoring is prediction-driven,
@@ -640,7 +638,7 @@ class AggregateReport(BaseModel):
     are valid and scoreable, there is just no model output. Missing rows
     are NOT scored as EM=0 here; use this rate to flag / exclude
     incomplete cells from cross-model comparisons. 0 when ``n_gold`` is
-    not supplied to ``build_report`` (e.g. old callers / unit fixtures)."""
+    not supplied to ``build_report`` (e.g. unit fixtures)."""
     missing_prediction_rate: float = 0.0
     """``n_missing_predictions / n_gold`` (0.0 when ``n_gold`` unknown)."""
     error_class_breakdown: dict[str, int] = Field(default_factory=dict)
@@ -696,8 +694,8 @@ class AggregateReport(BaseModel):
     """Mean NE over real-premise rows (``is_true_premise is True``) — the
     NE analogue of :attr:`em_true_premise`. The real-premise-only error
     magnitude, uncontaminated by false-premise non-answers (which pad NE to
-    1.0). ``None`` when no real-premise rows exist. Default ``None`` for
-    backward compatibility."""
+    1.0). ``None`` when no real-premise rows exist. Default ``None`` on
+    reports that omit the field."""
     negative_rejection_rate: float | None = None
     false_refusal_rate: float | None = None
     """Over-abstention / false-refusal rate: the fraction of answerable
@@ -709,7 +707,7 @@ class AggregateReport(BaseModel):
     false-premise detection from blanket abstention. Together with
     ``negative_rejection_rate`` (premise validity x answered/abstained)
     this forms the detection 2x2. ``None`` when no true-premise rows
-    exist. Default ``None`` for backward compatibility."""
+    exist. Default ``None`` on reports that omit the field."""
 
     # Set-enumeration aggregate roll-up. Per-record set P/R/F1 already
     # live on :class:`ScoreRecord`; these fields surface their means
@@ -718,18 +716,17 @@ class AggregateReport(BaseModel):
     # (which counts strict set equality only). ``None`` when the run
     # has zero set-enumeration predictions.
     #
-    # DENOMINATOR POLICY (fixed): ``mean_set_*`` are over **all
+    # DENOMINATOR POLICY: ``mean_set_*`` are over **all
     # Set-enumeration-typed rows**, scoring a refusal / format-error as
-    # P/R/F1 = 0 (it produced no set). Comparable across models. The old
+    # P/R/F1 = 0 (it produced no set). Comparable across models. The
     # scored-subset numbers (``set_f1 is not None``) are the
     # ``*_conditional`` companions; ``set_retained_fraction`` shows their
-    # coverage. ``n_set_records`` keeps its historical meaning (scored
-    # subset) for backward compatibility; ``n_set_typed`` is the new
-    # unconditional denominator.
+    # coverage. ``n_set_records`` counts the scored subset;
+    # ``n_set_typed`` is the unconditional denominator.
     n_set_records: int = 0
     """Count of set rows on the scored-success path (``set_f1 is not
-    None``). Historical field — the denominator of the ``*_conditional``
-    metrics, NOT of ``mean_set_*``."""
+    None``). The denominator of the ``*_conditional`` metrics, NOT of
+    ``mean_set_*``."""
     n_set_typed: int = 0
     """Count of all Set-enumeration-typed rows — the denominator of the
     unconditional ``mean_set_*`` metrics."""
@@ -747,8 +744,8 @@ class AggregateReport(BaseModel):
     0). Comparable across models."""
     mean_set_f1_conditional: float | None = None
     """DIAGNOSTIC (model-chosen denominator): mean set F1 over the
-    scored-success subset only. The old ``mean_set_f1``. Read as "set
-    quality when the model produced a set", never as a headline."""
+    scored-success subset only. Read as "set quality when the model
+    produced a set", never as a headline."""
 
     # Tier-3 operational metrics. Computed over records where
     # ``tool_call_count is not None`` (i.e., tier-3 only). ``None`` on
@@ -804,11 +801,11 @@ class AggregateReport(BaseModel):
     total_input_tokens: int = 0
     total_output_tokens: int = 0
     total_cached_tokens: int = 0
-    """I: sum of :attr:`ScoreRecord.cached_tokens` across all records.
+    """Sum of :attr:`ScoreRecord.cached_tokens` across all records.
     Lets paper tables compute real (post-cache) input cost rather
     than nominal — when the backend reports cache hits."""
     total_cache_creation_tokens: int = 0
-    """I: sum of Anthropic ``cache_creation_input_tokens`` across
+    """Sum of Anthropic ``cache_creation_input_tokens`` across
     records. The upfront premium when seeding new cache entries;
     pair with :attr:`total_cached_tokens` to compute cache ROI."""
     mean_latency_ms: float | None = None
@@ -845,7 +842,7 @@ class AggregateReport(BaseModel):
     ``{"alpha": 0.01}`` when the operator used ``--alpha 0.01``. Empty
     when the run used spec defaults."""
 
-    # Reproducibility hashes (E-3). Pin the report to the inputs it
+    # Reproducibility hashes. Pin the report to the inputs it
     # was scored against so a re-run with a different alias store or
     # a re-issued benchmark share is detectable at a glance.
     alias_store_sha256: str | None = None

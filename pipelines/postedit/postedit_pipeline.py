@@ -1,6 +1,6 @@
 """LLM ensemble post-editing pipeline.
 
-Reads instantiated benchmark questions from the renumbered multilingual
+Reads instantiated benchmark questions from the multilingual
 benchmark layout, runs an ensemble of three LLMs to fix minor
 grammar/syntax issues caused by entity substitution, votes on the
 best correction, and writes structured output JSONL — one file per
@@ -8,26 +8,26 @@ best correction, and writes structured output JSONL — one file per
 
 Usage:
     # Walk every cell of one language under benchmark/sampled_multilingual
-    uv run python scripts/postedit/postedit_pipeline.py --language deu
+    uv run python -m pipelines.postedit.postedit_pipeline --language deu
 
     # One language + one KG (typical SLURM-job granularity)
-    uv run python scripts/postedit/postedit_pipeline.py \\
+    uv run python -m pipelines.postedit.postedit_pipeline \\
         --language deu --kg kwg
 
     # Just one cell
-    uv run python scripts/postedit/postedit_pipeline.py \\
+    uv run python -m pipelines.postedit.postedit_pipeline \\
         --language deu --kg kwg --sfid sfid_a
 
     # Resume after a kill: skip qids that already have a row
-    uv run python scripts/postedit/postedit_pipeline.py \\
+    uv run python -m pipelines.postedit.postedit_pipeline \\
         --language deu --kg kwg --resume skip-done
 
     # Re-run only rows where any model failed previously
-    uv run python scripts/postedit/postedit_pipeline.py \\
+    uv run python -m pipelines.postedit.postedit_pipeline \\
         --language deu --kg kwg --resume retry-failed
 
-    # Legacy single-file mode (kept for tests + ad-hoc runs)
-    uv run python scripts/postedit/postedit_pipeline.py \\
+    # Single-file mode (tests + ad-hoc runs)
+    uv run python -m pipelines.postedit.postedit_pipeline \\
         --input /tmp/sample.jsonl --output /tmp/results.jsonl --language eng
 
 Environment variables:
@@ -99,8 +99,9 @@ DEFAULT_FINAL_ROOT = Path(__file__).resolve().parents[2] / "benchmark" / "final"
 def _atomic_write_jsonl(path: Path, rows: list[dict]) -> None:
     """Write ``rows`` to ``path`` via ``.tmp`` + ``os.replace``.
 
-    Mirrors the helper in ``scripts/migrations/migrate_to_new_taxonomy.py``;
-    duplicated here to keep postedit free of cross-package imports.
+    The rename is atomic, so an interrupted run never leaves a
+    half-written file in place of a good one. Implemented locally to
+    keep postedit free of cross-package imports.
     """
     import os as _os
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -273,9 +274,8 @@ def process_question(
     """Run all clients in parallel for one question and return the ensemble record.
 
     ``system_prompt`` defaults to the language-agnostic base prompt if
-    not given (back-compat with existing tests). Production callers
-    should pass the riderized prompt from
-    :func:`prompts.get_system_prompt`.
+    not given. Production callers should pass the riderized prompt
+    from :func:`prompts.get_system_prompt`.
 
     ``template_text`` defaults to ``question.base_template`` (English)
     if not given. Production callers should pass the target-language
@@ -504,7 +504,7 @@ def parse_args() -> argparse.Namespace:
     # Cell-walking inputs (preferred mode)
     parser.add_argument(
         "--benchmark-root", type=Path, default=DEFAULT_BENCHMARK_ROOT,
-        help=f"Root of the renumbered multilingual benchmark "
+        help=f"Root of the multilingual benchmark "
              f"(default: {DEFAULT_BENCHMARK_ROOT})",
     )
     parser.add_argument(
@@ -532,15 +532,15 @@ def parse_args() -> argparse.Namespace:
         help=f"Output root for cell results (default: {DEFAULT_OUTPUT_DIR})",
     )
 
-    # Legacy single-file mode (kept for tests / ad-hoc runs)
+    # Single-file mode (tests / ad-hoc runs)
     parser.add_argument(
         "--input", type=Path, default=None,
-        help="Legacy single-file input JSONL. If set, --benchmark-root "
+        help="Single-file input JSONL. If set, --benchmark-root "
              "/ --kg / --sfid are ignored.",
     )
     parser.add_argument(
         "--output", type=Path, default=None,
-        help="Legacy single-file output JSONL (paired with --input).",
+        help="Single-file output JSONL (paired with --input).",
     )
 
     # Resume + concurrency
@@ -594,13 +594,13 @@ def parse_args() -> argparse.Namespace:
              "MLFLOW_EXPERIMENT_NAME or 'Postedit')",
     )
 
-    # benchmark/final/large/ writer (post-edited questions in the renumbered
+    # benchmark/final/large/ writer (post-edited questions in the benchmark
     # tree layout; complements the per-question audit JSONL under
     # output/postedit/).
     parser.add_argument(
         "--final-root", type=Path, default=DEFAULT_FINAL_ROOT,
         help=f"Root dir for the post-edited benchmark JSONL "
-             f"(mirrors the renumbered tree layout). Default: "
+             f"(mirrors the benchmark tree layout). Default: "
              f"{DEFAULT_FINAL_ROOT}",
     )
     parser.add_argument(
@@ -706,8 +706,7 @@ def _run_cell(
 
 
 def _legacy_single_file_main(args: argparse.Namespace) -> int:
-    """Back-compat path for ``--input`` single-file mode (kept for
-    fixtures + ad-hoc runs).
+    """Single-file mode driven by ``--input`` (fixtures + ad-hoc runs).
 
     Loads the templates registry if ``--templates-csv`` points to an
     existing file; otherwise the prompt's TEMPLATE field is the row's
@@ -733,7 +732,7 @@ def _legacy_single_file_main(args: argparse.Namespace) -> int:
         template_registry = TemplateRegistry.load(args.templates_csv)
     else:
         logger.info(
-            "Legacy --input mode: templates registry not loaded "
+            "Single-file --input mode: templates registry not loaded "
             "(--templates-csv missing or path doesn't exist); "
             "prompts will use the row's base_template as TEMPLATE."
         )

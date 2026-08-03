@@ -9,13 +9,12 @@ Two entry points:
 
   1. **Registry-first**: when the row's ``tid`` is in the template
      registry (``benchmark_models/schemas/template_registry.json``),
-     the registry's ``answer_type`` wins. The registry was built
-     with ``_TID_TO_CANONICAL_OVERRIDE`` already applied at build
-     time, so mislabeled or overloaded TIDs (e.g. TID 115.1,
-     declared ``coordinates`` but actually a bounding box; TID 105.1
-     overloaded ``categorical`` → Ternary) are correctly canonicalised
-     via the registry without the loader needing to re-consult the
-     override map.
+     the registry's ``answer_type`` wins. The registry carries
+     ``_TID_TO_CANONICAL_OVERRIDE`` already applied, so a TID whose
+     row-level type tag is overloaded (one vocab tag covering several
+     canonical types) or disagrees with the shape of its gold is
+     canonicalised via the registry without the loader needing to
+     re-consult the override map.
   2. **Fallback**: when the TID is not in the registry (typically a
      new TID added to the share before the registry was regenerated),
      ``benchmark_models.schemas.resolve_canonical_answer_type`` is
@@ -56,23 +55,22 @@ from benchmark_models.schemas import (
 # factual mislabel, the derived unit poisons scoring (unit_match forces
 # EM=0, and the wrong numeric *kind* picks the wrong tolerance ladder).
 #
-# TID 54.1 ("How large is the area affected by {event} in {entity}?")
+# TID 48.1 ("How large is the area affected by {event} in {entity}?")
 # ships ``ground_truth_type='distance_kilometers'`` but its gold is an
-# AREA in km^2 (its sibling TID 53.1 correctly ships ``area_km2``). Left
+# AREA in km^2 (its sibling TID 47.1 correctly ships ``area_km2``). Left
 # uncorrected, a physically correct km^2 answer is unwinnable: the gold
 # demands 'km' so unit_match is always False. Mapping it to the area
 # unit here restores winnability and selects the area tolerance bucket —
 # identical handling to a correctly-tagged area row.
 #
-# TID 62.1 ("What is the perimeter of {entity}?") is the mirror-image
+# TID 56.1 ("What is the perimeter of {entity}?") is the mirror-image
 # defect: it ships a bare ``ground_truth_type='numeric'`` (no unit), so a
 # km perimeter length is scored with the dimensionless *count* tolerance
 # ladder and no km enforcement (a 'miles' answer would pass). Mapping it
 # to ``distance_kilometers`` restores km-unit enforcement and the
 # magnitude-adaptive distance tolerance. Keyed on the FTID (``tid`` field
-# of the benchmark row). 53.1 is large-split only; 61.1 is present in the
-# small split too. (Was 53.1/61.1 before the 2026-07-26 renumber that
-# dropped parents 7/9/10/12/13/62.)
+# of the benchmark row). 48.1 is large-split only; 56.1 is present in the
+# small split too.
 _TID_UNIT_CORRECTION: dict[str, str] = {
     "48.1": "area_km2",
     "56.1": "distance_kilometers",
@@ -156,15 +154,12 @@ def load_gold_rows(
         # Resolve canonical answer-type. Strategy:
         #
         # 1. If the TID is in the registry, prefer the registry's
-        #    ``answer_type``. The registry is built by
-        #    ``scripts/build_template_registry_from_benchmark.py``
-        #    which encodes the per-TID canonical overrides for
-        #    overloaded vocab tags (``categorical``, ``grid_cell_id``)
-        #    *and* benchmark-side mislabels (e.g. TID 115.1's gold is
-        #    a bounding box but the share labels the row
-        #    ``coordinates``). Treating the registry as authoritative
-        #    keeps both pipelines consistent with the recorded
-        #    decisions.
+        #    ``answer_type``. The registry encodes the per-TID
+        #    canonical overrides for overloaded vocab tags
+        #    (``categorical``, ``grid_cell_id``) *and* benchmark-side
+        #    mislabels, where a row's declared type does not match the
+        #    shape of its gold. Treating the registry as authoritative
+        #    keeps the eval and model pipelines consistent.
         # 2. If the TID is unknown to the registry, fall back to the
         #    per-row ``ground_truth_type`` via the flat vocabulary
         #    (still useful during development / for new TIDs the
@@ -211,7 +206,7 @@ def load_gold_rows(
         # ``ground_truth_type`` label because a row's unit can only
         # be determined from its declared type.
         # Per-TID unit correction for dimensionally-mislabeled tags
-        # (e.g. TID 54.1's area gold tagged distance_kilometers) wins
+        # (e.g. TID 48.1's area gold tagged distance_kilometers) wins
         # over the per-row default. ``default_unit_for`` maps the
         # (corrected) benchmark-type tag to its canonical unit so the
         # value is identical to a natively-correct row.
@@ -318,11 +313,11 @@ def load_predictions(predictions_path: Path | str) -> list[Prediction]:
         # Two cases, both moving mass into the correct harness bucket:
         #   * ``None``/``unknown`` -> whatever the message says
         #     (``context_overflow`` or transport ``infra``).
-        #   * ``code_gen`` -> ``context_overflow`` ONLY. Older prediction
-        #     files pre-date the classifier fix where an over-context 400
-        #     wrapped by smolagents as ``AgentGenerationError`` /
-        #     ``AgentMaxStepsError`` (both code-gen names) shadowed the
-        #     specific context-overflow message. We upgrade only on a
+        #   * ``code_gen`` -> ``context_overflow`` ONLY. An over-context
+        #     400 wrapped by smolagents as ``AgentGenerationError`` /
+        #     ``AgentMaxStepsError`` (both code-gen names) shadows the
+        #     specific context-overflow message at inference time, so the
+        #     class is corrected here. We upgrade only on a
         #     context-overflow marker so a genuine code error whose trace
         #     merely mentions "timeout" is NOT demoted to ``infra``.
         if pred.final_state == "error":

@@ -18,7 +18,7 @@ Dispatch is by ``answer_type`` string:
   ``|ŷ − y*|`` with ``τ = max(δ, α|y*|)`` and strict unit match
 * ``"Coordinates (lat/long pair)"`` → geodesic distance
 * ``"Geometry (list of lat/long pairs)"`` → polygon IoU
-* ``"Date"`` → components-match EM + day-distance NE (Option C)
+* ``"Date"`` → components-match EM + day-distance NE
 * ``"Predefined value (left, right)"`` / ``"Predefined value
   (upstream, downstream)"`` / ``"Cardinal direction (predefined)"``
   → alias-backed :func:`resolve` against the known canonical set
@@ -82,17 +82,17 @@ SCORING_SPEC_PATH = _spec_path()
 sourced from this file when it exists; hardcoded fallbacks below are
 used (with a loguru warning) only when the file is missing, so
 development workflows don't break if the spec is deleted. Resolved
-via the single :func:`benchmark_eval._paths.spec_path` helper (D6)."""
+via the single :func:`benchmark_eval._paths.spec_path` helper."""
 
 # Hardcoded fallbacks — kept in sync with ``scoring_spec.json``.
 # Treated as authoritative only when the spec file is unavailable.
-# FTIDs whose gold is a dimensionless shape index (TID 63 family):
+# TIDs whose gold is a dimensionless shape index (TID 57 family):
 # perimeter-to-area ratio, shape index, convex-hull ratio, boundary
 # roughness, vertices-per-km. Tagged bare ``numeric`` (no unit) in the
 # release, so the unit-based dispatch would route them to ``count``;
-# they are routed to the relative-tolerance ``ratio`` kind instead (#5).
+# they are routed to the relative-tolerance ``ratio`` kind instead.
 _RATIO_TIDS: frozenset[str] = frozenset(
-    {"57.1", "57.2", "57.3", "57.4", "57.5"}  # boundary-irregularity ratio family; was 63.x pre-2026-07-26
+    {"57.1", "57.2", "57.3", "57.4", "57.5"}  # boundary-irregularity ratio family
 )
 
 
@@ -228,7 +228,7 @@ class ScorerConfig:
         default_factory=lambda: _SPEC["default_delta_ratio"]
     )
     """Absolute floor for the dimensionless ``ratio`` numeric kind
-    (TID 64.x). 0.0 → purely relative tolerance (``alpha*|y*|``)."""
+    (TID 57.x). 0.0 → purely relative tolerance (``alpha*|y*|``)."""
     use_scale_from_magnitude: bool = field(
         default_factory=lambda: _SPEC["use_scale_from_magnitude"]
     )
@@ -279,7 +279,7 @@ class ScorerConfig:
         default_factory=lambda: _SPEC["polar_angle_tol_degrees"]
     )
     """Bearing tolerance (degrees) for Polar coordinates scoring
-    (TID 70.1). EM=1 requires the bearing within this window AND the
+    (TID 63.1). EM=1 requires the bearing within this window AND the
     radial distance within the numeric-distance tolerance."""
 
     split_gold_missing_from_format_error: bool = field(
@@ -367,7 +367,7 @@ _FALLBACK_COORD_SEPARATOR_CHARS: str = r",;\s_"
 
 def _load_coord_separator_chars() -> str:
     """Load the coordinate-separator character class from the spec.
-    Falls back to ``,;\\s_`` (the v2 defaults) when missing.
+    Falls back to ``,;\\s_`` when the spec is missing.
     """
     if not SCORING_SPEC_PATH.exists():
         return _FALLBACK_COORD_SEPARATOR_CHARS
@@ -512,16 +512,16 @@ class Scorer:
         # False``). On real-premise questions abstention is scored
         # as wrong (EM=0, ``covered=False``).
         #
-        # v2: rows whose gold ``ground_truth is None`` *without* a
+        # Rows whose gold ``ground_truth is None`` *without* a
         # false-premise marker are flagged ``gold_missing=True``
-        # (split from ``format_error``) so the aggregator can
+        # (kept distinct from ``format_error``) so the aggregator can
         # separate upstream gold defects from scorer-side parse
-        # failures. v1 lumped both into ``format_error``.
+        # failures.
         if prediction.answer is None or prediction.refusal:
             if gold.is_true_premise is False:
-                # Correct abstention on a false-premise row. v2:
-                # ``covered=True`` (this counts as having answered)
-                # but ``refusal=True`` is recorded for diagnostics.
+                # Correct abstention on a false-premise row:
+                # ``covered=True`` (this counts as having answered),
+                # with ``refusal=True`` recorded for diagnostics.
                 return ScoreRecord(
                     **base, em=1, ne=0.0, covered=True, refusal=True,
                 )
@@ -536,7 +536,7 @@ class Scorer:
                     format_error=True, refusal=True,
                 )
             # Refusal on a real-premise row — wrong by policy.
-            # v2: ``coverage_rate`` excludes refusals (they aren't
+            # ``coverage_rate`` excludes refusals (they aren't
             # "answers"); record ``refusal=True`` for diagnostics.
             return ScoreRecord(
                 **base, em=0, ne=1.0, covered=False, refusal=True,
@@ -745,8 +745,8 @@ class Scorer:
         if pred_resolved is not None and gold_resolved is not None:
             match = pred_resolved == gold_resolved
         # Alias-free fallback: quote-stripped case-insensitive equality.
-        # Preserves scoring when the alias store is incomplete (the
-        # final alias / multilingual mapping lands later). Empty
+        # Preserves scoring when the alias store is incomplete or has
+        # no entry for this surface form. Empty
         # strings on either side are excluded so a refusal-shaped
         # prediction (``""``) doesn't accidentally match an empty /
         # malformed gold.
@@ -883,13 +883,10 @@ class Scorer:
         # Resolve gold-side first; the prediction-side resolve then
         # passes the gold-resolved set as a hint so benign alias
         # collisions land on the right canonical.
-        # Phase 3 / 2c: strip a single matched leading/trailing ``"`` pair
-        # from each list element before resolution. The 2026-05-07
-        # share's TID 27.1 originally shipped quote-wrapped elements
-        # (e.g. ``'"Road segment with OBJECT ID 184598"'``); D2 cleaned
-        # those at-rest, and this strip-on-read handles any future
-        # share that re-introduces the pathology without depending on
-        # the data fix.
+        # Strip a single matched leading/trailing ``"`` pair from each
+        # list element before resolution, so a quote-wrapped element
+        # (e.g. ``'"Road segment with OBJECT ID 184598"'``) still
+        # matches the bare-name form a model emits.
         gold_canon: set[str] = set()
         for n in gold_list:
             if n is None:
@@ -910,14 +907,16 @@ class Scorer:
             #      that resolved to that same id. Bare NAMES never hit
             #      this branch (``_normalize_gold_canonical`` returns them
             #      unchanged, without a prefix).
-            #   3. bare name with no alias entry: ``canonicalize_string``
-            #      — IDENTICAL to the prediction-side fallback. Keeping
-            #      the raw ``normalized`` string here (the old behaviour)
-            #      left the gold un-canonicalized while the prediction was
+            #   3. bare name with no alias entry:
+            #      ``canonicalize_string``, IDENTICAL to the
+            #      prediction-side fallback. Both sides must be
+            #      canonicalized the same way: keeping the raw
+            #      ``normalized`` string here would leave the gold
+            #      un-canonicalized while the prediction is
             #      casefolded/punctuation-stripped, so a byte-identical
             #      correct answer could never intersect the gold. Since
             #      100% of released set-gold members are bare names, that
-            #      asymmetry zeroed EM on ~65% of set rows.
+            #      asymmetry would zero EM on ~65% of set rows.
             if resolved:
                 gold_canon.add(resolved)
             elif isinstance(normalized, str) and normalized.startswith(
@@ -936,7 +935,7 @@ class Scorer:
             # gold-side one. Pick the first match; falls back to
             # bare resolution + string canonicalization.
             #
-            # Determinism strategy (A2 from the round-2 plan): the
+            # Determinism strategy: the
             # output of this branch must be byte-identical across
             # alias-store regenerations as long as the underlying
             # alias→canonical mappings are identical.
@@ -986,10 +985,10 @@ class Scorer:
                 covered=False,
                 format_error=True,
             )
-        # v2 strict policy (Md4): if any prediction element fails to
-        # parse as a date, mark the entire row as a format error.
-        # v1 silently dropped malformed elements which over-credited
-        # rows where bad elements happened not to overlap with gold.
+        # Strict policy: if any prediction element fails to parse as a
+        # date, mark the entire row as a format error. Silently
+        # dropping malformed elements over-credits rows where the bad
+        # elements happen not to overlap with gold.
         # Symmetric with set_entities, where unparseable elements
         # participate in the set and harm F1.
         pred_canon: set[tuple[int, int | None, int | None]] = set()
@@ -1051,12 +1050,12 @@ class Scorer:
             return value
         if isinstance(value, (set, tuple)):
             return list(value)
-        # The 2026-05-05 benchmark share stores set-enumeration gold
-        # as JSON-encoded list strings (Spark's default array
+        # The benchmark stores set-enumeration gold as JSON-encoded
+        # list strings (Spark's default array
         # serialization at write time). Try a defensive
         # ``json.loads`` so the scorer handles both shapes — already
         # parsed list (from predictions.jsonl) and JSON-string list
-        # (from the share's gold).
+        # (from the released gold).
         if isinstance(value, str):
             stripped = value.strip()
             if stripped.startswith("[") and stripped.endswith("]"):
@@ -1114,11 +1113,11 @@ class Scorer:
         else:
             unit_match = pred_unit == gold_unit
 
-        # Distance and tolerance. TID 64.x are dimensionless shape
+        # Distance and tolerance. TID 57.x are dimensionless shape
         # indices tagged bare ``numeric`` (unit-less), so the unit-based
         # dispatch would route them to ``count`` (absolute δ=1.0, wider
         # than their entire value range). Route them to the ``ratio``
-        # kind instead — a purely relative tolerance (#5).
+        # kind instead — a purely relative tolerance.
         if gold.tid in _RATIO_TIDS:
             kind = "ratio"
         else:
@@ -1199,7 +1198,7 @@ class Scorer:
                 format_error=True,
             )
         d = coordinate_distance_km(pred_pt, gold_pt)
-        # TID 70.4 ("Convert the location to a lat/long grid at
+        # TID 64.4 ("Convert the location to a lat/long grid at
         # {resolution} degrees") is typed Coordinates but the gold is a
         # coordinate SNAPPED to a fixed grid (e.g. "18.39_-66.02" at
         # 0.01 deg). The generic 5/10 km coordinate tolerance is ~9 grid
@@ -1212,9 +1211,6 @@ class Scorer:
         # bound (longitude is shorter), so correct in-cell points are
         # never rejected. Falls back to the generic tolerance when the
         # gold precision can't be read.
-        # NB: coordinate-grid tid is 64.4 (was 70.4 before the 2026-07-26
-        # renumber that dropped parents 7/9/10/12/13/62; earlier history:
-        # MGRS drop + TID-24.1 drop shifted parent 71->70).
         if gold.tid == "64.4":
             ndp = _coord_decimal_places(gold.ground_truth)
             if ndp is not None and ndp > 0:
@@ -1243,7 +1239,7 @@ class Scorer:
 
     # Coordinate separator regex, built at import from
     # ``scoring_spec.json:coordinates.separator_chars``. Underscore is
-    # in the default class for TID 111.5 (``'<lat>_<lon>'``
+    # in the default class for TID 64.4 (``'<lat>_<lon>'``
     # underscore-joined). The scorer only reaches this regex on rows
     # whose canonical answer-type is ``Coordinates``, so the looser
     # separator class can't accidentally capture unrelated string
@@ -1304,7 +1300,7 @@ class Scorer:
     def _score_geometry(
         self, prediction: Prediction, gold: GoldRow, base: dict
     ) -> ScoreRecord:
-        """Geometry covers lines and polygons. Polygon detection (Md5):
+        """Geometry covers lines and polygons. Polygon detection:
         treat as polygon iff (a) the gold is a closed ring (first
         coord == last coord) AND (b) the resulting polygon is valid
         and has non-trivial area in lon/lat space. A closed *route*
@@ -1324,7 +1320,7 @@ class Scorer:
                 covered=False,
                 format_error=True,
             )
-        # m6: empty pred and empty gold both coerce to ``[]`` and would
+        # Empty pred and empty gold both coerce to ``[]`` and would
         # otherwise route into ``polygon_iou([], []) = 1.0`` for a
         # spurious EM=1. Treat both-empty as a format error since the
         # benchmark has no rows where empty geometry is the expected
@@ -1344,7 +1340,7 @@ class Scorer:
             math.isclose(gold_coords[0][0], gold_coords[-1][0], abs_tol=1e-9)
             and math.isclose(gold_coords[0][1], gold_coords[-1][1], abs_tol=1e-9)
         )
-        # Md5: the closed-ring shape is necessary but not sufficient.
+        # The closed-ring shape is necessary but not sufficient.
         # A closed route (path that loops back) also satisfies it but
         # has near-zero polygon area. Compute the polygon area; route
         # the row to the line matcher if it's degenerate.
@@ -1439,8 +1435,8 @@ class Scorer:
         when the alias store is incomplete (or constructed empty, as
         for the default ``Scorer()``), surface equality is the best
         available signal. Without this fallback, a default-constructed
-        ``Scorer()`` silently scored every cardinal/predefined row as
-        EM=0.
+        ``Scorer()`` would silently score every cardinal/predefined row
+        as EM=0.
         """
         gold_canonical = self._normalize_predefined_gold(
             gold.ground_truth, gold.answer_type
@@ -1481,9 +1477,9 @@ class Scorer:
 
     # The ``cardinal:`` / ``predef:`` prefixes are alias-store identity
     # conventions. They're hardcoded here AND in the alias store JSON
-    # (e.g. ``"cardinal:N"``, ``"predef:left"``). Move to constants in
-    # ``aliases.py`` when the alias-store layout next changes — touches
-    # the build script + every existing alias file.
+    # (e.g. ``"cardinal:N"``, ``"predef:left"``). They are not defined
+    # in one shared constant, so changing the alias-store layout means
+    # changing both this module and every existing alias file.
     _CARDINAL_PREFIX = "cardinal:"
     _PREDEFINED_PREFIX = "predef:"
 
@@ -1594,18 +1590,18 @@ class Scorer:
     def _score_composite_string(
         self, prediction: Prediction, gold: GoldRow, base: dict
     ) -> ScoreRecord:
-        """``"H3(res=R): <int> | S2(lvl=L): <int>"`` — TID 48.1
+        """``"H3(res=R): <int> | S2(lvl=L): <int>"`` — TID 42.1
         (multimodal "which grid cell contains [IMAGE_A]").
 
         ``em`` is strict equality of both pipe-separated parts after
-        whitespace-normalization (unchanged, the universal metric). A
+        whitespace-normalization (the universal metric). A
         spatial companion (``em_spatial`` / ``ne_spatial``) additionally
         scores the H3 half by geographic containment / proximity so a
         prediction that localizes the entity is credited even when the
         exact ID / resolution / encoding differs.
 
-        BENCHMARK-DEFECT NOTE (fix at next benchmark regeneration, not
-        here — the prompt is intentionally left untouched): the response
+        BENCHMARK-DEFECT NOTE (known limitation of the released data;
+        the prompt ships as-is): the response
         schema's ``nl_description`` hardcodes ``H3(res=15) | S2(lvl=20)``
         in hex, but the gold uses variable low resolutions (H3 res 0-4,
         S2 lvl 2-9) in decimal, and the target resolution is neither
@@ -1722,7 +1718,7 @@ class Scorer:
             )
         # Degenerate gold (zero-area point / line envelope). The
         # bounding box of a single-point facility *is* that point, so
-        # 82% of TID 73.1 golds are zero-area. IoU against a zero-area
+        # 82% of TID 66.1 golds are zero-area. IoU against a zero-area
         # gold is 0 for any non-coincident prediction, which collapses
         # the documented ``IoU >= threshold`` rule to bit-exact float
         # equality — a correct enclosing box or an 11 cm miss both score
@@ -1891,8 +1887,8 @@ def _is_valid_h3_or_s2_cell(hx: str) -> bool:
     try:
         import h3
     except ImportError:
-        # Without h3, fall back to length check only — matches the
-        # v1 behaviour for environments without the optional dep.
+        # ``h3`` is an optional dependency; without it, fall back to
+        # the length check alone.
         return 14 <= len(hx) <= 16
 
     try:
@@ -1938,9 +1934,9 @@ def _canonicalize_h3_hex(value: Any) -> str | None:
     * Python int — same handling.
 
     Returns ``None`` when the input can't be parsed or doesn't pass
-    structural validation. Tighter than v1 (M9): the v1 matcher
-    accepted any decimal that happened to fit in 14-16 hex digits
-    after the int64 mask, including bare counts like ``"99...99"``.
+    structural validation. The structural check is what rejects a
+    decimal that merely happens to fit in 14-16 hex digits
+    after the int64 mask, such as a bare count like ``"99...99"``.
     """
     if value is None:
         return None
@@ -2069,7 +2065,7 @@ def _coord_decimal_places(value: Any) -> int | None:
     """Max fractional-digit count across the numbers in a coord string.
 
     Used to recover the grid resolution of a snapped-coordinate gold
-    (TID 70.4): ``"18.39_-66.02"`` → 2 → 0.01 deg. Returns ``None`` when
+    (TID 64.4): ``"18.39_-66.02"`` → 2 → 0.01 deg. Returns ``None`` when
     the value is not a string or carries no decimal point.
     """
     if not isinstance(value, str):
@@ -2087,7 +2083,7 @@ def _bbox_iou(
 
     Degenerate boxes (zero area on one or both sides) yield IoU=1.0
     iff they coincide exactly, else 0.0. Zero-area gold boxes are the
-    *majority* of TID 73.1 (single-point facilities whose bounding box
+    *majority* of TID 66.1 (single-point facilities whose bounding box
     is the point itself, ~82% of released rows), so the scorer must NOT
     reach this exact-equality path for them: :meth:`Scorer._score_bounding_box`
     intercepts a zero-area gold and scores it by geodesic proximity

@@ -1,19 +1,18 @@
 """Shared helpers for template-variant recovery.
 
-Two consumers:
+``pipelines.translation.recover_template_variant`` is the production
+matcher: it identifies the FTIDv variant for every English benchmark
+row and writes ``variant_ftidv`` (+ recovered slot values) back, using
+:func:`build_pattern` and :func:`render_template`.
 
-* ``scripts.fix_data_defects`` — D8 (worldkg trailing-quote-drop fix):
-  uses :func:`build_pattern` (quote-tolerant) to identify the variant,
-  :func:`render_template` to reconstruct the corrected ``question``.
-
-* ``pipelines.translation.recover_template_variant`` — production matcher:
-  identifies the FTIDv variant for every English benchmark row and
-  writes ``variant_ftidv`` (+ recovered slot values) back. Also uses
-  :func:`build_pattern`, :func:`render_template`.
+The same two functions cover question repair on rows where the worldkg
+renderer dropped trailing quotes: :func:`build_pattern` in
+quote-tolerant mode identifies the variant, :func:`render_template`
+reconstructs the corrected ``question``.
 
 Single source of truth for placeholder mapping, regex construction,
-and template rendering — avoids drift between the data fix and the
-production matcher.
+and template rendering, so the matching and rendering paths cannot
+drift apart.
 """
 
 from __future__ import annotations
@@ -33,8 +32,8 @@ ENTITY_PLACEHOLDER_TO_FIELD: dict[str, str] = {
     "entity_D": "entity_d_name",
     "event_A": "event_a_name",
     "event_B": "event_b_name",
-    # Source-data typo at FTIDv 44.1.1: ``{entity A}`` (with space).
-    # Preserved in the data; resolved against the same field.
+    # FTIDv 44.1.1 spells the placeholder ``{entity A}`` (with a
+    # space) in the source data; it resolves to the same field.
     "entity A": "entity_a_name",
 }
 
@@ -80,9 +79,8 @@ def get_image_slots(row: dict[str, Any]) -> set[str]:
     The benchmark generator's renderer keeps ``[IMAGE_<slot>]``
     literal in the question text for slots that have an image
     attached, while substituting ``entity_<slot>_name`` for slots
-    that don't (per the D1 fix landed in 2026-05-07). Pass the
-    returned set to :func:`build_pattern` to enable matching against
-    multimodal questions.
+    that don't. Pass the returned set to :func:`build_pattern` to
+    enable matching against multimodal questions.
     """
     images = row.get("images") or []
     if isinstance(images, str):
@@ -185,8 +183,8 @@ def render_template(
     ``{entity_<slot>}`` whose ``<slot>`` is in this set, render the
     literal string ``[IMAGE_<slot>]`` instead of the entity name.
 
-    Used both for question reconstruction (D8 fix) and for verifying
-    that the recovered variant round-trips against the row.
+    Used both for question reconstruction and for verifying that the
+    recovered variant round-trips against the row.
     """
     if non_entity_values is None:
         non_entity_values = {}

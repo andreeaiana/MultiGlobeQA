@@ -74,8 +74,8 @@ class AnswerTypeSpec:
     wants_unit_field: bool = False
     """Whether the response schema for this type includes a ``unit``
     field. ``True`` for numeric / coordinate / geometry types so the
-    model declares what unit it produced (Option C from the plan).
-    ``False`` for everything else."""
+    model declares what unit it produced. ``False`` for everything
+    else."""
 
     description: str = ""
     """Internal documentation describing what this answer type is and
@@ -496,14 +496,13 @@ _FALLBACK_BENCHMARK_TO_CANONICAL: dict[str, str] = {
     "date_set": "Set enumeration (list of dates)",
     "directional_value": "Predefined value (left, right)",
     "cardinal_direction": "Cardinal direction (predefined)",
-    # Added for the 2026-05-05 benchmark share.
     "count": "Numeric (integer)",
     "entity_name": "Entity name (single)",
     "entity_list": "Set enumeration (list of entity names)",
     "temporal": "Date",
     "qualitative": "Composite string (H3+S2)",
-    # Added for the 2026-05-07 benchmark share. TIDs 27.1, 28.1, 29.1
-    # use the bare ``set`` tag for set-of-entity-names answers.
+    # TIDs 27.1, 28.1, 29.1 use the bare ``set`` tag for
+    # set-of-entity-names answers.
     "set": "Set enumeration (list of entity names)",
 }
 
@@ -584,38 +583,30 @@ def default_unit_for_benchmark_type(benchmark_type: str | None) -> str | None:
 # runtime ``resolve_canonical_answer_type`` consume this dict.
 # ``test_spec_drift`` asserts they stay in lock-step via direct equality.
 TID_TO_CANONICAL_OVERRIDE: dict[str, str] = {
-    # TIDs are in the FINAL contiguous 1..72 taxonomy. History: removed
-    # parents 30/35/36/56 (first renumber to 1..73), then TID 24.1
-    # (land-use) dropped 2026-07-24 emptying parent 24, with parents
-    # 25..73 shifted down to 24..72. The "was" comments trace the
-    # immediately-prior numbering; see ``scripts/drop_renumber_tid24.py``.
+    # Keys are TIDs in the released contiguous 1..72 taxonomy.
 
     # `categorical` — single benchmark type covers several distinct
     # multiple-choice families (left/right, upstream/downstream,
     # cardinal direction, yes/no/plausibly). One canonical type per
     # TID, not per benchmark-type tag.
-    "50.1": "Predefined value (left, right)",          # was 55.1 (pre 2026-07-26 renumber)
-    "51.1": "Predefined value (upstream, downstream)", # was 56.1
-    "52.1": "Cardinal direction (predefined)",         # was 57.1
-    "62.1": "Ternary (true/false/plausibly)",          # was 68.1
+    "50.1": "Predefined value (left, right)",
+    "51.1": "Predefined value (upstream, downstream)",
+    "52.1": "Cardinal direction (predefined)",
+    "62.1": "Ternary (true/false/plausibly)",
 
     # `grid_cell_id` — same tag for multiple distinct spatial grid
     # encodings (H3, S2, Geohash, coordinate-string). Per-TID override
-    # picks the right canonical. (Former parent 71 "grid-cell encodings"
-    # — 71.1 H3, 71.2 S2, 71.3 Geohash, 71.4 Coordinates — renumbered to
-    # parent 70 on the 2026-07-24 TID-24.1 drop.)
-    "40.1": "H3 cell index",                           # was 45.1 (pre 2026-07-26 renumber)
-    "41.1": "H3 cell index",                           # was 46.1
-    "64.1": "H3 cell index",                           # was 70.1
-    "64.2": "S2 cell index",                           # was 70.2
-    "64.3": "Geohash string",                          # was 70.3
-    "64.4": "Coordinates (lat/long pair)",             # was 70.4
+    # picks the right canonical.
+    "40.1": "H3 cell index",
+    "41.1": "H3 cell index",
+    "64.1": "H3 cell index",
+    "64.2": "S2 cell index",
+    "64.3": "Geohash string",
+    "64.4": "Coordinates (lat/long pair)",
 
-    # NOTE: pre-renumbering had ``115.1: Bounding box`` to compensate
-    # for a ``ground_truth_type='coordinates'`` mislabel. The renumbered
-    # share corrected this (new tid 72.1 directly carries
-    # ``ground_truth_type='bounding_box'``), so no override is needed
-    # — ``canonicalize_answer_type`` handles it without help.
+    # NOTE: bounding-box questions need no override. TID 72.1 carries
+    # ``ground_truth_type='bounding_box'`` directly, and
+    # ``canonicalize_answer_type`` maps that without help.
 }
 
 
