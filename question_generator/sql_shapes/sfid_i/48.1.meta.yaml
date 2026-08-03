@@ -1,0 +1,74 @@
+tid: "48.1"
+tid_family: 48
+sfid: I
+ssfid: 7
+spatial_function: event_area_in_region
+ground_truth_type: distance_kilometers  # area_km2; see the note below
+answer_unit: km2
+
+# Note: ground_truth_type "area_km2" doesn't exist in the validator
+# dispatch; using "distance_kilometers" as a placeholder gets us the
+# numeric > 0 validation (area is always positive). Mirrors 47.1's
+# approach. If the validator adds an explicit area type later, switch.
+
+# Result columns: dual column families.
+# event_a_* drives {{event_A}} substitution.
+# entity_a_* drives {{entity_A}} substitution. Both resolve independently
+# in the SAME row.
+result_columns:
+  - event_a_id
+  - event_a_name
+  - entity_a_id
+  - entity_a_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+# KG SCOPE — kwg only. Hazard events are first-class only in
+# KnowWhereGraph (NOAA / NIFC / MTBS).
+variants:
+  kwg:
+    description: "Area of event A's geometry intersection with region A (km²)."
+    applicable_kgs:
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'hazard_event_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+
+# join_condition lives inline in the SQL (event-region INNER JOIN with
+# ST_Intersects predicate). Set to null so the contract checker doesn't
+# require {join_condition} in the SQL.
+join_condition: null
+
+sampling:
+  strategy: row_number_hash
+
+parameters:
+  rand_seed_a: 12345
+  per_country_cap: 50
+
+# Gold triples: two anchors per row (event + region).
+# Temporal predicates included so e.start_date / end_date are
+# retrievable in gold (events carry their active dates via the kwg
+# temporal 3-hop chain — same rationale as 3.1 and 45.1).
+gold_triples:
+  pool_map:
+    event_a_id: pool_a
+    entity_a_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+    - temporal_scope
+    - temporal_instant
+    - temporal_date
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

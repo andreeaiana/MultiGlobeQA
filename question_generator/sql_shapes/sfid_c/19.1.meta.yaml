@@ -1,0 +1,128 @@
+tid: "19.1"
+tid_family: 19
+sfid: C
+ssfid: 4
+spatial_function: overlap_boolean
+ground_truth_type: boolean
+answer_unit: null
+
+# ST_Overlaps requires same-dimension geometries to produce a meaningful
+# answer (POINT × any → vacuously false; LINESTRING × POLYGON → mixed-
+# dimension undefined). Both pools restricted to POLYGON / MULTIPOLYGON.
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+# Three pairings are declared below: region x region, region x natfeat,
+# natfeat x natfeat. All three are areal (polygonal) by category default;
+# the geometry_type filter is the explicit guard since natural_feature
+# entities can also be LINESTRING (rivers) which would silently pollute
+# the result with false rows.
+variants:
+  region_to_region:
+    description: "Does region A overlap region B (without one containing the other)?"
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+
+  region_to_natfeat:
+    description: "Does region A overlap natural feature B (polygonal natfeat)?"
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'natural_feature_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'natural_feature_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'natural_feature_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+
+  natfeat_to_natfeat:
+    description: "Does natural feature A overlap natural feature B?"
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'natural_feature_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'natural_feature_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'natural_feature_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'natural_feature_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'natural_feature_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'natural_feature_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+
+# Symmetric predicate: same dedup + country guard as 13.1 / 23.1.
+join_condition: "a.country_iso3 = b.country_iso3 AND a.id < b.id"
+
+sampling:
+  strategy: row_number_hash
+
+parameters:
+  rand_seed_a: 30001
+  rand_seed_b: 30002
+  per_country_cap: 50
+
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

@@ -1,0 +1,4 @@
+- Georgian (Kartvelian script) marks seven cases by suffixes on the noun stem: nominative (`-ი`), narrative/ergative (`-მ`), dative (`-ს`), genitive (`-ის`/`-ს`), instrumental (`-ით`), adverbial (`-ად`), vocative. Entity names inside `{{...}}` MUST NOT be modified — fix surrounding case markers on adjacent template words instead (`DEC_CHG`).
+- Postpositions take genitive or dative depending on the postposition (`-ში` "in", `-ზე` "on", `-თან` "near"). Postpositions stay outside `{{...}}`; if entity substitution requires a different connector, fix it (`ADP_CHG`).
+- Georgian has no grammatical gender — article-style fixes do not apply.
+- Question mark is ASCII `?`. Verb conjugation is polypersonal — do not modify verb forms.

@@ -1,0 +1,106 @@
+tid: "14.1"
+tid_family: 14
+sfid: C
+ssfid: 1
+spatial_function: intersection_boolean_geometries
+ground_truth_type: boolean
+answer_unit: null
+
+# Shares intersection_boolean SQL body with 13.1. The distinction:
+# 14.1 emphasizes the GEOMETRIES of both entities (vs 13.1 which uses
+# the entities themselves), so neither slot may be a POINT — both
+# pools restricted to LINESTRING / MULTILINESTRING / POLYGON /
+# MULTIPOLYGON. The declared slot pairings are
+# (road×road, road×region, region×region — no POI in either slot).
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+# Pool-A and Pool-B both forbidden from POINT geometry. Region category
+# is naturally polygonal; natural_feature_category covers the road-like
+# linear features in this codebase (rivers / coastline) plus polygon
+# features. POI category is excluded ENTIRELY for 14.1: the declared
+# pairing list has no POI in either slot.
+variants:
+  region_to_region:
+    description: "Do the geometries of region A and region B intersect?"
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+
+  natfeat_to_region:
+    description: "Do the geometries of natural feature A and region B intersect?"
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'natural_feature_category' AND geometry_type IN ('LINESTRING', 'MULTILINESTRING', 'POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'natural_feature_category' AND geometry_type IN ('LINESTRING', 'MULTILINESTRING', 'POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'natural_feature_category' AND geometry_type IN ('LINESTRING', 'MULTILINESTRING', 'POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+
+# Symmetric predicate — same dedup + country guard as 22.1.
+join_condition: "a.country_iso3 = b.country_iso3 AND a.id < b.id"
+
+sampling:
+  strategy: row_number_hash
+
+parameters:
+  rand_seed_a: 22345
+  rand_seed_b: 77890
+  per_country_cap: 50
+
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

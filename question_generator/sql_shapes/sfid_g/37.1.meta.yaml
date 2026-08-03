@@ -1,0 +1,77 @@
+tid: "37.1"
+tid_family: 37
+sfid: G
+ssfid: 1
+spatial_function: centroid_extract
+# coordinates: validator only checks non-null. The output is a CSV-encoded
+# "lat,lon" string in ground_truth (multi-column GT support is deferred).
+ground_truth_type: coordinates
+answer_unit: deg
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - ground_truth
+
+# Single-pool TID: only pool_a is declared. The executor handles this via
+# the dynamic meta.pools loop introduced earlier.
+pools:
+  - pool_a
+
+variants:
+  region:
+    description: "Centroid (lat,lon) of a region polygon."
+    applicable_kgs:
+      osmh3kg:
+        pool_a: { source: entities, filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+      worldkg:
+        pool_a: { source: entities, filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+      kwg:
+        pool_a: { source: entities, filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+
+# No join — single-pool unary TID. join_condition omitted (= None).
+# The contract enforces that the SQL also does NOT reference {join_condition}.
+
+# Sampling: per-country ROW_NUMBER hash-diversity (mirrors 12.1's single-
+# pool pattern). The SQL builds bucket ranks via
+#   ROW_NUMBER OVER (PARTITION BY country_iso3 ORDER BY hash(id, rand_seed_a))
+# and caps each country at {per_country_cap}, then bounds the global
+# result with the outer LIMIT {total_sample}. The strategy label
+# `row_number_hash` matches the SQL form (this is the post-Track 1 audit
+# alignment — earlier the SQL used ORDER BY RAND while the meta still
+# claimed `row_number_hash`).
+sampling:
+  strategy: row_number_hash
+
+# Parameter context (per-KG / spec / defaults). The SQL-level
+# implementation rationale (how the ROW_NUMBER + per-country cap pattern
+# is wired) lives in the 63.1.sql header — see "ANCHOR SAMPLING" there.
+# This block only carries spec/parameter context that wouldn't fit in
+# the SQL.
+#
+# {per_country_cap}: default 50 (matches 12.1). With ~150 countries this
+# caps total anchors at ~7,500 — slightly above the default total_sample
+# of 5,000 so the outer LIMIT trims the tail rather than the per-country
+# cap being the binding constraint. Tune downward if a future variant
+# drives total_sample low.
+#
+# {rand_seed_a}: feeds the hash() inside the anchor ROW_NUMBER's
+# ORDER BY, so reruns with the same seed pick identical anchors per
+# country. Suffix `_a` (not `_b`) because the only pool here IS pool_a.
+parameters:
+  rand_seed_a: 12345
+  per_country_cap: 50
+
+# Gold triples extracted for the single picked entity per row.
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

@@ -1,0 +1,4 @@
+- Bulgarian uses Cyrillic — never transliterate entity names. Question mark is ASCII `?` (not the Greek `;`).
+- Adjective and pronoun gender must agree with the entity's grammatical gender. If the template uses a placeholder modifier (`големият`, `голямата`, `голямото`) and the entity is feminine/neuter, change the modifier accordingly (`AGR_CHG`).
+- Prepositions `в` / `във`, `с` / `със` alternate by following consonant cluster; if an entity name now begins with a vowel/consonant cluster that breaks the rule, switch to the other form (`ADP_CHG`).
+- Bulgarian has no case marking on common nouns. Don't invent declension fixes; the postpositive definite article (`-ът`/`-та`/`-то`) only flips when the surrounding clause demands it.

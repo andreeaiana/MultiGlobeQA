@@ -1,0 +1,155 @@
+tid: "21.1"
+tid_family: 21
+sfid: C
+ssfid: 5
+spatial_function: adjacency_boolean
+ground_truth_type: boolean
+answer_unit: null
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+# THREE variants, ONE SQL body. Registry has only '21.1' (single ftid)
+# so we cannot split into three separate sub-templates; instead encode
+# the 3 pool pairings as 3 variants, each pinning a {predicate_mode}
+# that the CASE in 21.1.sql dispatches on, through the per-variant
+# parameters mechanism.
+#
+# Pairing 1 (region): symmetric region × region — ST_Touches on the
+# materialised polygon Geometry. RangeJoinExec recognises this when the
+# geometry column is materialised in the CTE. All 3 KGs supply region
+# polygons.
+#
+# Pairing 2 (grid_cell): H3-index neighbour check. We can't easily
+# express "grid cell entity" as a row in the entity Delta (h3_index
+# rides on every entity but isn't itself an entity), so the variant
+# pools sample POI rows and treats them AS proxies for the cells they
+# fall in via their h3_index column. The join runs over the two POI
+# pools (POIs drawn from the entities Delta) and reads a.h3_index and
+# b.h3_index. KG scope:
+# osmh3kg only — h3_index is not pre-computed for kwg/worldkg entity
+# rows (kwg uses h3_res3 from country_enrichment but at coarser res).
+#
+# Pairing 3 (poi): POI × POI ST_DistanceSphere within 100 m
+# (adjacency_threshold_m). All 3 KGs have POIs.
+variants:
+  region:
+    description: "Adjacency between two regions via boundary touch (ST_Touches)."
+    parameters:
+      predicate_mode: touches
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+
+  grid_cell:
+    description: "Adjacency between two H3 grid cells (ST_H3CellDistance = 1)."
+    parameters:
+      predicate_mode: h3
+    applicable_kgs:
+      # osmh3kg only — h3_index is precomputed at fine resolution on
+      # osmh3kg entity rows; kwg / worldkg entities don't carry the
+      # column at the resolution required for cell-neighbour checks.
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+
+  poi:
+    description: "Adjacency between two POIs via {adjacency_threshold_m}-metre proximity."
+    parameters:
+      predicate_mode: proximity
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+
+# Symmetric pair join: in-country, no self-pair, a.id < b.id to skip
+# duplicates (predicate is symmetric for all three modes — touches is
+# symmetric, H3-cell-distance is symmetric, distance-sphere is symmetric).
+join_condition: "a.country_iso3 = b.country_iso3 AND a.id < b.id"
+
+sampling:
+  strategy: row_number_hash
+
+# Shape-wide parameters. predicate_mode is per-variant (see above);
+# all other knobs are shared across variants.
+#   rand_seed_a / rand_seed_b — distinct seeds so the symmetric POI×POI
+#     and region×region pairings don't rank-collide and drop everything
+#     under the a.id != b.id clause (mirror 1.1's seed-divergence).
+#   per_country_cap — caps each side per country before the cross-join.
+#     50 × 50 = 2,500 candidate pairs per country before predicate
+#     evaluation; with ~150 countries that's ~375K, well within Spark's
+#     cross-join comfort range and trimmed by total_sample.
+#   adjacency_threshold_m — 100 m (default for the proximity
+#     variant); referenced inside the CASE but harmless for the other
+#     two variants whose branches don't reference it.
+parameters:
+  rand_seed_a: 12345
+  rand_seed_b: 67890
+  per_country_cap: 50
+  adjacency_threshold_m: 100
+
+# Per-pair gold (anchor URIs only) — boolean predicate, no aggregate
+# extension. Both anchors of every selected pair contribute label / type /
+# geometry triples.
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

@@ -1,0 +1,82 @@
+tid: "6.1"
+tid_family: 6
+sfid: A
+ssfid: 4
+spatial_function: distance_aggregate_min
+ground_truth_type: distance_kilometers
+answer_unit: km
+
+result_columns:
+  # entity_a_name carries the POI subcategory (raw node_type, e.g.
+  # "school", "Pharmacy", "AmenitySchool" — kept raw across KGs by
+  # design). The exporter's {{entity_A}} placeholder renders it directly.
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - ground_truth
+
+# Two pools: pool_a is the entity category being aggregated over (POIs),
+# pool_b is the containing region. The SQL groups by (region, node_type)
+# so each chosen pair is a meaningful "min distance between SCHOOLS in
+# Berlin" question rather than "between random POIs in Berlin".
+pools:
+  - pool_a
+  - pool_b
+
+# worldkg is excluded: its region_category entities are POINT geometries,
+# so ST_Contains(point_region, point_poi) only matches on exact-coordinate
+# overlap (effectively zero rows). This containment question is undefined
+# for point-region KGs.
+variants:
+  poi_in_region:
+    description: "Minimum pairwise distance between all POIs of one subcategory in a region."
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+
+# join_condition intentionally absent — predicates are inlined in the SQL.
+join_condition: null
+
+sampling:
+  strategy: row_number_hash
+
+# Region-pair-level cap parameters:
+#   per_country_pair_cap — bounds (region, subcategory) pairs per country
+#     for diversity. Cap is at the PAIR level, not the region level,
+#     so the same region can contribute multiple subcategory questions.
+#   min_pois_per_pair — drops degenerate pairs (need ≥2 POIs for any pair).
+#   max_pois_per_pair — drops pairs whose POI count exceeds this. The
+#     pair is skipped ENTIRELY (region-level decision), preserving the
+#     EXACT aggregate over chosen pairs. Bounds the per-pair O(N^2)
+#     self-join at max^2 / 2 spherical-distance evaluations.
+parameters:
+  rand_seed_pair: 67890
+  per_country_region_cap: 100
+  min_pois_per_pair: 3
+
+# Single-anchor (region) gold provenance. The ground-truth aggregate is
+# numeric, not an entity — only the anchor region needs triples.
+gold_triples:
+  pool_map:
+    entity_b_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

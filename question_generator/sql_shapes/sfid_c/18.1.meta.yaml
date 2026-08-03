@@ -1,0 +1,238 @@
+tid: "18.1"
+tid_family: 18
+sfid: C
+ssfid: 3
+spatial_function: intersection_set_difference
+ground_truth_type: set
+answer_unit: null
+
+result_columns:
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - entity_c_id
+  - entity_c_name
+  - ground_truth
+
+# 3-pool TID. pool_a is the queried CATEGORY (unsampled); pool_b and
+# pool_c are SAME-TYPE instance anchors by design ("Roads intersecting
+# river X but not district Y" is semantically odd, so B and C share
+# their entity type).
+pools:
+  - pool_a
+  - pool_b
+  - pool_c
+
+# Four pairings are supported for intersection_set_difference:
+#   1. road_network_feature_category × region_instance × region_instance
+#   2. road_network_feature_category × natural_feature_instance × natural_feature_instance
+#   3. natural_feature_category × region_instance × region_instance
+#   4. region_category × natural_feature_instance × natural_feature_instance
+#
+# Each variant pins an entity_a_label for the {{entity_A}} substitution.
+# Plural labels are derived from the pool_a category:
+#   road_network_feature_category → "highways" (only node_type bucket)
+#   natural_feature_category → "natural features" (covers all node_types
+#     in the category — boundary/natural/place/water/waterway)
+#   region_category → "regions" (covers boundary + place node_types)
+#
+# All 3 KGs apply (pure topology).
+variants:
+  road_x_region_pair:
+    description: "Highways intersecting region B but not region C."
+    parameters:
+      entity_a_label: highways
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'road_network_feature_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'region_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'road_network_feature_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'region_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'road_network_feature_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'region_category'"
+
+  road_x_natfeat_pair:
+    description: "Highways intersecting natural feature B but not natural feature C."
+    parameters:
+      entity_a_label: highways
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'road_network_feature_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'road_network_feature_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'road_network_feature_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+
+  natfeat_x_region_pair:
+    description: "Natural features intersecting region B but not region C."
+    parameters:
+      entity_a_label: natural features
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'region_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'region_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'region_category'"
+
+  region_x_natfeat_pair:
+    description: "Regions intersecting natural feature B but not natural feature C."
+    parameters:
+      entity_a_label: regions
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+
+# join_condition omitted — all spatial predicates and country/no-self
+# guards are inlined in the SQL CTEs (mirrors 13.1 / 44.1 design where
+# the multi-way join structure has too many predicate shapes per join
+# to factor into a single {join_condition} clause).
+join_condition: null
+
+sampling:
+  strategy: row_number_hash
+
+# rand_seed_b vs rand_seed_c: independent shuffle seeds for the two
+# instance pools. Without distinct seeds, symmetric same-type pairing
+# would deterministically collapse onto the same anchor per country
+# (mirror 1.1's symmetric-pair pattern).
+# per_country_cap: 50 — caps anchors per country per side.
+parameters:
+  rand_seed_b: 67890
+  rand_seed_c: 13579
+  per_country_cap: 50
+
+# kwg's road_network_feature_category includes USGS GNIS road features
+# (~100K per US state in HIC strata). The default 50×50=2500 anchor
+# pair × 100K-road spatial join exceeds broadcast threshold and hangs.
+# Reduce to 20×20=400 pair set on kwg only — keeps the (B, C) pair
+# set comfortably inside Sedona's BROADCAST + R-tree fast path.
+parameters_per_kg:
+  kwg:
+    per_country_cap: 20
+
+# Aggregate gold extension: the enumeration depends on every pool_a
+# entity matching (intersects B AND NOT intersects C). The extension
+# covers the B set (anchor + B entities matching the predicate) and
+# explicitly EXCLUDES C entities: the question's "but
+# not C" semantics make C an exclusion role, so including C URIs in
+# gold would be misleading.
+#
+# Both entity_b_id (anchor B) and entity_c_id (exclusion C) map to
+# their pools so the per-question gold knows which entity is which.
+# This shape's gold SQL excludes C from the URI extension
+# but still includes its anchor triples (the question text references
+# C by name; a model needs to know what C is even though it shouldn't
+# include C-intersectors in the answer).
+gold_triples:
+  pool_map:
+    entity_b_id: pool_b
+    entity_c_id: pool_c
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

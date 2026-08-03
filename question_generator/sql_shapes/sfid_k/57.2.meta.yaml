@@ -1,0 +1,61 @@
+tid: "57.2"
+tid_family: 57
+sfid: K
+ssfid: 3
+spatial_function: irregularity_shape_index
+ground_truth_type: numeric
+answer_unit: null
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - value
+  - ground_truth
+
+pools:
+  - pool_a
+
+variants:
+  region:
+    description: "Shape index of a region polygon at {value} km simplification."
+    applicable_kgs:
+      osmh3kg:
+        pool_a: { source: entities, filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+      worldkg:
+        pool_a: { source: entities, filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+      kwg:
+        pool_a: { source: entities, filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+
+  natural_feature:
+    description: "Shape index of a natural-feature polygon at {value} km simplification."
+    applicable_kgs:
+      osmh3kg:
+        pool_a: { source: entities, filter: "category = 'natural_feature_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+      worldkg:
+        pool_a: { source: entities, filter: "category = 'natural_feature_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+      kwg:
+        pool_a: { source: entities, filter: "category = 'natural_feature_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+
+sampling:
+  strategy: row_number_hash
+
+# Shape index = Perimeter / (2·sqrt(π·Area)). A circle = 1; complex shapes > 1.
+# `value` = simplification km; supported range [0.1, 10.0]; default 1.0
+# (geometric midpoint on log scale).
+parameters:
+  rand_seed_a: 12345
+  per_country_cap: 50
+  value: 1.0
+
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

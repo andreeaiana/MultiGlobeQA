@@ -1,0 +1,71 @@
+tid: "29.1"
+tid_family: 29
+sfid: E
+ssfid: 2
+spatial_function: component_count
+ground_truth_type: count
+answer_unit: count
+
+result_columns:
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - ground_truth
+
+# Single-pool TID: only pool_b is declared (the composite geometry whose
+# components we're counting). entity_A is a label ('polygons' /
+# 'segments' / 'islands'), not a sampled entity — the SQL emits it as a
+# string literal via {entity_a_label}.
+pools:
+  - pool_b
+
+variants:
+  multi_geometry:
+    description: "How many components make up a MULTI* / GEOMETRYCOLLECTION geometry?"
+    # Pool covers regions + natural features that can carry MULTI* WKT.
+    # The SQL further filters to geometry_type IN (MULTIPOLYGON,
+    # MULTILINESTRING, MULTIPOINT, GEOMETRYCOLLECTION) AND
+    # ST_NumGeometries > 1, so the count is always meaningful.
+    applicable_kgs:
+      osmh3kg:
+        pool_b:
+          source: entities
+          filter: "category IN ('region_category', 'natural_feature_category')"
+      worldkg:
+        pool_b:
+          source: entities
+          filter: "category IN ('region_category', 'natural_feature_category')"
+      kwg:
+        pool_b:
+          source: entities
+          filter: "category IN ('region_category', 'natural_feature_category')"
+
+# No join — single-pool unary TID. join_condition omitted (= None).
+
+sampling:
+  strategy: row_number_hash
+
+# Parameters
+# {per_country_cap}: bounds anchors per country in the diversity-sampled
+# pool_b. Default 50 (mirrors 10.1 / 12.1 / 37.1). Outer LIMIT trims.
+# {rand_seed_b}: feeds the hash() inside ROW_NUMBER's ORDER BY.
+# {entity_a_label}: PLURAL noun phrase ("components" is the safe generic
+# label; downstream label-injection layers can swap to "polygons" /
+# "segments" / "islands" based on entity_b's geometry_type if needed).
+parameters:
+  rand_seed_b: 67890
+  per_country_cap: 50
+  entity_a_label: components
+
+gold_triples:
+  pool_map:
+    entity_b_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

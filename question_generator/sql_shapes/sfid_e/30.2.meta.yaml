@@ -1,0 +1,59 @@
+tid: "30.2"
+tid_family: 30
+sfid: E
+ssfid: 2
+spatial_function: collection_count_rivers_streams_springs
+ground_truth_type: count
+answer_unit: count
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+variants:
+  region_natural_features:
+    description: "How many rivers, streams and springs are in {{entity_A}}?"
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'natural_feature_category' AND node_type IN ('river', 'stream', 'spring')"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'natural_feature_category' AND node_type IN ('river', 'stream', 'spring')"
+
+join_condition: "a.country_iso3 = b.country_iso3 AND ST_Contains(a.geom, b.geom)"
+
+sampling:
+  strategy: row_number_hash
+
+parameters:
+  rand_seed_a: 12345
+  per_country_cap: 50
+  collection_label: "rivers, streams and springs"
+
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

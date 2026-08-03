@@ -1,0 +1,116 @@
+tid: "4.2"
+tid_family: 4
+sfid: A
+ssfid: 3
+spatial_function: distance_comparative_farther
+ground_truth_type: entity_name
+answer_unit: name
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - entity_c_id
+  - entity_c_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+  - pool_c
+
+# Same two pairings as 4.1: poi (POI×POI×POI) and poi_region (POI×POI×region).
+variants:
+  poi:
+    description: "Is POI A or POI B farther from POI C?"
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'POI_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'POI_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'POI_category'"
+
+  poi_region:
+    description: "Is POI A or POI B farther from region C?"
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'region_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'region_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'region_category'"
+
+join_condition: "a.id != b.id AND a.id != c.id AND b.id != c.id"
+
+sampling:
+  strategy: row_number_hash
+
+parameters:
+  rand_seed_a: 12345
+  rand_seed_b: 67890
+  rand_seed_c: 24680
+
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+    entity_c_id: pool_c
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

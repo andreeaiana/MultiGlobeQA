@@ -1,0 +1,54 @@
+# Per-KG predicate IRIs grouped by role.
+#
+# Kept in sync with data_extraction/nt_to_delta/config.py.
+#
+# Every predicate role listed in a TID meta's gold_triples.predicates
+# must have an entry under each of that TID's applicable_kgs[*].
+#
+# Lists mean "any of these IRIs counts as this role" — the gold SQL
+# renders them as a SQL IN () clause.
+
+kwg:
+  label:
+    - "http://www.w3.org/2000/01/rdf-schema#label"
+  type:
+    - "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+  geometry_link:
+    - "http://www.opengis.net/ont/geosparql#hasGeometry"
+  geometry_wkt:
+    - "http://www.opengis.net/ont/geosparql#asWKT"
+  temporal_scope:
+    - "http://stko-kwg.geog.ucsb.edu/lod/ontology/hasTemporalScope"
+  temporal_instant:
+    - "http://stko-kwg.geog.ucsb.edu/lod/ontology/fireDiscoveryTime"
+    - "http://stko-kwg.geog.ucsb.edu/lod/ontology/fireOutTime"
+  temporal_date:
+    - "http://www.w3.org/2006/time#inXSDDate"
+    - "http://www.w3.org/2006/time#inXSDDateTime"
+
+worldkg:
+  label:
+    - "http://www.w3.org/2000/01/rdf-schema#label"
+    - "http://www.worldkg.org/schema/nameEn"
+  type:
+    - "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+  geometry_link:
+    - "http://www.worldkg.org/schema/spatialObject"
+  geometry_wkt:
+    - "http://www.opengis.net/ont/geosparql#asWKT"
+
+# osmh3kg is a hybrid: label predicates are bare OSM tag keys ("name",
+# "name:en") but type + geometry use full geosparql/rdf IRIs like the
+# other KGs. Predicate strings verified against the actual Delta table
+# via jobs/verify_gold_predicates (230899): hasGeometry ~ 90M rows,
+# asWKT ~ 90M rows, rdf:type ~ 80M rows, name ~ 13M rows.
+osmh3kg:
+  label:
+    - "name"
+    - "name:en"
+  type:
+    - "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+  geometry_link:
+    - "http://www.opengis.net/ont/geosparql#hasGeometry"
+  geometry_wkt:
+    - "http://www.opengis.net/ont/geosparql#asWKT"

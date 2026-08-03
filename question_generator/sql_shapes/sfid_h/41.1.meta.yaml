@@ -1,0 +1,69 @@
+tid: "41.1"
+tid_family: 41
+sfid: H
+ssfid: 1
+spatial_function: shared_grid_cell_at_resolution
+# grid_cell_id: validator only checks non-null. Output is the H3 cell ID
+# (string) at the requested resolution, or NULL when the two centroids
+# fall in different cells at that resolution (false premise).
+ground_truth_type: grid_cell_id
+answer_unit: null
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - value
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+variants:
+  poi:
+    description: "Which H3 grid cell at parameterized resolution contains both POI A and POI B?"
+    applicable_kgs:
+      osmh3kg:
+        pool_a: { source: entities, filter: "category = 'POI_category'" }
+        pool_b: { source: entities, filter: "category = 'POI_category'" }
+      worldkg:
+        pool_a: { source: entities, filter: "category = 'POI_category'" }
+        pool_b: { source: entities, filter: "category = 'POI_category'" }
+      kwg:
+        pool_a: { source: entities, filter: "category = 'POI_category'" }
+        pool_b: { source: entities, filter: "category = 'POI_category'" }
+
+# Same join shape as 40.1: in-country, no self-pair, rank-equality
+# on unique_id, AND same coarse h3_res3 cell so the pair is geographically
+# close enough that "shared cell at finer resolution" is a meaningful
+# question (rather than near-zero hit rate against random global pairs).
+join_condition: "a.country_iso3 = b.country_iso3 AND a.id != b.id AND a.unique_id = b.unique_id AND a.h3_res3 = b.h3_res3"
+
+sampling:
+  strategy: row_number_hash
+
+# {resolution}: H3 cell resolution used in the SELECT's ST_H3CellIDs call.
+# Default 7 (~5.2 km² cells) — moderate granularity that produces a mix
+# of shared-cell (true premise) and different-cell (false premise → NULL
+# ground_truth) outcomes. Only this single resolution is declared here;
+# covering further resolutions would need additional sibling variants.
+parameters:
+  rand_seed_a: 12345
+  rand_seed_b: 67890
+  resolution: 7
+
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

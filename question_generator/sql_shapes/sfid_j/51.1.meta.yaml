@@ -1,0 +1,92 @@
+tid: "51.1"
+tid_family: 51
+sfid: J
+ssfid: 2
+spatial_function: direction_upstream_downstream
+ground_truth_type: categorical
+answer_unit: null
+
+# Three-pool TID: two POIs + one river/stream/canal. Project both POIs
+# onto each candidate waterway via ST_LineLocatePoint and compare the
+# resulting normalized offsets. OSM convention: way direction = source →
+# mouth, so a LOWER offset is upstream and a HIGHER offset is downstream.
+#
+# Proximity threshold: 1 km hardcoded via ST_DistanceSphere ≤ 1000 m on
+# both sides. Pairs where either POI is farther than 1 km from the river
+# are dropped (they're not meaningfully "on" the waterway).
+#
+# Multiple-river resolution: each (A, B) pair may sit near several
+# candidate rivers (especially in dense hydrographic networks); rank by
+# combined proximity (dist_a + dist_b) and keep the closest. The
+# remaining waterway is the one the question is grounded on.
+#
+# The river pool is filtered to natural-feature category; river / stream
+# / canal subcategory differentiation is left for downstream sampling
+# (the registry mandates these subcategories but the entity Delta does
+# not currently expose a subcategory column at this granularity, so we
+# capture "natural feature" wholesale and let the gold-triple type
+# tag identify river-likeness).
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - river_id
+  - river_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+  - pool_river
+
+variants:
+  poi:
+    description: "Does POI A lie upstream or downstream of POI B along a shared waterway (≤1 km of both, same h3 cell)?"
+    applicable_kgs:
+      osmh3kg:
+        pool_a: { source: entities, filter: "category = 'POI_category'" }
+        pool_b: { source: entities, filter: "category = 'POI_category'" }
+        pool_river: { source: entities, filter: "category = 'natural_feature_category' AND geometry_type IN ('LINESTRING', 'MULTILINESTRING')" }
+      worldkg:
+        pool_a: { source: entities, filter: "category = 'POI_category'" }
+        pool_b: { source: entities, filter: "category = 'POI_category'" }
+        pool_river: { source: entities, filter: "category = 'natural_feature_category' AND geometry_type IN ('LINESTRING', 'MULTILINESTRING')" }
+      kwg:
+        pool_a: { source: entities, filter: "category = 'POI_category'" }
+        pool_b: { source: entities, filter: "category = 'POI_category'" }
+        pool_river: { source: entities, filter: "category = 'natural_feature_category' AND geometry_type IN ('LINESTRING', 'MULTILINESTRING')" }
+
+# In-country + no-self + rank-equality + same h3 cell for the AB pair.
+# The river join (a.country_iso3 = w.country_iso3 AND a.h3_res3 = w.h3_res3
+# plus ST_DistanceSphere ≤ 1000) is appended directly in the SQL because
+# meta.join_condition is a single string applied to one join, not a list.
+join_condition: "a.country_iso3 = b.country_iso3 AND a.id != b.id AND a.unique_id = b.unique_id AND a.h3_res3 = b.h3_res3"
+
+sampling:
+  strategy: row_number_hash
+
+# Three independent seeds so the three pools shuffle differently. The
+# river pool's seed is distinct from the POI seeds for the same reason
+# 1.1 / 49.1 use distinct seeds for symmetric pools — without it, the
+# rank-equality join condition would force identical ids across pools.
+parameters:
+  rand_seed_a: 12345
+  rand_seed_b: 67890
+  rand_seed_river: 13579
+
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+    river_id: pool_river
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

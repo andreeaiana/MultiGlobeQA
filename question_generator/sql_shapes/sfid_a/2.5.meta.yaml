@@ -1,0 +1,70 @@
+tid: "2.5"
+tid_family: 2
+sfid: A
+ssfid: 5
+spatial_function: distance_directional_northeast
+ground_truth_type: distance_kilometers
+answer_unit: km
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+variants:
+  poi:
+    description: "Northeast straight-line distance between two POIs (A NE of B)."
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+
+# Quadrant filter (A north AND east of B): two centroid comparisons.
+# Intercardinal: ST_ClosestPoint distance is straight-line, so quadrant
+# constraint is the only direction-narrowing step.
+join_condition: "a.country_iso3 = b.country_iso3 AND a.id != b.id AND a.unique_id = b.unique_id AND ST_Y(ST_Centroid(ST_GeomFromWKT(a.geometry))) > ST_Y(ST_Centroid(ST_GeomFromWKT(b.geometry))) AND ST_X(ST_Centroid(ST_GeomFromWKT(a.geometry))) > ST_X(ST_Centroid(ST_GeomFromWKT(b.geometry)))"
+
+sampling:
+  strategy: row_number_hash
+
+parameters:
+  rand_seed_a: 12345
+  rand_seed_b: 67890
+
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

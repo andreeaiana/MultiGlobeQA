@@ -1,0 +1,678 @@
+{
+ "version": "1",
+ "templates": {
+  "1.1": {
+   "tid": "1.1",
+   "sfid": "A",
+   "answer_type": "Numeric (float)",
+   "answer_unit": "km"
+  },
+  "8.1": {
+   "tid": "8.1",
+   "sfid": "A",
+   "answer_type": "Numeric (float)",
+   "answer_unit": "km"
+  },
+  "8.2": {
+   "tid": "8.2",
+   "sfid": "A",
+   "answer_type": "Numeric (float)",
+   "answer_unit": "km"
+  },
+  "8.3": {
+   "tid": "8.3",
+   "sfid": "A",
+   "answer_type": "Numeric (float)",
+   "answer_unit": "km"
+  },
+  "9.1": {
+   "tid": "9.1",
+   "sfid": "A",
+   "answer_type": "Numeric (float)",
+   "answer_unit": "km"
+  },
+  "10.1": {
+   "tid": "10.1",
+   "sfid": "B",
+   "answer_type": "Numeric (integer)"
+  },
+  "11.1": {
+   "tid": "11.1",
+   "sfid": "B",
+   "answer_type": "Set enumeration (list of entity names)"
+  },
+  "12.1": {
+   "tid": "12.1",
+   "sfid": "B",
+   "answer_type": "Numeric (integer)"
+  },
+  "13.1": {
+   "tid": "13.1",
+   "sfid": "C",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "14.1": {
+   "tid": "14.1",
+   "sfid": "C",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "2.1": {
+   "tid": "2.1",
+   "sfid": "A",
+   "answer_type": "Numeric (float)",
+   "answer_unit": "km"
+  },
+  "2.2": {
+   "tid": "2.2",
+   "sfid": "A",
+   "answer_type": "Numeric (float)",
+   "answer_unit": "km"
+  },
+  "2.3": {
+   "tid": "2.3",
+   "sfid": "A",
+   "answer_type": "Numeric (float)",
+   "answer_unit": "km"
+  },
+  "2.4": {
+   "tid": "2.4",
+   "sfid": "A",
+   "answer_type": "Numeric (float)",
+   "answer_unit": "km"
+  },
+  "2.5": {
+   "tid": "2.5",
+   "sfid": "A",
+   "answer_type": "Numeric (float)",
+   "answer_unit": "km"
+  },
+  "2.6": {
+   "tid": "2.6",
+   "sfid": "A",
+   "answer_type": "Numeric (float)",
+   "answer_unit": "km"
+  },
+  "2.7": {
+   "tid": "2.7",
+   "sfid": "A",
+   "answer_type": "Numeric (float)",
+   "answer_unit": "km"
+  },
+  "2.8": {
+   "tid": "2.8",
+   "sfid": "A",
+   "answer_type": "Numeric (float)",
+   "answer_unit": "km"
+  },
+  "15.1": {
+   "tid": "15.1",
+   "sfid": "C",
+   "answer_type": "Numeric (integer)"
+  },
+  "16.1": {
+   "tid": "16.1",
+   "sfid": "C",
+   "answer_type": "Numeric (integer)"
+  },
+  "17.1": {
+   "tid": "17.1",
+   "sfid": "C",
+   "answer_type": "Set enumeration (list of entity names)"
+  },
+  "18.1": {
+   "tid": "18.1",
+   "sfid": "C",
+   "answer_type": "Set enumeration (list of entity names)"
+  },
+  "19.1": {
+   "tid": "19.1",
+   "sfid": "C",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "20.1": {
+   "tid": "20.1",
+   "sfid": "C",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "21.1": {
+   "tid": "21.1",
+   "sfid": "C",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "22.1": {
+   "tid": "22.1",
+   "sfid": "C",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "23.1": {
+   "tid": "23.1",
+   "sfid": "C",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "3.1": {
+   "tid": "3.1",
+   "sfid": "A",
+   "answer_type": "Numeric (float)",
+   "answer_unit": "km"
+  },
+  "24.1": {
+   "tid": "24.1",
+   "sfid": "D",
+   "answer_type": "Set enumeration (list of entity names)"
+  },
+  "25.1": {
+   "tid": "25.1",
+   "sfid": "D",
+   "answer_type": "Numeric (integer)"
+  },
+  "26.1": {
+   "tid": "26.1",
+   "sfid": "D",
+   "answer_type": "Set enumeration (list of entity names)"
+  },
+  "27.1": {
+   "tid": "27.1",
+   "sfid": "D",
+   "answer_type": "Numeric (integer)"
+  },
+  "28.1": {
+   "tid": "28.1",
+   "sfid": "E",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "29.1": {
+   "tid": "29.1",
+   "sfid": "E",
+   "answer_type": "Numeric (integer)"
+  },
+  "30.2": {
+   "tid": "30.2",
+   "sfid": "E",
+   "answer_type": "Numeric (integer)"
+  },
+  "30.3": {
+   "tid": "30.3",
+   "sfid": "E",
+   "answer_type": "Numeric (integer)"
+  },
+  "30.4": {
+   "tid": "30.4",
+   "sfid": "E",
+   "answer_type": "Numeric (integer)"
+  },
+  "30.5": {
+   "tid": "30.5",
+   "sfid": "E",
+   "answer_type": "Numeric (integer)"
+  },
+  "30.6": {
+   "tid": "30.6",
+   "sfid": "E",
+   "answer_type": "Numeric (integer)"
+  },
+  "30.7": {
+   "tid": "30.7",
+   "sfid": "E",
+   "answer_type": "Numeric (integer)"
+  },
+  "4.1": {
+   "tid": "4.1",
+   "sfid": "A",
+   "answer_type": "Entity name (single)"
+  },
+  "4.2": {
+   "tid": "4.2",
+   "sfid": "A",
+   "answer_type": "Entity name (single)"
+  },
+  "31.1": {
+   "tid": "31.1",
+   "sfid": "E",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "32.1": {
+   "tid": "32.1",
+   "sfid": "E",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "32.10": {
+   "tid": "32.10",
+   "sfid": "E",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "32.11": {
+   "tid": "32.11",
+   "sfid": "E",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "32.12": {
+   "tid": "32.12",
+   "sfid": "E",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "32.2": {
+   "tid": "32.2",
+   "sfid": "E",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "32.3": {
+   "tid": "32.3",
+   "sfid": "E",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "32.4": {
+   "tid": "32.4",
+   "sfid": "E",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "32.5": {
+   "tid": "32.5",
+   "sfid": "E",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "32.6": {
+   "tid": "32.6",
+   "sfid": "E",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "32.7": {
+   "tid": "32.7",
+   "sfid": "E",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "32.8": {
+   "tid": "32.8",
+   "sfid": "E",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "32.9": {
+   "tid": "32.9",
+   "sfid": "E",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "33.1": {
+   "tid": "33.1",
+   "sfid": "F",
+   "answer_type": "Entity name (single)"
+  },
+  "33.2": {
+   "tid": "33.2",
+   "sfid": "F",
+   "answer_type": "Entity name (single)"
+  },
+  "33.3": {
+   "tid": "33.3",
+   "sfid": "F",
+   "answer_type": "Entity name (single)"
+  },
+  "33.4": {
+   "tid": "33.4",
+   "sfid": "F",
+   "answer_type": "Entity name (single)"
+  },
+  "34.10": {
+   "tid": "34.10",
+   "sfid": "F",
+   "answer_type": "Entity name (single)"
+  },
+  "34.11": {
+   "tid": "34.11",
+   "sfid": "F",
+   "answer_type": "Entity name (single)"
+  },
+  "34.2": {
+   "tid": "34.2",
+   "sfid": "F",
+   "answer_type": "Entity name (single)"
+  },
+  "34.5": {
+   "tid": "34.5",
+   "sfid": "F",
+   "answer_type": "Entity name (single)"
+  },
+  "34.6": {
+   "tid": "34.6",
+   "sfid": "F",
+   "answer_type": "Entity name (single)"
+  },
+  "34.7": {
+   "tid": "34.7",
+   "sfid": "F",
+   "answer_type": "Entity name (single)"
+  },
+  "34.8": {
+   "tid": "34.8",
+   "sfid": "F",
+   "answer_type": "Entity name (single)"
+  },
+  "34.9": {
+   "tid": "34.9",
+   "sfid": "F",
+   "answer_type": "Entity name (single)"
+  },
+  "35.10": {
+   "tid": "35.10",
+   "sfid": "F",
+   "answer_type": "Entity name (single)"
+  },
+  "35.11": {
+   "tid": "35.11",
+   "sfid": "F",
+   "answer_type": "Entity name (single)"
+  },
+  "35.12": {
+   "tid": "35.12",
+   "sfid": "F",
+   "answer_type": "Entity name (single)"
+  },
+  "35.7": {
+   "tid": "35.7",
+   "sfid": "F",
+   "answer_type": "Entity name (single)"
+  },
+  "35.8": {
+   "tid": "35.8",
+   "sfid": "F",
+   "answer_type": "Entity name (single)"
+  },
+  "35.9": {
+   "tid": "35.9",
+   "sfid": "F",
+   "answer_type": "Entity name (single)"
+  },
+  "36.1": {
+   "tid": "36.1",
+   "sfid": "F",
+   "answer_type": "Set enumeration (list of entity names)"
+  },
+  "36.2": {
+   "tid": "36.2",
+   "sfid": "F",
+   "answer_type": "Set enumeration (list of entity names)"
+  },
+  "36.3": {
+   "tid": "36.3",
+   "sfid": "F",
+   "answer_type": "Set enumeration (list of entity names)"
+  },
+  "36.4": {
+   "tid": "36.4",
+   "sfid": "F",
+   "answer_type": "Set enumeration (list of entity names)"
+  },
+  "36.5": {
+   "tid": "36.5",
+   "sfid": "F",
+   "answer_type": "Set enumeration (list of entity names)"
+  },
+  "36.6": {
+   "tid": "36.6",
+   "sfid": "F",
+   "answer_type": "Set enumeration (list of entity names)"
+  },
+  "36.7": {
+   "tid": "36.7",
+   "sfid": "F",
+   "answer_type": "Set enumeration (list of entity names)"
+  },
+  "36.8": {
+   "tid": "36.8",
+   "sfid": "F",
+   "answer_type": "Set enumeration (list of entity names)"
+  },
+  "37.1": {
+   "tid": "37.1",
+   "sfid": "G",
+   "answer_type": "Coordinates (lat/long pair)"
+  },
+  "38.1": {
+   "tid": "38.1",
+   "sfid": "G",
+   "answer_type": "Coordinates (lat/long pair)"
+  },
+  "39.1": {
+   "tid": "39.1",
+   "sfid": "G",
+   "answer_type": "Numeric (float)",
+   "answer_unit": "km"
+  },
+  "40.1": {
+   "tid": "40.1",
+   "sfid": "H",
+   "answer_type": "H3 cell index"
+  },
+  "5.1": {
+   "tid": "5.1",
+   "sfid": "A",
+   "answer_type": "Entity name (single)"
+  },
+  "41.1": {
+   "tid": "41.1",
+   "sfid": "H",
+   "answer_type": "H3 cell index"
+  },
+  "42.1": {
+   "tid": "42.1",
+   "sfid": "H",
+   "answer_type": "Composite string (H3+S2)"
+  },
+  "43.1": {
+   "tid": "43.1",
+   "sfid": "I",
+   "answer_type": "Numeric (float)",
+   "answer_unit": "km"
+  },
+  "44.1": {
+   "tid": "44.1",
+   "sfid": "I",
+   "answer_type": "Set enumeration (list of entity names)"
+  },
+  "45.1": {
+   "tid": "45.1",
+   "sfid": "I",
+   "answer_type": "Date"
+  },
+  "46.1": {
+   "tid": "46.1",
+   "sfid": "I",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "47.1": {
+   "tid": "47.1",
+   "sfid": "I",
+   "answer_type": "Numeric (float)",
+   "answer_unit": "km^2"
+  },
+  "48.1": {
+   "tid": "48.1",
+   "sfid": "I",
+   "answer_type": "Numeric (float)",
+   "answer_unit": "km"
+  },
+  "49.1": {
+   "tid": "49.1",
+   "sfid": "J",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "49.2": {
+   "tid": "49.2",
+   "sfid": "J",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "49.3": {
+   "tid": "49.3",
+   "sfid": "J",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "49.4": {
+   "tid": "49.4",
+   "sfid": "J",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "49.5": {
+   "tid": "49.5",
+   "sfid": "J",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "49.6": {
+   "tid": "49.6",
+   "sfid": "J",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "49.7": {
+   "tid": "49.7",
+   "sfid": "J",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "49.8": {
+   "tid": "49.8",
+   "sfid": "J",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "6.1": {
+   "tid": "6.1",
+   "sfid": "A",
+   "answer_type": "Numeric (float)",
+   "answer_unit": "km"
+  },
+  "6.2": {
+   "tid": "6.2",
+   "sfid": "A",
+   "answer_type": "Numeric (float)",
+   "answer_unit": "km"
+  },
+  "6.3": {
+   "tid": "6.3",
+   "sfid": "A",
+   "answer_type": "Numeric (float)",
+   "answer_unit": "km"
+  },
+  "50.1": {
+   "tid": "50.1",
+   "sfid": "J",
+   "answer_type": "Predefined value (left, right)"
+  },
+  "51.1": {
+   "tid": "51.1",
+   "sfid": "J",
+   "answer_type": "Predefined value (upstream, downstream)"
+  },
+  "52.1": {
+   "tid": "52.1",
+   "sfid": "J",
+   "answer_type": "Cardinal direction (predefined)"
+  },
+  "53.1": {
+   "tid": "53.1",
+   "sfid": "K",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "54.1": {
+   "tid": "54.1",
+   "sfid": "K",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "55.1": {
+   "tid": "55.1",
+   "sfid": "K",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "56.1": {
+   "tid": "56.1",
+   "sfid": "K",
+   "answer_type": "Numeric (float)"
+  },
+  "57.1": {
+   "tid": "57.1",
+   "sfid": "K",
+   "answer_type": "Numeric (float)"
+  },
+  "57.2": {
+   "tid": "57.2",
+   "sfid": "K",
+   "answer_type": "Numeric (float)"
+  },
+  "57.3": {
+   "tid": "57.3",
+   "sfid": "K",
+   "answer_type": "Numeric (float)"
+  },
+  "57.4": {
+   "tid": "57.4",
+   "sfid": "K",
+   "answer_type": "Numeric (float)"
+  },
+  "57.5": {
+   "tid": "57.5",
+   "sfid": "K",
+   "answer_type": "Numeric (float)"
+  },
+  "58.1": {
+   "tid": "58.1",
+   "sfid": "L",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "59.1": {
+   "tid": "59.1",
+   "sfid": "L",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "60.1": {
+   "tid": "60.1",
+   "sfid": "L",
+   "answer_type": "Boolean (yes/no, true/false)"
+  },
+  "61.1": {
+   "tid": "61.1",
+   "sfid": "L",
+   "answer_type": "Set enumeration (list of entity names)"
+  },
+  "62.1": {
+   "tid": "62.1",
+   "sfid": "L",
+   "answer_type": "Ternary (true/false/plausibly)"
+  },
+  "63.1": {
+   "tid": "63.1",
+   "sfid": "M",
+   "answer_type": "Polar coordinates (angle, distance)",
+   "answer_unit": "km"
+  },
+  "64.1": {
+   "tid": "64.1",
+   "sfid": "M",
+   "answer_type": "H3 cell index"
+  },
+  "64.2": {
+   "tid": "64.2",
+   "sfid": "M",
+   "answer_type": "S2 cell index"
+  },
+  "64.3": {
+   "tid": "64.3",
+   "sfid": "M",
+   "answer_type": "Geohash string"
+  },
+  "64.4": {
+   "tid": "64.4",
+   "sfid": "M",
+   "answer_type": "Coordinates (lat/long pair)",
+   "answer_unit": "degrees"
+  },
+  "65.1": {
+   "tid": "65.1",
+   "sfid": "N",
+   "answer_type": "Coordinates (lat/long pair)"
+  },
+  "66.1": {
+   "tid": "66.1",
+   "sfid": "N",
+   "answer_type": "Bounding box (4-float)"
+  },
+  "7.1": {
+   "tid": "7.1",
+   "sfid": "A",
+   "answer_type": "Entity name (single)"
+  }
+ }
+}

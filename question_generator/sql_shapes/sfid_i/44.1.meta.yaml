@@ -1,0 +1,86 @@
+tid: "44.1"
+tid_family: 44
+sfid: I
+ssfid: 2
+spatial_function: event_affected_regions
+ground_truth_type: set_enumeration
+answer_unit: null
+
+# Result columns: event_a_id / event_a_name drive the exporter's
+# {{event_A}} substitution.
+# ground_truth is the SORT_ARRAY(COLLECT_LIST(region_name)) aggregate.
+result_columns:
+  - event_a_id
+  - event_a_name
+  - entity_a_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+# KG SCOPE — kwg only. Hazard events are first-class only in
+# KnowWhereGraph (NOAA / NIFC / MTBS entities with start_date +
+# end_date columns populated by the nt_to_delta temporal extractor).
+# osmh3kg / worldkg carry no hazard_event_category entities at all.
+# Mirrors 43.1's per-KG scope.
+variants:
+  kwg:
+    description: "Which regions were affected by event A (intersection set)."
+    applicable_kgs:
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'hazard_event_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+
+# join_condition lives inline in the SQL (event-region INNER JOIN with the
+# ST_Intersects predicate — distinct shape from rank-equality TIDs which
+# carry the predicate in {join_condition}). Set to null so the contract
+# checker doesn't require {join_condition} in the SQL.
+join_condition: null
+
+sampling:
+  strategy: row_number_hash
+
+# rand_seed_a feeds the hash() inside the anchor ROW_NUMBER's ORDER BY,
+# so reruns with the same seed pick identical events per country.
+# per_country_cap bounds anchors per country in pool_a (pool_b is NOT
+# sampled — we need every intersecting region for the COLLECT_LIST).
+parameters:
+  rand_seed_a: 12345
+  per_country_cap: 50
+  # Plural label for {{entity_A}} (aggregated region category).
+  entity_a_label: regions
+
+# Gold triples — 10.1-style aggregate extension.
+# Anchor = the event (pool_a). Gold extends with all regions whose
+# geometry intersects the event geometry within the same country
+# (mirrors the main SQL's join predicate). Without this, gold would
+# only contain the event's triples and a model retrieving gold could
+# not enumerate the affected regions.
+#
+# pool_map declares the EVENT side under the event_a_id key (matches
+# the SQL projection). The gold SQL also references {pool_b_all} for
+# the region URI extension.
+#
+# Predicates include the kwg temporal triplet so event start/end dates
+# are retrievable in gold (same rationale as 3.1 — events carry their
+# active dates via the kwg 3-hop temporal chain).
+gold_triples:
+  pool_map:
+    event_a_id: pool_a
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+    - temporal_scope
+    - temporal_instant
+    - temporal_date
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

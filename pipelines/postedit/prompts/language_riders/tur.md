@@ -1,0 +1,4 @@
+- Turkish is agglutinative — case is marked by suffixes on the noun stem with vowel harmony (`-de`/`-da`/`-te`/`-ta` locative; `-den`/`-dan`/`-ten`/`-tan` ablative; `-e`/`-a`/`-ye`/`-ya` dative). When the suffix vowel is wrong for the entity-final vowel, fix the suffix on the surrounding template word (`ADP_CHG`).
+- Suffix consonant alternation: voiceless `t/k/ç/p` becomes voiced `d/ğ/c/b` between vowels. If a suffix attached to a template word now sits between two vowels because of entity substitution, voice the consonant (`DEC_CHG`).
+- Turkish has no grammatical gender and no articles. The indefinite reading is signalled by `bir`; do not add or remove `bir` unless the surrounding context broke.
+- Diacritics `ç`, `ğ`, `ı`/`İ` (dotless), `ö`, `ş`, `ü` must be preserved exactly. Question mark is ASCII `?`.

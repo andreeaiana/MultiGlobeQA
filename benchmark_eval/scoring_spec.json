@@ -1,0 +1,116 @@
+{
+  "description": "Canonical scoring rules for SpatialBenchRAG eval. Every hyperparameter that materially affects a score lives here; CLI flags exposed by ``benchmark_eval score`` become 'deviations' when they differ from these defaults and are logged alongside the run. Code-side fallback constants must match this file (CI assertion in tests/benchmark_eval/test_spec_drift.py).",
+  "numeric": {
+    "alpha": 0.05,
+    "default_delta_distance_km": 5.0,
+    "default_delta_area_km2": 25.0,
+    "default_delta_count": 1.0,
+    "default_delta_ratio": 0.0,
+    "default_delta_ratio_description": "Absolute floor for the dimensionless 'ratio' numeric kind (TID 68.1-68.5 shape indices). 0.0 makes the tolerance purely relative, tau = alpha*|y*| (5% at the default alpha), the natural scale-free criterion for a dimensionless ratio spanning several orders of magnitude. The old behaviour routed these to 'count' with delta=1.0, wider than the entire value range.",
+    "use_scale_from_magnitude": true,
+    "scale_from_magnitude_buckets": {
+      "urban": {
+        "upper_exclusive": 50,
+        "upper_exclusive_area_km2": 2500,
+        "delta_distance_km": 0.5,
+        "delta_area_km2": 0.25
+      },
+      "regional": {
+        "upper_exclusive": 500,
+        "upper_exclusive_area_km2": 250000,
+        "delta_distance_km": 5.0,
+        "delta_area_km2": 25.0
+      },
+      "national": {
+        "upper_exclusive": null,
+        "upper_exclusive_area_km2": null,
+        "delta_distance_km": 10.0,
+        "delta_area_km2": 100.0
+      },
+      "breakpoints_description": "Area uses its own magnitude breakpoints (upper_exclusive_area_km2: 2500 / 250000 km^2 = the squares of the linear 50/500 km distance breakpoints) instead of reusing the distance breakpoints, which mislabeled a 953 km^2 area as 'national' and gave it a 100 km^2 (10x too wide) absolute tolerance."
+    },
+    "kind_by_unit_suffix": {
+      "description": "Maps a canonicalized unit suffix to the numeric kind used to pick the right default delta. Derived from unit_conversion.groups: distance group → 'distance', area group → 'area'. Anything else falls back to 'count'.",
+      "km": "distance",
+      "m": "distance",
+      "mi": "distance",
+      "ft": "distance",
+      "nmi": "distance",
+      "km2": "area",
+      "m2": "area",
+      "mi2": "area",
+      "ha": "area"
+    }
+  },
+  "coordinates": {
+    "delta_km": 5.0,
+    "d_scale_km": 200.0,
+    "separator_chars": ",;\\s_",
+    "separator_description": "Character class for the regex parsing a 'lat<sep>lon' string. Includes ',' ';' whitespace and '_' (underscore added 2026-05-05 for TID 111.5)."
+  },
+  "geometry": {
+    "line_tolerance_km": 5.0,
+    "polygon_iou_threshold": 0.5,
+    "polygon_iou_projection": "EPSG:6933",
+    "polygon_iou_projection_description": "EASE-Grid 2.0 Cylindrical (equal-area). Pred and gold polygons are reprojected from EPSG:4326 to this CRS before computing IoU so high-latitude polygons are not artificially compressed along the longitude axis."
+  },
+  "polar": {
+    "angle_tol_degrees": 5.0,
+    "angle_tol_description": "Bearing tolerance (degrees) for Polar coordinates (angle, distance) scoring (TID 74.1). EM=1 requires the bearing within this window AND the radial distance within the numeric-distance tolerance for its magnitude. The radial half reuses the distance kind's scale-from-magnitude deltas."
+  },
+  "grid_cell": {
+    "description": "Spatial-proximity companions (em_spatial / ne_spatial) for grid-cell answer types. The strict exact-ID EM is retained unchanged as the universal `em`; these companions additionally decode both prediction and gold to an H3 cell and score by resolution-agnostic hierarchy containment, crediting a right-place answer that uses a different resolution/encoding. Applied to standalone 'H3 cell index' and the H3 half of 'Composite string (H3+S2)' (TID 48.1). 'S2 cell index' is intentionally excluded — no S2 decoder dependency; strict-ID is the honest measure there. (The former 'MGRS-like grid cell' companion was removed with the 2026-07-22 drop of that answer type.)",
+    "composite_h3_containment": true,
+    "composite_h3_containment_description": "The Composite H3 half is scored by exact H3 hierarchy containment (the finer cell's ancestor at the coarser cell's resolution equals the coarser cell). Falls back to centroid geodesic distance <= the gold H3 cell's edge length when containment can't be evaluated. The S2 half is not spatially scored (no S2 decoder)."
+  },
+  "coverage": {
+    "description": "coverage_rate counts only rows that produced a parseable, non-refusal answer matching the declared answer_type — with one exception: correct refusals on false-premise rows (is_true_premise=False with answer=None) count as covered=True since they are the correct response. Refusals on true-premise rows and format errors are excluded. answer_rate / refusal_rate / format_error_rate / gold_missing_rate sum to 1.0.",
+    "exclude_refusals_from_coverage": true,
+    "split_gold_missing_from_format_error": true
+  },
+  "rows": {
+    "include_invalid": false
+  },
+  "alias_normalization": {
+    "nfc": true,
+    "casefold": true,
+    "strip_punctuation": true,
+    "prefer_gold_id_on_collision": true
+  },
+  "set_enumeration": {
+    "description": "Strict policy for set_enumeration of dates: any unparseable element marks the entire row as a format error (symmetric with set_enumeration of entities).",
+    "strict_dates": true
+  },
+  "dates": {
+    "description": "Day-tolerance for NE on date-typed rows. The rule takes the coarser of pred and gold precision to avoid over-penalizing the model when the gold itself only specifies year or month.",
+    "precision_tolerance_days": {
+      "year": 365,
+      "month": 15,
+      "day": 1
+    }
+  },
+  "unit_conversion": {
+    "description": "Dimensionally-compatible unit groups. ``em_unit_normalized`` / ``ne_unit_normalized`` convert prediction → gold when both units are in the same group. Never normalize across groups or when either side is unitless / unknown. Factors are multipliers to the canonical unit of the group (km for distance, km^2 for area).",
+    "groups": {
+      "distance": {
+        "canonical": "km",
+        "factors_to_canonical": {
+          "km": 1.0,
+          "m": 0.001,
+          "mi": 1.609344,
+          "ft": 0.0003048,
+          "nmi": 1.852
+        }
+      },
+      "area": {
+        "canonical": "km2",
+        "factors_to_canonical": {
+          "km2": 1.0,
+          "m2": 0.000001,
+          "ha": 0.01,
+          "mi2": 2.589988110336
+        }
+      }
+    }
+  }
+}

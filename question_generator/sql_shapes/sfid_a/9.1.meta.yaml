@@ -1,0 +1,96 @@
+tid: "9.1"
+tid_family: 9
+sfid: A
+ssfid: 8
+spatial_function: distance_to_boundary
+ground_truth_type: distance_kilometers
+answer_unit: km
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+# Two pairings declared in registry: region_instance × country and
+# natural_feature_instance × country. Pool_b is always countries
+# (filtered via node_type='country' in addition to category=region).
+variants:
+  region_to_country:
+    description: "Distance from region to its country boundary."
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+
+  natfeat_to_country:
+    description: "Distance from natural feature to its country boundary."
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+
+# join_condition omitted — predicates are inlined inside the inner
+# CTEs and the EXPLODE pattern doesn't fit a simple two-pool join.
+
+sampling:
+  strategy: row_number_hash
+
+parameters:
+  rand_seed_a: 12345
+  anchor_cap: 50
+
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

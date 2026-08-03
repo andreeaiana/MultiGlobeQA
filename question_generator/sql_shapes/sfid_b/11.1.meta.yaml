@@ -1,0 +1,194 @@
+tid: "11.1"
+tid_family: 11
+sfid: B
+ssfid: 2
+spatial_function: radius_containment_enum
+# set_enumeration: validator expects ground_truth to be a JSON-array-shaped
+# string (startswith '['). Main SQL emits to_json(sort_array(collect_set(name)))
+# so this is satisfied for both non-empty and zero-match anchors ('[]').
+ground_truth_type: set_enumeration
+answer_unit: null
+
+result_columns:
+  # entity_a_name carries the category label (e.g. 'pharmacies') so the
+  # exporter's {{entity_A}} placeholder substitutes correctly. Without
+  # this, the rendered question reads "Which Entity A are within …".
+  - entity_a_name
+  - entity_a_subcategory
+  # radius_km drives the exporter's {{value}} substitution — without it
+  # the rendered question reads "… are within N/A km of …".
+  - radius_km
+  - entity_b_id
+  - entity_b_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+variants:
+  pharmacy_5km:
+    description: "Which pharmacies are within 5km of {{entity_B}}?"
+    applicable_kgs:
+      osmh3kg:
+        # pool_a: ALL POIs (the SQL filters by node_type via parameter).
+        # The category filter narrows to POIs but doesn't restrict to
+        # the queried node_type — that happens via {entity_a_category}
+        # substitution in the join.
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        # pool_b: anchor entities (the "centers" of the radius queries).
+        # Filtered to POIs; in real benchmark practice, this might be
+        # narrowed further (e.g. to landmark POIs) for nicer questions.
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+
+# Spatial join in the join_condition — the radius filter is what makes a
+# pair eligible to enumerate. Same-country, no-self, plus a Sedona-friendly
+# spatial-join pattern (see SQL header for the long-form explanation):
+#
+#   1. ST_DWithin(a.geom, b.geom, {radius_km}/100.0) — bbox prune in
+#      planar degrees on lat/lon (no spheroid). 0.01° ≈ 1.11 km at the
+#      equator (1° ≈ 111 km N-S everywhere; cos(lat)·111 km E-W elsewhere),
+#      so radius_km/100 buffers ~1.11 × radius_km at the equator and shrinks
+#      east-west at higher latitudes. The /100 factor is intentionally
+#      generous so high-latitude longitudinal squashing doesn't drop true
+#      positives in the prune. Correctness comes from the spheroidal
+#      ST_DistanceSphere refine in (2); this conjunct only narrows the
+#      candidate set. It MUST be a separate JOIN-ON conjunct (not nested
+#      inside another expression) so Sedona's optimizer recognizes the
+#      spatial-join pattern and activates RangeJoinExec (R-tree) instead
+#      of a nested-loop join.
+#   2. ST_DistanceSphere(a.geom, b.geom)/1000.0 <= {radius_km} — exact
+#      spheroidal refinement on the surviving candidate pairs. This is
+#      the source of correctness; cheap once the bbox prune has cut
+#      ~99% of the cross product.
+#
+# Both ST_* calls reference `geom` (not WKT) — the SQL pre-CTEs the
+# pool_a / pool_b views into pool_a_geom / pool_b_geom with `geom`
+# materialized as Geometry. Inline ST_GeomFromWKT(...) inside JOIN ON
+# blocks Sedona's recognition of that pattern.
+#
+# IMPORTANT semantic note: this TID does NOT use rank-equality. The SQL
+# is structurally a LEFT JOIN with collect_set(...) GROUP BY pool_b's
+# columns. pool_a aliases as `a`; pool_b aliases as `b`; for each anchor
+# `b` the join finds all `a` rows of the queried node_type within the
+# radius and enumerates their names. Pool_b is the "outer" pool —
+# total_sample bounds the number of distinct anchor entities returned.
+# Anchors with ZERO matches still produce a row with ground_truth='[]'
+# (LEFT JOIN preserves them).
+join_condition: "a.country_iso3 = b.country_iso3 AND a.id != b.id AND a.node_type = '{entity_a_category}' AND ST_DWithin(a.geom, b.geom, {radius_km}/100.0) AND ST_DistanceSphere(a.geom, b.geom) / 1000.0 <= {radius_km}"
+
+sampling:
+  strategy: row_number_hash
+
+# Sampling: hash-diversity anchor selection (NOT a random
+# `ORDER BY RAND(seed)`). pool_b_capped applies
+# `ROW_NUMBER() OVER (PARTITION BY country_iso3 ORDER BY hash(id, rand_seed_b))`
+# and filters to rank <= {per_country_cap}. This keeps anchors balanced
+# across countries (~per_country_cap per country) instead of concentrating
+# on whichever country has the most entities (USA on osmh3kg/kwg). The
+# outer LIMIT {total_sample} caps the global row count after the LEFT
+# JOIN + collect_set GROUP BY.
+#
+# Two category parameters: {entity_a_category} is the SINGULAR node_type
+# value (used in the SQL WHERE filter — must match the data verbatim);
+# {entity_a_category_label} is the PLURAL noun phrase rendered into the
+# question text (used as `entity_a_name` to drive the exporter's
+# {{entity_A}} placeholder). Without separating them, the rendered
+# question would be ungrammatical: "Which pharmacy are within 5 km
+# of …" instead of "Which pharmacies …".
+#
+# {radius_km} substitutes into both the distance comparisons (in
+# join_condition) and the {{value}} display placeholder (via the
+# `radius_km` SELECT column). Spec range: [0.5, 10] km. The value is
+# tuned per KG to the density of its entity coverage: 5 km is
+# the dense-data default (osmh3kg / worldkg); kwg cells benefit from a
+# larger radius (50 km) to find enough matches in its sparser entity
+# coverage. The base parameters keep 5 km; parameters_per_kg.kwg
+# overrides to 50 km via the meta-level per-KG override mechanism.
+#
+# {per_country_cap} bounds anchors per country in the diversity-sampled
+# pool_b. Default 50: with ~150 countries this caps total anchors at
+# ~7,500 — slightly above the default total_sample of 5,000 so the outer
+# LIMIT trims the tail rather than the per-country cap being the binding
+# constraint. Tune downward if a future variant drives total_sample low.
+#
+# {rand_seed_b} feeds the hash() inside the anchor ROW_NUMBER's ORDER BY,
+# so reruns with the same seed pick identical anchors per country.
+parameters:
+  rand_seed_b: 67890
+  per_country_cap: 50
+  entity_a_category: pharmacy
+  entity_a_category_label: pharmacies
+  radius_km: 5
+
+# Per-KG override: kwg's sparser entity coverage needs a wider radius to
+# find enough matches. Mechanism: see TidMeta.parameters_per_kg.
+parameters_per_kg:
+  kwg:
+    radius_km: 50
+
+# GOLD-PROVENANCE CHOICE — option (a): single-row-per-question with
+# anchor-only pool_map ({entity_b_id: pool_b}).
+#
+# The 11.1 main SQL aggregates many `a.id` values into a JSON list per
+# anchor (collect_set + to_json), so each output row has exactly one
+# pool_b entity and a SET of pool_a entities. Two design options exist
+# for capturing provenance:
+#
+#   (a) Anchor-only pool_map. The main SQL stays one-row-per-question;
+#       gold.sql is responsible for fetching triples for BOTH the anchor
+#       AND every pool_a entity inside the anchor's radius (see the
+#       UNION in 20.1.gold.sql). All triples are attributed to the
+#       anchor's id so they appear under the same question_id.
+#
+#   (b) Multi-row-per-question with both-pools pool_map
+#       ({entity_a_id: pool_a, entity_b_id: pool_b}). Would require
+#       removing the GROUP BY / collect_set from the main SQL and
+#       letting the exporter group by anchor for question rendering.
+#       More complete per-row provenance, but the result_columns shape
+#       and the exporter contract would need new verification.
+#
+# Choice: (a). Reasons:
+#   - It matches the single-row-per-question shape of 10.1 (the
+#     immediately-adjacent precedent — both use the same join_condition
+#     and the same pool_map shape).
+#   - Aggregate queries need full provenance: the gold.sql in this TID
+#     UNIONS the anchor URI with every nearby-pharmacy URI inside the
+#     radius — same predicate as the main SQL — so all triples backing
+#     the answer set ARE captured (just not split per row). The
+#     validator/exporter joins them all to the same question_id.
+#   - No per-entity ROW_NUMBER cap on gold_triples.
+gold_triples:
+  pool_map:
+    # Single-role gold: anchor entity is the only sampled per-row entity.
+    # The matched POIs are aggregated into the answer string; their
+    # triples are still emitted (see gold.sql) and attributed to the
+    # anchor's id so they share the question_id.
+    entity_b_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

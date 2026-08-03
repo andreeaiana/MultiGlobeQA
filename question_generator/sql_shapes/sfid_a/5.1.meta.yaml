@@ -1,0 +1,179 @@
+tid: "5.1"
+tid_family: 5
+sfid: A
+ssfid: 3
+spatial_function: cross_country_resolved_distance
+ground_truth_type: entity_single_name
+answer_unit: null
+
+# 3-pool TID with a "resolved" anchor computed entirely in SQL via the
+# country_polygons session view (registered by country_setup.py at
+# init_spark). The "country bordering the country containing entity_A"
+# is resolved at query time: anchor_a's country must have EXACTLY ONE
+# land-border neighbor, so the determiner is unambiguous.
+#
+# The anchor resolution needs no `"resolved"` slot type in the framework
+# and no `country_polygons` entry as a `PoolConfig.source` literal: both
+# are sidestepped by doing the resolution inside SQL CTEs.
+#
+# Caveats:
+#   - `ST_Touches` over Natural Earth captures LAND-shared borders only;
+#     maritime-only borders (e.g. Australia ↔ PNG) are NOT counted.
+#     This matches the typical reading of "bordering country" but
+#     excludes some plausible answers (e.g. Cuba ↔ USA Florida via sea).
+#   - Anchor pool is restricted to ~12-18 countries (the singleton-
+#     neighbor set). Per_country_cap=10 caps at ~150-180 candidate
+#     anchors before the (b, c) join + LIMIT trim.
+#   - B and C are sampled from the SAME COUNTRY as anchor_a (not global)
+#     to bound cardinality and keep the comparison meaningful.
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - entity_c_id
+  - entity_c_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+  - pool_c
+
+# Slot spec: entity_A is a POI_instance; entity_B/C are POI / region /
+# natural_feature_instance. Three variants, one per
+# B/C category combination most useful for the comparison. KG scope: all
+# 3 KGs apply (country_polygons is KG-agnostic; per-KG B/C filters
+# encoded via per-variant per-KG overrides if vocab differs). Worldkg's
+# region/POI/natfeat are MULTIPOINT-only, which is fine for distance:
+# ST_DistanceSphere handles points.
+variants:
+  poi_pair:
+    description: "POI candidates B and C, anchor POI A in single-neighbor country."
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'POI_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'POI_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'POI_category'"
+
+  region_pair:
+    description: "Region candidates B and C, anchor POI A in single-neighbor country."
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'region_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'region_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'region_category'"
+
+  natfeat_pair:
+    description: "Natural-feature candidates B and C, anchor POI A in single-neighbor country."
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+      # kwg has NO natural_feature_category, so this variant
+      # excludes kwg.
+
+# join_condition is null — the multi-CTE structure with country
+# adjacency + country_polygons join doesn't fit a simple inter-pool
+# binary predicate. Spatial joins are inlined in the CTEs.
+join_condition: null
+
+sampling:
+  strategy: row_number_hash
+
+# rand_seed_a: feeds hash() inside anchor_a's per-country ROW_NUMBER.
+# per_country_cap: 10 — with ~12-18 eligible 1-neighbor countries this
+#   caps total anchors at ~150 before (b, c) cross-join + LIMIT. Keeps
+#   smoke runs tractable.
+parameters:
+  rand_seed_a: 12345
+  per_country_cap: 10
+
+# Three-anchor gold: pull triples for entity_a (POI), entity_b
+# (candidate), entity_c (candidate), following the standard 3-pool gold
+# pattern. The bordering country isn't a sampled entity (it's derived
+# from a Natural Earth view) so it doesn't appear in pool_map.
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+    entity_c_id: pool_c
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

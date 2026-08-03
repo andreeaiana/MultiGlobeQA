@@ -1,0 +1,75 @@
+tid: "34.6"
+tid_family: 34
+sfid: F
+ssfid: 3
+spatial_function: comparison
+ground_truth_type: entity_single_name
+answer_unit: null
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - perimeter_deg
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+# Single variant: region_category (with geometry filter)
+# x region_instance. Per-KG filters narrow pool_a to that category.
+# All three KGs apply.
+variants:
+  default:
+    description: "Smallest by perimeter pool_a entity within a region anchor."
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+
+# join_condition omitted — the spatial JOIN ON ST_Contains lives directly
+# in the SQL CTE; per-region rank is the sampling primitive.
+join_condition: null
+
+sampling:
+  strategy: row_number_hash
+
+# Pure per-entity-pair gold (1.1-style) — ground truth is the picked
+# entity_a; entity_b is the reference region. No aggregate to extend.
+parameters:
+  rand_seed_b: 67890
+  per_country_cap: 50
+
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

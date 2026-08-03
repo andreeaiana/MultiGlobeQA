@@ -1,0 +1,125 @@
+tid: "8.1"
+tid_family: 8
+sfid: A
+ssfid: 6
+spatial_function: distance_knn_then_distance_1
+ground_truth_type: distance_kilometers
+answer_unit: km
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - entity_c_id
+  - entity_c_name
+  - ground_truth
+
+# 3-pool TID — chained kNN + distance.
+#   pool_a — kNN candidate set
+#   pool_b — kNN anchor (per-country diversity capped)
+#   pool_c — second-step distance target
+pools:
+  - pool_a
+  - pool_b
+  - pool_c
+
+# Two pairings declared in registry:
+#   pairing 1: POI_category × POI_instance × POI_instance
+#   pairing 2: POI_category × POI_instance × natural_feature_instance
+variants:
+  poi_to_poi_to_poi:
+    description: "Distance from the nearest POI-A-to-POI-B over to POI-C."
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'POI_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'POI_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'POI_category'"
+
+  poi_to_poi_to_natural_feature:
+    description: "Distance from the nearest POI-A-to-POI-B over to a natural feature C."
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+
+# join_condition omitted — the resolved × pool_c pairing predicate
+# (country + distinctness) lives directly in the SELECT WHERE clause.
+
+sampling:
+  strategy: row_number_hash
+
+# k_rank picks WHERE rank = N: 8.1=1, 8.2=2, 8.3=3 (the only structural
+# difference). Per-country anchor cap on pool_b bounds the inner cross-join.
+parameters:
+  rand_seed_b: 67890
+  anchor_cap: 50
+  k_rank: 1
+
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+    entity_c_id: pool_c
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

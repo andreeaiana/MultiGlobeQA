@@ -1,0 +1,96 @@
+tid: "3.1"
+tid_family: 3
+sfid: A
+ssfid: 2
+spatial_function: distance
+ground_truth_type: distance_kilometers
+answer_unit: km
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - event_a_name
+  - entity_b_id
+  - entity_b_name
+  - entity_c_id
+  - entity_c_name
+  - time_period
+  - ground_truth
+
+# 3-pool TID: pool_a is hazard events (active during the queried
+# window), pool_b is a POI candidate set constrained to lie inside
+# the sampled region, pool_c is the administrative region pool.
+pools:
+  - pool_a
+  - pool_b
+  - pool_c
+
+# KG SCOPE — kwg only. Hazard events are first-class only in
+# KnowWhereGraph (NOAA / NIFC / MTBS entities with start_date +
+# end_date columns populated by the nt_to_delta temporal extractor).
+# osmh3kg / worldkg have no hazard_event_category in
+# entity_constraints/class_lookup.csv. Mirrors 43.1's per-KG scope
+# rationale verbatim.
+variants:
+  event_to_poi_in_region:
+    description: "Distance from a hazard event to a POI inside a sampled region, gated by temporal overlap."
+    applicable_kgs:
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'hazard_event_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'region_category'"
+
+# Same-country, no-self, rank-equality between pool_a (events) and
+# pool_c (regions). pool_b bridges via the pois_in_region CTE
+# (ST_Contains predicate on c.geometry × b.geometry).
+join_condition: "a.country_iso3 = c.country_iso3 AND a.id != c.id AND a.unique_id = c.unique_id"
+
+sampling:
+  strategy: row_number_hash
+
+# Free-form parameters substituted into the SQL.
+# rand_seed_a / rand_seed_c: independent shuffles per 1.1's pattern.
+# period_start / period_end: temporal window for "active" events.
+# Default 2020-01-01 → 2023-12-31 matches 71.1.meta.yaml's defaults
+# (kwg NOAA event coverage window).
+parameters:
+  rand_seed_a: 12345
+  rand_seed_c: 67890
+  period_start: "2020-01-01"
+  period_end: "2023-12-31"
+
+# 3-pool gold provenance with TEMPORAL predicates added for the event
+# anchor (pool_a). The kwg KG carries event timing as a 3-hop chain:
+#   event → hasTemporalScope → interval
+#   interval → fireDiscoveryTime / fireOutTime → time_instant
+#   time_instant → inXSDDate / inXSDDateTime → date_literal
+#
+# `temporal_scope` shows up in direct_triples via {predicate_iris}
+# auto-substitution (the executor unions all role IRIs into the
+# direct-triples filter). The two downstream hops require explicit
+# CTEs in 4.1.gold.sql — see header there. The temporal_instant /
+# temporal_date roles are listed here so their IRIs are resolvable
+# from kg_prefixes.yaml::kwg and substituted into the gold SQL.
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+    entity_c_id: pool_c
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+    - temporal_scope
+    - temporal_instant
+    - temporal_date
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

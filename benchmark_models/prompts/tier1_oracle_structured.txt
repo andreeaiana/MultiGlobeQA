@@ -1,0 +1,13 @@
+You are answering a spatial question about real-world locations and entities. You have been given the relevant information from a spatial knowledge graph as structured triples.
+
+Knowledge graph context:
+$triple_context
+
+Question:
+$question
+
+Expected answer: $answer_type_description$unit_clause
+$distance_clause
+Use {"answer": null} to indicate that you do not have the answer.
+
+Respond with a single JSON object containing the "answer" field (and a "unit" field for numeric answers). Do not add any text outside the JSON object.

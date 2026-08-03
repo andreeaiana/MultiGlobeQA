@@ -1,0 +1,139 @@
+tid: "1.1"
+tid_family: 1
+sfid: A
+ssfid: 1
+spatial_function: distance
+ground_truth_type: distance_kilometers
+answer_unit: km
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+# One block per pool-pairing variant. Reference from run-spec as
+# "<tid>:<variant_id>" (e.g. "1.1:poi"). shape_sha is variant-scoped
+# so editing one variant doesn't invalidate the other's staged cells.
+variants:
+  poi:
+    description: "Distance between two POIs (any pair within POI_category)."
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+
+  region:
+    description: "Distance between two administrative regions."
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+
+  # Third pool pairing: POI x natural_feature.
+  # Same rank-equality SQL as the other variants — only the pool filters
+  # differ (POI_category × natural_feature_category instead of
+  # POI_category × POI_category or region × region).
+  poi_natfeat:
+    description: "Distance between a POI and a natural feature."
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+
+join_condition: "a.country_iso3 = b.country_iso3 AND a.id != b.id AND a.unique_id = b.unique_id"
+
+# Sampling: independent global shuffles + rank-equality join. The two pool
+# CTEs assign a global ROW_NUMBER (no PARTITION BY) ordered by HASH(id, seed),
+# and join_condition above pairs them on a.unique_id = b.unique_id within
+# matching country + h3 cell. Each entity appears at most once per side.
+# The optional fields diversity_keys / per_bucket_cap / pool_cap are intentionally
+# absent — the SQL doesn't use {diversity_partition} / {per_bucket_cap} /
+# {pool_cap}, so the contract checker accepts the omission.
+sampling:
+  strategy: row_number_hash
+
+# Free-form per-TID parameters substituted into the SQL via {key} tokens.
+# rand_seed_b is the second seed used for pool_b's HASH ordering. Critical
+# for symmetric variants (pool_a == pool_b) — different seeds make the two
+# sides' rankings diverge so id != b.id doesn't drop everything.
+parameters:
+  rand_seed_a: 12345
+  rand_seed_b: 67890
+
+# Gold-triples side: which pool each entity role maps to, and which
+# predicate roles to pull. Predicate IRIs themselves are KG-specific
+# and live in a shared prefix map (not per-TID).
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+# Run-overridable defaults.
+defaults:
+  total_sample: 5000
+  run_seed: 12345

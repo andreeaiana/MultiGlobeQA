@@ -1,0 +1,119 @@
+tid: "27.1"
+tid_family: 27
+sfid: D
+ssfid: 1
+spatial_function: count
+ground_truth_type: count
+answer_unit: count
+
+result_columns:
+  # entity_a_name carries the PLURAL category label so the exporter's
+  # {{entity_A}} placeholder renders grammatical question text.
+  - entity_a_name
+  - entity_a_subcategory
+  - entity_b_id
+  - entity_b_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+# COUNT sibling of TID 26.1 — same pool layout, same proximity predicate,
+# same per-country ROW_NUMBER hash diversity. Only the projection differs
+# (CAST(COUNT(a.id) AS STRING) vs to_json(sort_array(collect_set(a.name)))).
+#
+# Variants mirror 26.1's: cafe / restaurant / pharmacy / bank — the four
+# most-common POI categories. Long-tail categories (fuel, fast_food,
+# memorial, hotel, ...) are not covered here; keep 26.1 and 27.1
+# variant lists in lock-step.
+#
+# pool_a: ALL POIs of the relevant entity category (further narrowed by
+#   the join's `node_type = '{entity_a_category}'` filter). Source =
+#   entities.
+# pool_b: per-session aggregated road view. Source =
+#   osmh3kg_roads_aggregated. Empty filter: every row IS a named road.
+#
+# KG SCOPE: osmh3kg-only for Wave F1. The aggregated road view is
+# osmh3kg-only (kwg has no road sub-category labels; worldkg coverage
+# TBD). Add the other KGs once the road view supports them.
+variants:
+  cafe:
+    description: "How many cafes does {{entity_B}} pass by?"
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: osmh3kg_roads_aggregated
+          filter: ""
+  restaurant:
+    description: "How many restaurants does {{entity_B}} pass by?"
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: osmh3kg_roads_aggregated
+          filter: ""
+  pharmacy:
+    description: "How many pharmacies does {{entity_B}} pass by?"
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: osmh3kg_roads_aggregated
+          filter: ""
+  bank:
+    description: "How many banks does {{entity_B}} pass by?"
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: osmh3kg_roads_aggregated
+          filter: ""
+
+# join_condition is encoded INLINE in the SQL (see 26.1.meta.yaml header
+# for the rationale — two different aliases + ST_DWithin needs to be
+# inlined for Sedona's optimizer to spot the spatial-join pattern).
+join_condition: null
+
+sampling:
+  strategy: row_number_hash
+
+# See 26.1.meta.yaml header for the parameters narrative — it applies
+# verbatim here (SET vs COUNT differs only in the SELECT projection,
+# not in any sampling / proximity / variant parameter).
+parameters:
+  rand_seed_b: 67890
+  per_country_cap: 10
+  entity_a_category: cafe
+  entity_a_category_label: cafes
+  proximity_buffer_meters: 100
+
+# GOLD-PROVENANCE CHOICE — same as 26.1 (single-row-per-question
+# with anchor-only pool_map). The COUNT main SQL aggregates many a.id
+# values into a single integer per anchor, so each output row has exactly
+# one pool_b entity (the road) and depends on a SET of pool_a entities
+# (the matched POIs). Aggregate queries need full provenance with no
+# cap on the matched set: the gold UNIONs the anchor URI with every
+# nearby POI URI inside the proximity buffer (same predicate as the
+# main SQL).
+gold_triples:
+  pool_map:
+    entity_b_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

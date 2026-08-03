@@ -1,0 +1,78 @@
+tid: "45.1"
+tid_family: 45
+sfid: I
+ssfid: 3
+spatial_function: event_hit_date
+ground_truth_type: temporal
+answer_unit: null
+
+# Result columns: dual column families.
+# event_a_* drives {{event_A}} substitution.
+# entity_a_* drives {{entity_A}} substitution. Both resolve independently
+# in the SAME row, so "When did {{event_A}} hit {{entity_A}}?" renders
+# without a placeholder collision.
+result_columns:
+  - event_a_id
+  - event_a_name
+  - entity_a_id
+  - entity_a_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+# KG SCOPE — kwg only. Hazard events with start_date are first-class
+# only in KnowWhereGraph (NOAA / NIFC / MTBS); osmh3kg / worldkg do
+# not populate event temporal columns. Mirrors 43.1 / 4.1.
+variants:
+  kwg:
+    description: "When did event A hit region A (event start_date per intersecting region)."
+    applicable_kgs:
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'hazard_event_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+
+# join_condition lives inline in the SQL (event-region INNER JOIN with
+# ST_Intersects predicate — distinct shape from rank-equality TIDs which
+# carry the predicate in {join_condition}). Set to null so the contract
+# checker doesn't require {join_condition} in the SQL.
+join_condition: null
+
+sampling:
+  strategy: row_number_hash
+
+# rand_seed_a feeds hash() inside the event-anchor ROW_NUMBER's ORDER BY.
+# per_country_cap bounds anchor events per country in pool_a; pool_b is
+# not sampled (we want every intersecting region per event).
+parameters:
+  rand_seed_a: 12345
+  per_country_cap: 50
+
+# Gold triples — two anchors per row (event + region). Mirrors 43.1's
+# two-pool gold pattern with the event/region pool_map and the kwg
+# temporal triplet added so e.start_date is retrievable in gold.
+#
+# pool_map maps the per-row id columns to pools:
+#   event_a_id → pool_a (the event)
+#   entity_a_id → pool_b (the region)
+gold_triples:
+  pool_map:
+    event_a_id: pool_a
+    entity_a_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+    - temporal_scope
+    - temporal_instant
+    - temporal_date
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

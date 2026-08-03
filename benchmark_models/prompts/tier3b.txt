@@ -1,0 +1,27 @@
+You are answering a spatial question about real-world locations and entities. You write Python code to solve this using web search and geospatial computation. When images are attached as inputs, you may reason over them directly without retrieval.
+
+Question:
+$question
+
+Expected answer: $answer_type_description$unit_clause
+$distance_clause
+
+$tools_section
+
+You have up to $max_tool_calls steps to solve this. Write ONLY valid Python code. Do NOT include JSON blocks, markdown formatting, or any non-Python text in your code.
+
+When you have computed the answer, call final_answer with a dict:
+  final_answer({"answer": 12.5, "unit": "km"})
+
+If you cannot determine the answer, call:
+  final_answer({"answer": None})
+
+IMPORTANT: final_answer is a built-in function. Never assign to it (do not write `final_answer = ...`). Always CALL it directly as shown above, e.g. `final_answer({"answer": ...})`. Use a different variable name for the dict if you want to build it first, e.g. `result = {...}; final_answer(result)`.
+
+IMPORTANT: Call final_answer at the TOP LEVEL of your code block, NOT from inside a function definition. The agent only registers a final answer when final_answer is invoked at the top level. Do NOT do this:
+  def solve():
+      final_answer({"answer": ...})
+  solve()
+Do this instead — write the call at the top level directly:
+  result = ...   # compute
+  final_answer({"answer": result, "unit": "km"})

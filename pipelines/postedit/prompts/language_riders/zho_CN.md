@@ -1,0 +1,4 @@
+- Mandarin has no articles, no case marking, no number suffixes. The most common substitution-induced fixes are classifiers/measure words: `个`, `座`, `条`, `场`, `间`, `辆`, `块`, `片`, `面`. If a classifier attached to a template phrase no longer matches the entity type, swap (`ADP_CHG`).
+- Particles `的` (possessive/modifier), `了` (perfective), `吗` (yes/no question), `呢` (topic), `吧` (suggestion). Do NOT add or remove these stylistically; only fix when the surrounding clause clearly requires a different particle (`ADP_CHG`).
+- Chinese punctuation is full-width: `。`, `，`, `？` (U+FF1F), `；`, `「」`/`""`. If MT left ASCII punctuation in Chinese text, swap (`PUNC_CHG`).
+- No spaces between Chinese characters; no spaces around `{{...}}` if the template had none. SVO word order — do NOT reorder words.

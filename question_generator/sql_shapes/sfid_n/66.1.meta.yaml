@@ -1,0 +1,93 @@
+tid: "66.1"
+tid_family: 66
+sfid: N
+ssfid: 2
+spatial_function: bounding_box_retrieval
+ground_truth_type: coordinates
+answer_unit: "lat/long pairs (min_lat,min_lon,max_lat,max_lon)"
+
+# SINGLE-POOL single-row-per-entity. The entity's bounding box (axis-
+# aligned envelope) IS the answer — projected as a single composite
+# string "min_lat,min_lon,max_lat,max_lon" so the validator's
+# coordinates rule applies to the single ground_truth column.
+#
+# DEGENERATE BBOX: POINT entities yield a degenerate bbox where
+# min == max - mathematically correct but uninteresting. They are NOT
+# excluded: all geometry types are valid for this shape, so no
+# geometry_type filter is imposed. To restrict to polygon bboxes, add
+# `AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')` to the variant
+# filter.
+#
+# KG SCOPE: all 3 KGs.
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_a_node_type
+  - entity_a_geometry_type
+  - entity_a_subcategory
+  - entity_a_country
+  - ground_truth
+
+pools:
+  - pool_a
+
+# Two variants (poi vs region). natural_feature is folded into POI's
+# scope intentionally to keep the bbox question's anchor categories
+# focused on the two most-distinct entity-shape buckets.
+variants:
+  poi:
+    description: "Bounding box of any POI (degenerate for POINT geometries)."
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+  region:
+    description: "Bounding box of any administrative region (POLYGON / MULTIPOLYGON)."
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+
+# Single-pool unary projection — no inter-pool join.
+join_condition: null
+
+sampling:
+  strategy: row_number_hash
+
+parameters:
+  rand_seed_a: 12345
+  per_country_cap: 50
+
+# Single-anchor gold (mirrors 9.1.gold.sql). The bbox
+# is derived from the entity's geometry triple chain.
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

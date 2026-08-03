@@ -1,0 +1,4 @@
+- German articles must agree with the entity's grammatical gender (`der` / `die` / `das`); flip the article (`ART_CHG`) when the entity gender differs from the template's default.
+- Entity case must match the syntactic role: nominative, accusative (`durch`/`für`/`gegen`/`ohne`/`um`), dative (`aus`/`bei`/`mit`/`nach`/`seit`/`von`/`zu`), genitive (`während`/`wegen`/`trotz`/`statt`). Adjective endings on the entity-modifying word may need updating (`DEC_CHG`).
+- German contractions like `zu dem → zum`, `in dem → im`, `an dem → am`, `bei dem → beim` should be applied where the resulting reading is natural (`CONTR_CHG`).
+- Proper nouns keep their original casing inside `{{...}}`. Do not "Germanise" entity spellings (no `ß` for `ss`, no umlaut substitution).

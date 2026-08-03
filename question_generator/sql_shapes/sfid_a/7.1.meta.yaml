@@ -1,0 +1,136 @@
+tid: "7.1"
+tid_family: 7
+sfid: A
+ssfid: 5
+spatial_function: distance_optimize_min_total
+ground_truth_type: distance_kilometers
+answer_unit: km
+
+# Per-region winning facility: A within region B that minimises the
+# SUM of distances to all C in B. The result row reports the chosen
+# facility (entity_a) and its containing region (entity_b); the C
+# pool is aggregated and not surfaced in the answer.
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - entity_c_name
+  - ground_truth
+
+# Three pools — facility candidates (A), containing regions (B), and
+# demand points (C). Pool views are filtered per the variant below.
+pools:
+  - pool_a
+  - pool_b
+  - pool_c
+
+# Two registry pairings:
+#   pairing 1 — region_category × region_instance × POI_category
+#   pairing 2 — POI_category    × region_instance × POI_category
+# A and C may both be POI_category in pairing 2 (same source filter,
+# different roles). The a.id != c.id predicate in the SQL keeps a
+# candidate from being scored against itself when pools overlap.
+variants:
+  region_in_region:
+    description: "Region facility minimising sum-distance to all POIs in a containing region."
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'POI_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'POI_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'POI_category'"
+
+  poi_in_region:
+    description: "POI facility minimising sum-distance to all other POIs in a containing region."
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'POI_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'POI_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'POI_category'"
+
+# join_condition is intentionally absent — the candidate × demand-point
+# inner cross-join + ST_Contains predicates are inlined directly in the
+# SQL's WHERE. The per-region SUM aggregate is not a top-level binary-
+# relation predicate, so there's nothing useful to factor out here.
+
+sampling:
+  strategy: row_number_hash
+
+# region_cap caps how many container regions we evaluate per country —
+# each region triggers a candidate × demand-point cross-join that drives
+# compute. Mirrors 6.1's region_cap default. anchor_cap (per-region
+# candidate cap) is intentionally NOT applied: the optimisation needs
+# every candidate's total distance, otherwise the winner depends on the
+# sample.
+parameters:
+  rand_seed_b: 67890
+  per_country_region_cap: 100
+
+# Two-anchor (winning facility + containing region) gold provenance.
+# Demand points (pool_c) aggregate into the SUM and are not named in
+# the answer, so they don't need triples.
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

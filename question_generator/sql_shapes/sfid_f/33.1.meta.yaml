@@ -1,0 +1,76 @@
+tid: "33.1"
+tid_family: 33
+sfid: F
+ssfid: 2
+spatial_function: comparison
+ground_truth_type: entity_single_name
+answer_unit: null
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+# Single variant: POI_category × region_instance. All three KGs supply
+# both. This directional-extreme shape has only this one pairing — no
+# region × region or natfeat × region variants.
+variants:
+  poi_in_region:
+    description: "Northernmost POI within a region anchor."
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+
+# join_condition omitted — the spatial JOIN ON ST_Contains lives directly
+# in the SQL CTE; no top-level binary predicate parameterizes per-variant.
+join_condition: null
+
+sampling:
+  strategy: row_number_hash
+
+# No free parameters: ranking is purely deterministic by ST_Y + name
+# tiebreak. No RAND, no anchor cap — the per-region partition + WHERE
+# rank = 1 already bounds the result to one row per region, and the
+# outer LIMIT {total_sample} caps total questions.
+
+# Pure per-entity-pair gold (1.1-style) — no aggregate to extend over.
+# The picked entity_a is the SOLE answer; entity_b is the reference
+# region. Both anchors get label/type/geometry triples.
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

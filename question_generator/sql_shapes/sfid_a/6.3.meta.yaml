@@ -1,0 +1,60 @@
+tid: "6.3"
+tid_family: 6
+sfid: A
+ssfid: 4
+spatial_function: distance_aggregate_max
+ground_truth_type: distance_kilometers
+answer_unit: km
+
+result_columns:
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+# worldkg excluded — POINT regions can't ST_Contains. See 8.1.meta.yaml.
+variants:
+  poi_in_region:
+    description: "Maximum pairwise distance between all POIs of one subcategory in a region."
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+
+join_condition: null
+
+sampling:
+  strategy: row_number_hash
+
+parameters:
+  rand_seed_pair: 67890
+  per_country_region_cap: 100
+  min_pois_per_pair: 3
+
+gold_triples:
+  pool_map:
+    entity_b_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

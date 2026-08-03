@@ -1,0 +1,75 @@
+tid: "35.12"
+tid_family: 35
+sfid: F
+ssfid: 3
+spatial_function: comparison
+ground_truth_type: entity_single_name
+answer_unit: null
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - length_deg
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+# Single variant: road_network_feature_category x region_instance.
+# Filter narrows to that category (and geometry_kind if
+# applicable). All three KGs apply.
+variants:
+  default:
+    description: "Rank-3 pool_a entity in region anchor, ordered by length (ASC)."
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'road_network_feature_category' AND geometry_type IN ('LINESTRING', 'MULTILINESTRING')"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'road_network_feature_category' AND geometry_type IN ('LINESTRING', 'MULTILINESTRING')"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'road_network_feature_category' AND geometry_type IN ('LINESTRING', 'MULTILINESTRING')"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category'"
+
+# join_condition omitted — ST_Contains lives in the SQL CTE; per-region
+# rank is the sampling primitive.
+join_condition: null
+
+sampling:
+  strategy: row_number_hash
+
+# Pure per-entity-pair gold (1.1-style) — picked rank-3 entity_a
+# is the answer; entity_b is the region anchor. No aggregate to extend.
+parameters:
+  rand_seed_b: 67890
+  per_country_cap: 50
+
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

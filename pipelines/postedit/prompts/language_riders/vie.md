@@ -1,0 +1,4 @@
+- Vietnamese has no inflection — no case, no gender, no number suffixes. The most common substitution-induced fix is classifier choice (the word before a noun: `cái`, `con`, `chiếc`, `quyển`, `tòa`, `khu`, `vùng`). Use `ADP_CHG` when the classifier mismatches the entity type.
+- Vietnamese diacritics encode tones (`á à ả ã ạ`) and vowels (`ă â ê ô ơ ư`). They MUST be preserved exactly — the pipeline NFC-normalises before marking, so do not invent or alter tone marks inside or outside `{{...}}`.
+- Vietnamese uses ASCII `?` at end of questions. SVO word order is rigid — do NOT reorder words.
+- The copula `là` ("is") and existential `có` ("there is/has") should not be added or removed for stylistic reasons.

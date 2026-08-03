@@ -1,0 +1,147 @@
+tid: "13.1"
+tid_family: 13
+sfid: C
+ssfid: 1
+spatial_function: intersection_boolean
+ground_truth_type: boolean
+answer_unit: null
+
+# Boolean predicate (ST_Intersects). 13.1 differs from 14.1 only in
+# entity-type constraints: 13.1 allows POINT in slot A (POI-allowed),
+# 14.1 requires both slots non-POINT (geometries-emphasized).
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+# The full slot-pairing space for this shape has 5 pairings. We declare
+# a representative subset covering that space (POI-anchored,
+# road-anchored, region-region). Additional pairings (e.g. road×road)
+# can be added as follow-up variants.
+#
+# Pool-A constraint for 13.1: POINT geometry IS allowed (POI category
+# uses POINT). pool-B can be any geometry type that admits ST_Intersects.
+variants:
+  poi_to_region:
+    description: "Does POI A intersect region B? (POI × region pairing.)"
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+
+  region_to_region:
+    description: "Does region A intersect region B? (region × region pairing.)"
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+
+  poi_to_natfeat:
+    description: "Does POI A intersect natural feature B?"
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'natural_feature_category'"
+
+# Symmetric predicate de-duplication (`a.id < b.id`) lives inside the
+# join_condition. Same-country guard prevents the cross-join from
+# exploding across all entities globally. For the symmetric region×region
+# variant, distinct seeds (rand_seed_a != rand_seed_b) keep both pools
+# from collapsing to identical row orderings — without that, the
+# `a.id < b.id` filter would still work but yield biased pairings.
+join_condition: "a.country_iso3 = b.country_iso3 AND a.id < b.id"
+
+sampling:
+  strategy: row_number_hash
+
+# Parameters:
+#   - rand_seed_a / rand_seed_b: independent shuffle seeds. Different
+#     values are critical when pool_a and pool_b resolve to the same
+#     filter (region × region) — without them both pools rank entities
+#     identically and `a.id < b.id` drops biased pairs.
+#   - per_country_cap: caps each pool's per-country candidate count.
+#     With ~150 countries × 50 = 7500 candidates per pool, the inner
+#     cross-join is bounded but still produces enough true-positive
+#     intersections to fill total_sample.
+parameters:
+  rand_seed_a: 12345
+  rand_seed_b: 67890
+  per_country_cap: 50
+
+# Per-pair gold (mirror 1.1 pattern): two anchor entities per question,
+# label + type + geometry triples for each. Boolean predicate has no
+# aggregate-over-set extension.
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

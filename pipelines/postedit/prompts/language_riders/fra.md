@@ -1,0 +1,4 @@
+- French articles must match gender (`le` / `la` / `l'` before vowel-initial). Flip article (`ART_CHG`) when the entity differs.
+- Elision (`ELISION`) is mandatory: `le`/`la`/`de`/`que`/`ne`/`me`/`te`/`se`/`je` lose their vowel before vowel-initial words and `h` muet (`de Italie → d'Italie`, `le ami → l'ami`). Apply when the template's article/preposition stayed long-form.
+- Contractions: `à le → au`, `à les → aux`, `de le → du`, `de les → des`. Apply (`CONTR_CHG`) when MT left the un-contracted form.
+- Adjective and past-participle agreement (`AGR_CHG`) on words modifying the entity may need updating with the entity's gender/number.

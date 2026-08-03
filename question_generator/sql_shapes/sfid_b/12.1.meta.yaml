@@ -1,0 +1,151 @@
+tid: "12.1"
+tid_family: 12
+sfid: B
+ssfid: 3
+spatial_function: radius_population_buffer
+# Population is an integer count of people (raster zonal-stats SUM).
+# Validator's count rule wants a numeric string with no leading '['.
+ground_truth_type: count
+# Free-form unit string surfaced into exporter metadata. "population" is
+# more informative than the bare "count" 10.1 uses (those are entity
+# counts; this is a count of people). The exporter / validator treats
+# answer_unit as opaque metadata, so any non-empty string is fine here.
+answer_unit: population
+
+result_columns:
+  # entity_a_name is the anchor entity's display name — drives the
+  # exporter's {{entity_A}} substitution. NO entity_a_subcategory column
+  # because 12.1's question template doesn't reference {{entity_A_category}}
+  # (the question is "population within X km of <Eiffel Tower>?", not
+  # "population within X km of a <tower>?"). Adding the column would
+  # be dead schema.
+  - entity_a_id
+  - entity_a_name
+  # radius_km drives the exporter's {{value}} substitution — without it
+  # the rendered question reads "… within N/A km of …".
+  - radius_km
+  - ground_truth
+
+# Single-pool TID. NOT a typo — there is no pool_b. Each anchor in
+# pool_a produces a buffered geometry that population is summed over;
+# the "other side" of the join is the pop_tiles raster view, which
+# isn't an entity pool and therefore isn't declared here. The
+# bidirectional contract checker (shape_contract.check_shape) accepts
+# single-element pools lists; the executor builds one view from
+# applicable_kgs.<kg>.pool_a and substitutes {pool_a} into the SQL.
+pools:
+  - pool_a
+
+# Single mixed variant covering the spec's full anchor type set
+# (POI_instance + region_instance + natural_feature_instance, with
+# subcategories amenity / tourism / historic / leisure / boundary /
+# natural / waterway). The category filter narrows to those three top
+# categories — node_type-level subcategory filtering is intentionally
+# left wide so the variant captures the full anchor diversity the
+# spec asks for. Future variants could split per-category or per-
+# subcategory if the question quality benefits from narrower anchor
+# types.
+#
+# Note on category labels: the project uses three top-level category
+# values across the entity tables — POI_category, region_category,
+# natural_feature_category. 1.1 / 10.1 / 11.1 / 28.1 / 37.1 etc. all
+# filter by `category = '<one>'`; this is the first multi-category
+# variant in the codebase, hence the IN (...) form. The category
+# strings themselves come from the entity Delta schema (verified via
+# sfid_j/51.1.meta.yaml's natural_feature_category
+# usage and sfid_a/1.1.meta.yaml's POI_category / region_category
+# precedent).
+variants:
+  mixed_5km:
+    description: "What is the total population within 5km of {{entity_A}}?"
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category IN ('POI_category', 'region_category', 'natural_feature_category')"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category IN ('POI_category', 'region_category', 'natural_feature_category')"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category IN ('POI_category', 'region_category', 'natural_feature_category')"
+
+# join_condition is intentionally absent (defaults to None). Single-pool
+# TIDs have no inter-pool join — population comes from the raster
+# CROSS JOIN, which is hard-coded in the SQL (no parameterization).
+# The contract checker enforces that meta.join_condition=None is paired
+# with SQL that does not reference {join_condition}; 12.1.sql complies.
+
+sampling:
+  strategy: row_number_hash
+
+# Parameter context (per-KG / spec / defaults). The SQL-level
+# implementation rationale (how the ROW_NUMBER + per-country cap
+# pattern is wired, what the /111.32 divisor does, etc.) lives in the
+# 12.1.sql header — see "ANCHOR SAMPLING" and "BUFFER GEOMETRY"
+# sections there. This block only carries spec/parameter context that
+# wouldn't fit inside the SQL.
+#
+# {radius_km}: spec range is [5, 50] km — wider than 10.1 / 11.1's
+# [0.5, 10] km — because population buffers benefit from bigger radii
+# to be meaningful (a 1-km buffer in low-density countryside often
+# returns ~0). The radius is tuned per KG: 5 km is the dense-data
+# default (osmh3kg / worldkg); kwg's sparser entity coverage wants
+# 50 km.
+# parameters_per_kg.kwg overrides to 50 km via the meta-level per-KG
+# override mechanism.
+#
+# {per_country_cap}: default 50. With ~150 countries this caps total
+# anchors at ~7,500 — slightly above the default total_sample of 5,000
+# so the outer LIMIT trims the tail rather than the per-country cap
+# being the binding constraint. Tune downward if a future variant
+# drives total_sample low.
+#
+# {rand_seed_a}: feeds the hash() inside the anchor ROW_NUMBER's
+# ORDER BY, so reruns with the same seed pick identical anchors per
+# country. Suffix `_a` (not `_b` like 10.1 / 11.1) because the only
+# pool here IS pool_a. Value is intentionally distinct from
+# defaults.run_seed (12345) so an accidental cross-substitution
+# between the two would surface in smoke runs instead of going
+# undetected.
+parameters:
+  rand_seed_a: 67891
+  per_country_cap: 50
+  radius_km: 5
+
+# Per-KG override: kwg's sparser entity coverage needs a wider radius for
+# meaningful population buffers. Mechanism: see TidMeta.parameters_per_kg.
+parameters_per_kg:
+  kwg:
+    radius_km: 50
+
+# Single-pool gold provenance. The benchmark row is one-per-anchor, so
+# pool_map maps the only role column (entity_a_id) to the only pool
+# (pool_a). No matched-set provenance to capture — population isn't an
+# entity, just a numeric aggregate over a global raster.
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345
+
+# DEPLOYMENT NOTE — pop_tiles raster dependency.
+# 12.1.sql references the `pop_tiles` Spark temp view, which
+# raster_setup.register_population_views registers from
+# POPULATION_RASTER_PATH (a GHS-POP GeoTIFF) iff that file exists. If
+# POPULATION_RASTER_PATH is missing or empty on a deployment, this
+# TID's main SQL fails at execute time with "Table or view not
+# found: pop_tiles". There is no per-KG fallback — the raster is
+# global. Verify the raster file exists before running 12.*
+# benchmarks. (For the rationale behind the fail-loud behaviour
+# instead of a silent skip, see the "POP_TILES DEPENDENCY"
+# block in 12.1.sql.)

@@ -1,0 +1,4 @@
+- Russian has six cases marked by suffixes on nouns and adjectives. Adjacent words to the entity (adjectives, demonstratives, possessives) must agree in case + gender + number (`DEC_CHG`, `AGR_CHG`).
+- Russian prepositions trigger specific cases: `в` + accusative (motion) or prepositional (location), `на` + same, `с` + instrumental ("with") or genitive ("from"), `от`/`до`/`после` + genitive, `про` + accusative. If entity substitution made the wrong case visible on the *adjacent template word*, fix it (`DEC_CHG`).
+- The preposition `в` becomes `во` before consonant clusters (`во Франции`, `во второй`); same for `с` → `со` (`со страной`). Apply (`ADP_CHG`).
+- Russian has no articles. Question mark is ASCII `?`. Never transliterate Cyrillic entity names.

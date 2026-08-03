@@ -1,0 +1,4 @@
+- Albanian definiteness is marked by suffixes on the noun (definite forms add `-i`, `-u`, `-a`, `-ja`). The template's article-bearing word may need to flip definite/indefinite (`ART_ADD`/`ART_DEL`/`ART_CHG`) when the entity now refers to a known specific referent.
+- Albanian has five cases (nominative, accusative, dative, ablative, genitive). Genitive uses `i`/`e`/`të`/`së` agreement particles before the modifier — flip the particle (`AGR_CHG`) when entity gender/number changed.
+- Albanian has two genders (masculine, feminine). Adjectives, articles, and demonstratives agree (`AGR_CHG`).
+- Diacritics `ë`, `ç` must be preserved exactly as MT produced them. Question mark is ASCII `?`.

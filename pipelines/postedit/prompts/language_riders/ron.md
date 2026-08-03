@@ -1,0 +1,4 @@
+- Romanian articles are postpositive (suffixed to the noun): `-ul`/`-le` masculine, `-a` feminine, `-le` neuter plural. The article suffix attaches to the *adjacent template word*, not to the entity name inside `{{...}}`. Do not modify entity names — instead fix article suffixes on the surrounding word (`ART_ADD`/`ART_DEL`).
+- Romanian has nominative/accusative, genitive/dative (same morphological form), and vocative. Genitive uses preposed `lui` / `al`/`a`/`ai`/`ale` ("of"). Swap the agreement particle (`AGR_CHG`/`DEC_CHG`) when entity gender/number requires it.
+- Diacritics `ş`/`ţ` (cedilla) must be normalised to `ș`/`ț` (cedilla-comma, U+0219/U+021B) when MT left the older forms (`PUNC_CHG`).
+- Personal `pe` is required before definite human direct objects but typically NOT before places. Don't add it to non-human entities. Question mark is ASCII `?`.

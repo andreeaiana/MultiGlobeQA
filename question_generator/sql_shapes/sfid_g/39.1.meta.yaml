@@ -1,0 +1,81 @@
+tid: "39.1"
+tid_family: 39
+sfid: G
+ssfid: 3
+spatial_function: centroid_scale_sensitivity
+# distance_kilometers: ground_truth is the geodesic distance between two
+# centroids of the polygon simplified at two different resolutions.
+ground_truth_type: distance_kilometers
+answer_unit: km
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - value_1
+  - value_2
+  - ground_truth
+
+# Single-pool TID: only pool_a is declared (regions). The executor handles
+# this via the dynamic meta.pools loop (no pool_b).
+pools:
+  - pool_a
+
+# Per the registry: entity_A is region_instance / natural_feature_instance.
+# The pipeline's per-KG variants split on region, the dominant case.
+# Natural-feature scale-sensitivity is left as an OPEN QUESTION
+# because lakes / rivers / mountains have very
+# different polygon-vs-line / scale-vs-shape behaviour and would need
+# their own per-node-type tolerance tuning. Region polygons benefit
+# uniformly from the {value_1} ≪ {value_2} simplification regime.
+variants:
+  region:
+    description: "Centroid shift between two resolutions for a region polygon."
+    applicable_kgs:
+      osmh3kg:
+        pool_a: { source: entities, filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+      worldkg:
+        pool_a: { source: entities, filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+      kwg:
+        pool_a: { source: entities, filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+
+# No join — single-pool unary TID. join_condition omitted (= None). The
+# contract enforces that the SQL also does NOT reference {join_condition}.
+
+sampling:
+  strategy: row_number_hash
+
+# Parameter context. The SQL-level rationale (how ROW_NUMBER + per-country
+# cap is wired, why ST_PointOnSurface vs ST_Centroid, what the /111.0
+# divisor means) lives in the 39.1.sql header.
+#
+# {value_1} / {value_2}: resolutions in km. Spec ranges are
+# [0.5, 10] km for value_1 (high-resolution) and [50, 200] km for
+# value_2 (low-resolution). Defaults pick a midrange representative pair
+# (10 km, 100 km) so the rendered question reads
+# "How does the centroid of France change when computed at spatial
+# resolutions 10 km and 100 km?". Future per-KG variants could tune
+# these to the KG's typical region size if scale sensitivity matters.
+#
+# {per_country_cap}: default 50 (matches 12.1 / 37.1 / 64.1 / 38.1).
+# {rand_seed_a}: feeds the hash() inside pool_a's per-country
+# ROW_NUMBER ORDER BY. Suffix `_a` because pool_a is the only pool here.
+parameters:
+  rand_seed_a: 12345
+  per_country_cap: 50
+  value_1: 10
+  value_2: 100
+
+# Single-pool gold provenance. One entity per row (the anchor region);
+# pool_map maps entity_a_id to pool_a.
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

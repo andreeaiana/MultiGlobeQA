@@ -1,0 +1,72 @@
+tid: "52.1"
+tid_family: 52
+sfid: J
+ssfid: 3
+spatial_function: bearing_classification
+ground_truth_type: categorical
+answer_unit: null
+
+# Computes the initial bearing (forward azimuth) from A to B via spherical
+# trigonometry on centroid lat/lon, then classifies into 8 cardinal sectors
+# (N, NE, E, SE, S, SW, W, NW), 45° wide each.
+#
+# The registry declares TWO pairings for this ftid:
+#   - Pairing 1: POI × POI within the same h3 cell (this variant: "poi")
+#   - Pairing 2: POI × region within the same country (NOT YET PORTED —
+#     consistent with 90.x precedent, which also ships only pairing 1).
+# When pairing 2 is wanted, add a "region" variant block here with a
+# region-category pool_b filter and update the join_condition to drop
+# the h3_res3 equality (region pairings are same-country, not same-cell).
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+variants:
+  poi:
+    description: "What direction would you travel from POI A to reach POI B (same h3 cell, same country)?"
+    applicable_kgs:
+      osmh3kg:
+        pool_a: { source: entities, filter: "category = 'POI_category'" }
+        pool_b: { source: entities, filter: "category = 'POI_category'" }
+      worldkg:
+        pool_a: { source: entities, filter: "category = 'POI_category'" }
+        pool_b: { source: entities, filter: "category = 'POI_category'" }
+      kwg:
+        pool_a: { source: entities, filter: "category = 'POI_category'" }
+        pool_b: { source: entities, filter: "category = 'POI_category'" }
+
+# Same join shape as 90.x: in-country + no-self + rank-equality + same h3
+# cell. Bearing-classification is most meaningful between geographically-
+# close pairs (the bearing from Paris to Tokyo is technically defined but
+# pedagogically useless); the same-cell constraint matches 90.x's
+# rationale.
+join_condition: "a.country_iso3 = b.country_iso3 AND a.id != b.id AND a.unique_id = b.unique_id AND a.h3_res3 = b.h3_res3"
+
+sampling:
+  strategy: row_number_hash
+
+parameters:
+  rand_seed_a: 12345
+  rand_seed_b: 67890
+
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

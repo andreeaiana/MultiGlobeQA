@@ -1,0 +1,75 @@
+tid: "49.1"
+tid_family: 49
+sfid: J
+ssfid: 1
+spatial_function: cardinal_direction_boolean
+ground_truth_type: boolean
+answer_unit: null
+
+# NOTE: "north" is HARDCODED in 90.1.sql — the ST_Y(...) > ST_Y(...)
+# comparison direction encodes "A north of B". Sibling SSFIDs in the same
+# 90 family encode the other 7 directions:
+#   49.2 = south      (ST_Y a < ST_Y b)
+#   49.3 = east       (ST_X a > ST_X b)
+#   49.4 = west       (ST_X a < ST_X b)
+#   49.5 = northeast  (ST_Y > AND ST_X >)
+#   49.6 = northwest  (ST_Y > AND ST_X <)
+#   49.7 = southeast  (ST_Y < AND ST_X >)
+#   49.8 = southwest  (ST_Y < AND ST_X <)
+# All eight share the join shape and sampling pattern; only the SELECT's
+# CASE comparison differs. See tests/test_tid_90_x_shape_integration.py
+# for the parameterized regression guards.
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+variants:
+  poi:
+    description: "Is POI A north of POI B (same h3 cell, same country)?"
+    applicable_kgs:
+      osmh3kg:
+        pool_a: { source: entities, filter: "category = 'POI_category'" }
+        pool_b: { source: entities, filter: "category = 'POI_category'" }
+      worldkg:
+        pool_a: { source: entities, filter: "category = 'POI_category'" }
+        pool_b: { source: entities, filter: "category = 'POI_category'" }
+      kwg:
+        pool_a: { source: entities, filter: "category = 'POI_category'" }
+        pool_b: { source: entities, filter: "category = 'POI_category'" }
+
+# In-country + no-self + rank-equality + same h3 cell. Adds the
+# h3_res3 equality on top of TID 1.1's current join (which has dropped
+# h3_res3) because the cardinal-direction question is most meaningful
+# between geographically-close pairs (a building "north of" another
+# building in the same neighborhood, not on the other side of the
+# country). The boolean computation itself happens in the SELECT.
+join_condition: "a.country_iso3 = b.country_iso3 AND a.id != b.id AND a.unique_id = b.unique_id AND a.h3_res3 = b.h3_res3"
+
+sampling:
+  strategy: row_number_hash
+
+parameters:
+  rand_seed_a: 12345
+  rand_seed_b: 67890
+
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

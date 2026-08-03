@@ -1,0 +1,71 @@
+tid: "56.1"
+tid_family: 56
+sfid: K
+ssfid: 2
+spatial_function: perimeter_single
+ground_truth_type: numeric
+answer_unit: km
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - ground_truth
+
+# Single-pool unary TID — only pool_a is declared (mirror 37.1's pattern).
+pools:
+  - pool_a
+
+variants:
+  region:
+    description: "Perimeter (km) of a region polygon."
+    applicable_kgs:
+      osmh3kg:
+        pool_a: { source: entities, filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+      worldkg:
+        pool_a: { source: entities, filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+      kwg:
+        pool_a: { source: entities, filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+
+  natural_feature:
+    description: "Perimeter (km) of a natural-feature polygon."
+    applicable_kgs:
+      osmh3kg:
+        pool_a: { source: entities, filter: "category = 'natural_feature_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+      worldkg:
+        pool_a: { source: entities, filter: "category = 'natural_feature_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+      kwg:
+        pool_a: { source: entities, filter: "category = 'natural_feature_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+
+  poi:
+    description: "Perimeter (km) of a POI polygon (only POLYGON POIs survive geometry filter)."
+    applicable_kgs:
+      osmh3kg:
+        pool_a: { source: entities, filter: "category = 'POI_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+      worldkg:
+        pool_a: { source: entities, filter: "category = 'POI_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+      kwg:
+        pool_a: { source: entities, filter: "category = 'POI_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+
+# Single-pool unary TID: no join. join_condition omitted (= None).
+# The contract enforces the SQL also does NOT reference {join_condition}.
+
+# Per-country ROW_NUMBER hash diversity (mirror of 37.1 / 12.1).
+sampling:
+  strategy: row_number_hash
+
+parameters:
+  rand_seed_a: 12345
+  per_country_cap: 50
+
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

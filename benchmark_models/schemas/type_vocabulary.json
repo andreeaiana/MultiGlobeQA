@@ -1,0 +1,106 @@
+{
+  "vocabulary_version": "v2",
+  "description": "Canonical vocabulary mapping the benchmark's snake_case ``ground_truth_type`` values to the internal canonical display names (keys of TYPE_REGISTRY) and default units. Single source of truth for the benchmark-side vocabulary; both the eval pipeline and the model pipeline load this file at import time. v2 (2026-05-07): added ``set`` (TIDs 27.1, 28.1, 29.1) to map to the entity-list set enumeration.",
+  "types": {
+    "boolean": {
+      "canonical_name": "Boolean (yes/no, true/false)",
+      "default_unit": null
+    },
+    "ternary": {
+      "canonical_name": "Ternary (true/false/plausibly)",
+      "default_unit": null
+    },
+    "numeric": {
+      "canonical_name": "Numeric (float)",
+      "default_unit": null
+    },
+    "numeric_integer": {
+      "canonical_name": "Numeric (integer)",
+      "default_unit": null
+    },
+    "numeric_float": {
+      "canonical_name": "Numeric (float)",
+      "default_unit": null
+    },
+    "numeric_km": {
+      "canonical_name": "Numeric (float)",
+      "default_unit": "km"
+    },
+    "distance_kilometers": {
+      "canonical_name": "Numeric (float)",
+      "default_unit": "km"
+    },
+    "area_km2": {
+      "canonical_name": "Numeric (float)",
+      "default_unit": "km^2"
+    },
+    "coordinates": {
+      "canonical_name": "Coordinates (lat/long pair)",
+      "default_unit": null
+    },
+    "polar_coordinates": {
+      "canonical_name": "Polar coordinates (angle, distance)",
+      "default_unit": "km"
+    },
+    "bounding_box": {
+      "canonical_name": "Bounding box (4-float)",
+      "default_unit": null
+    },
+    "hex_string": {
+      "canonical_name": "Entity hex string (single)",
+      "default_unit": null
+    },
+    "geohash": {
+      "canonical_name": "Geohash string",
+      "default_unit": null
+    },
+    "composite_string": {
+      "canonical_name": "Composite string (H3+S2)",
+      "default_unit": null
+    },
+    "entity_single_name": {
+      "canonical_name": "Entity name (single)",
+      "default_unit": null
+    },
+    "set_enumeration": {
+      "canonical_name": "Set enumeration (list of entity names)",
+      "default_unit": null
+    },
+    "set": {
+      "canonical_name": "Set enumeration (list of entity names)",
+      "default_unit": null
+    },
+    "date_set": {
+      "canonical_name": "Set enumeration (list of dates)",
+      "default_unit": null
+    },
+    "directional_value": {
+      "canonical_name": "Predefined value (left, right)",
+      "default_unit": null
+    },
+    "cardinal_direction": {
+      "canonical_name": "Cardinal direction (predefined)",
+      "default_unit": null
+    },
+    "count": {
+      "canonical_name": "Numeric (integer)",
+      "default_unit": null
+    },
+    "entity_name": {
+      "canonical_name": "Entity name (single)",
+      "default_unit": null
+    },
+    "entity_list": {
+      "canonical_name": "Set enumeration (list of entity names)",
+      "default_unit": null
+    },
+    "temporal": {
+      "canonical_name": "Date",
+      "default_unit": null
+    },
+    "qualitative": {
+      "canonical_name": "Composite string (H3+S2)",
+      "default_unit": null
+    }
+  }
+}

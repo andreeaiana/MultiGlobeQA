@@ -1,0 +1,84 @@
+tid: "50.1"
+tid_family: 50
+sfid: J
+ssfid: 2
+spatial_function: direction_left_right
+ground_truth_type: categorical
+answer_unit: null
+
+# Three-pool TID. The route runs from entity_B → entity_C; the question
+# asks which side of that route entity_A lies on. Cross-product sign on
+# centroids of B, C, A determines left/right; collinear (cross == 0)
+# emits NULL ground_truth so the validator drops the row (the registry
+# contract specifies left/right only).
+#
+# Same rank-equality + same-h3-cell + same-country pattern as 90.x: the
+# left/right question is most meaningful between geographically-close
+# triples (a route across continents is not a useful "left/right" frame).
+# Collinear filtering is registry-mandated to happen at the question
+# sampling stage; the SQL surfaces it as NULL.
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - entity_c_id
+  - entity_c_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+  - pool_c
+
+variants:
+  poi:
+    description: "Is POI A to the left or right of the route from POI B to POI C (same h3 cell, same country)?"
+    applicable_kgs:
+      osmh3kg:
+        pool_a: { source: entities, filter: "category = 'POI_category'" }
+        pool_b: { source: entities, filter: "category = 'POI_category'" }
+        pool_c: { source: entities, filter: "category = 'POI_category'" }
+      worldkg:
+        pool_a: { source: entities, filter: "category = 'POI_category'" }
+        pool_b: { source: entities, filter: "category = 'POI_category'" }
+        pool_c: { source: entities, filter: "category = 'POI_category'" }
+      kwg:
+        pool_a: { source: entities, filter: "category = 'POI_category'" }
+        pool_b: { source: entities, filter: "category = 'POI_category'" }
+        pool_c: { source: entities, filter: "category = 'POI_category'" }
+
+# In-country + no-self + rank-equality (a.unique_id = b.unique_id) + same
+# h3 cell — the AB pair carries the meta join_condition. The SQL appends
+# an additional INNER JOIN for pool_c with the analogous predicates
+# directly inline (since a meta join_condition is a single string applied
+# to ONE join, not a list).
+join_condition: "a.country_iso3 = b.country_iso3 AND a.id != b.id AND a.unique_id = b.unique_id AND a.h3_res3 = b.h3_res3"
+
+sampling:
+  strategy: row_number_hash
+
+# Three independent seeds so the three pools shuffle differently — without
+# distinct seeds for symmetric pools, a.unique_id = b.unique_id = c.unique_id
+# would force a == b == c at every rank and the no-self guards would drop
+# every row.
+parameters:
+  rand_seed_a: 12345
+  rand_seed_b: 67890
+  rand_seed_c: 24680
+
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+    entity_c_id: pool_c
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

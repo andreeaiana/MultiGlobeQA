@@ -1,0 +1,318 @@
+sfid	tid	ftid	vid	template_eng	sub_template_eng	variant
+A	1	1.1	1.1.1	What is the distance between {{entity_A}} and {{entity_B}}?	What is the distance between {{entity_A}} and {{entity_B}}?	{{entity_A}}和{{entity_B}}之间的距离是多少？
+A	1	1.1	1.1.2	What is the distance between {{entity_A}} and {{entity_B}}?	What is the distance between {{entity_A}} and {{entity_B}}?	{{entity_A}}和{{entity_B}}之间有多远？
+A	1	1.1	1.1.3	What is the distance between {{entity_A}} and {{entity_B}}?	What is the distance between {{entity_A}} and {{entity_B}}?	{{entity_A}}到{{entity_B}}的距离是多少？
+A	1	1.1	1.1.4	What is the distance between {{entity_A}} and {{entity_B}}?	What is the distance between {{entity_A}} and {{entity_B}}?	{{entity_A}}和{{entity_B}}相距多远？
+A	1	1.1	1.1.5	What is the distance between {{entity_A}} and {{entity_B}}?	What is the distance between {{entity_A}} and {{entity_B}}?	{{entity_A}}距离{{entity_B}}有多远？
+A	2	2.1	2.1.1	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far north is {{entity_A}} from {{entity_B}}?	{{entity_A}}在{{entity_B}}以北多远？
+A	2	2.1	2.1.2	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far north is {{entity_A}} from {{entity_B}}?	{{entity_A}}相对于{{entity_B}}以北多远？
+A	2	2.1	2.1.3	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far north is {{entity_A}} from {{entity_B}}?	{{entity_A}}和{{entity_B}}之间的向北距离是多少？
+A	2	2.2	2.2.1	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far south is {{entity_A}} from {{entity_B}}?	{{entity_A}}在{{entity_B}}南边多远处？
+A	2	2.2	2.2.2	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far south is {{entity_A}} from {{entity_B}}?	{{entity_A}}在{{entity_B}}以南多远？
+A	2	2.2	2.2.3	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far south is {{entity_A}} from {{entity_B}}?	{{entity_A}}和{{entity_B}}之间的向南距离是多少？
+A	2	2.3	2.3.1	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far east is {{entity_A}} from {{entity_B}}?	{{entity_A}}位于{{entity_B}}的东边多远？
+A	2	2.3	2.3.2	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far east is {{entity_A}} from {{entity_B}}?	{{entity_A}}在{{entity_B}}东边多远处？
+A	2	2.3	2.3.3	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far east is {{entity_A}} from {{entity_B}}?	{{entity_A}}和{{entity_B}}之间的向东距离是多少？
+A	2	2.4	2.4.1	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far west is {{entity_A}} from {{entity_B}}?	{{entity_A}}在{{entity_B}}西边多远处？
+A	2	2.4	2.4.2	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far west is {{entity_A}} from {{entity_B}}?	{{entity_A}}在{{entity_B}}以西多远？
+A	2	2.4	2.4.3	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far west is {{entity_A}} from {{entity_B}}?	{{entity_A}}和{{entity_B}}之间东西距离相差多少？
+A	2	2.5	2.5.1	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far northeast is {{entity_A}} from {{entity_B}}?	{{entity_A}}位于{{entity_B}}的东北方向多远？
+A	2	2.5	2.5.2	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far northeast is {{entity_A}} from {{entity_B}}?	{{entity_A}}相对于{{entity_B}}位于东北方向多远？
+A	2	2.5	2.5.3	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far northeast is {{entity_A}} from {{entity_B}}?	{{entity_A}}和{{entity_B}}之间的东北方向距离是多少？
+A	2	2.6	2.6.1	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far northwest is {{entity_A}} from {{entity_B}}?	{{entity_A}}在{{entity_B}}西北方向多远处？
+A	2	2.6	2.6.2	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far northwest is {{entity_A}} from {{entity_B}}?	{{entity_A}}相对于{{entity_B}}在西北方向多远？
+A	2	2.6	2.6.3	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far northwest is {{entity_A}} from {{entity_B}}?	{{entity_A}}和{{entity_B}}之间的西北方向距离是多少？
+A	2	2.7	2.7.1	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far southeast is {{entity_A}} from {{entity_B}}?	{{entity_A}}距{{entity_B}}的东南方向有多远？
+A	2	2.7	2.7.2	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far southeast is {{entity_A}} from {{entity_B}}?	{{entity_A}}相对于{{entity_B}}位于东南方向多远？
+A	2	2.7	2.7.3	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far southeast is {{entity_A}} from {{entity_B}}?	{{entity_A}}与{{entity_B}}之间东南方向的距离是多少？
+A	2	2.8	2.8.1	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far southwest is {{entity_A}} from {{entity_B}}?	{{entity_A}}位于{{entity_B}}的西南方向多远？
+A	2	2.8	2.8.2	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far southwest is {{entity_A}} from {{entity_B}}?	{{entity_A}}位于{{entity_B}}西南方向多远处？
+A	2	2.8	2.8.3	How far {{cardinal_direction}} is {{entity_A}} from {{entity_B}}?	How far southwest is {{entity_A}} from {{entity_B}}?	{{entity_A}}和{{entity_B}}之间的西南方向距离是多少？
+A	3	3.1	3.1.1	How far away was the {{event_A}} from {{entity_B}} of {{entity_C}} in {{time_period}}?	How far away was the {{event_A}} from {{entity_B}} of {{entity_C}} in {{time_period}}?	在{{time_period}}，{{event_A}}距离{{entity_C}}的{{entity_B}}有多远？
+A	3	3.1	3.1.2	How far away was the {{event_A}} from {{entity_B}} of {{entity_C}} in {{time_period}}?	How far away was the {{event_A}} from {{entity_B}} of {{entity_C}} in {{time_period}}?	在{{time_period}}，{{event_A}}发生在距{{entity_C}}的{{entity_B}}多远处？
+A	3	3.1	3.1.3	How far away was the {{event_A}} from {{entity_B}} of {{entity_C}} in {{time_period}}?	How far away was the {{event_A}} from {{entity_B}} of {{entity_C}} in {{time_period}}?	在{{time_period}}期间， {{event_A}}到{{entity_C}}的{{entity_B}}的距离是多少？
+A	3	3.1	3.1.4	How far away was the {{event_A}} from {{entity_B}} of {{entity_C}} in {{time_period}}?	How far away was the {{event_A}} from {{entity_B}} of {{entity_C}} in {{time_period}}?	在{{time_period}}，{{event_A}}距{{entity_C}}的{{entity_B}}有多远？
+A	4	4.1	4.1.1	Is {{entity_A}} or {{entity_B}} {{rank_type}} to {{entity_C}}?	Is {{entity_A}} or {{entity_B}} closer to {{entity_C}}?	{{entity_A}}还是{{entity_B}}，哪个更靠近{{entity_C}}？
+A	4	4.1	4.1.2	Is {{entity_A}} or {{entity_B}} {{rank_type}} to {{entity_C}}?	Is {{entity_A}} or {{entity_B}} closer to {{entity_C}}?	{{entity_A}}还是{{entity_B}}，哪个更接近{{entity_C}}？
+A	4	4.1	4.1.3	Is {{entity_A}} or {{entity_B}} {{rank_type}} to {{entity_C}}?	Is {{entity_A}} or {{entity_B}} closer to {{entity_C}}?	在{{entity_A}}和{{entity_B}}之间，哪一个离{{entity_C}}更近？
+A	4	4.1	4.1.4	Is {{entity_A}} or {{entity_B}} {{rank_type}} to {{entity_C}}?	Is {{entity_A}} or {{entity_B}} closer to {{entity_C}}?	{{entity_A}}还是{{entity_B}}，哪一个与{{entity_C}}的距离更短？
+A	4	4.2	4.2.1	Is {{entity_A}} or {{entity_B}} {{rank_type}} to {{entity_C}}?	Is {{entity_A}} or {{entity_B}} farther from {{entity_C}}?	{{entity_A}}还是{{entity_B}}，哪个离{{entity_C}}更远？
+A	4	4.2	4.2.2	Is {{entity_A}} or {{entity_B}} {{rank_type}} to {{entity_C}}?	Is {{entity_A}} or {{entity_B}} farther from {{entity_C}}?	{{entity_A}}还是{{entity_B}} ，哪个离{{entity_C}}更远？
+A	4	4.2	4.2.3	Is {{entity_A}} or {{entity_B}} {{rank_type}} to {{entity_C}}?	Is {{entity_A}} or {{entity_B}} farther from {{entity_C}}?	在{{entity_A}}和{{entity_B}}之间，哪一个离{{entity_C}}更远？
+A	4	4.2	4.2.4	Is {{entity_A}} or {{entity_B}} {{rank_type}} to {{entity_C}}?	Is {{entity_A}} or {{entity_B}} farther from {{entity_C}}?	{{entity_A}}还是{{entity_B}}，哪一个与{{entity_C}}的距离更远？
+A	5	5.1	5.1.1	Which is closer to the country that borders the country containing {{entity_A}}: {{entity_B}} or {{entity_C}}?	Which is closer to the country that borders the country containing {{entity_A}}: {{entity_B}} or {{entity_C}}?	{{entity_B}}还是{{entity_C}}，哪一个更靠近{{entity_A}}所在国家的邻国？
+A	5	5.1	5.1.2	Which is closer to the country that borders the country containing {{entity_A}}: {{entity_B}} or {{entity_C}}?	Which is closer to the country that borders the country containing {{entity_A}}: {{entity_B}} or {{entity_C}}?	在{{entity_B}}与{{entity_C}}之间，哪个更靠近与包含{{entity_A}}的国家接壤的国家？
+A	5	5.1	5.1.3	Which is closer to the country that borders the country containing {{entity_A}}: {{entity_B}} or {{entity_C}}?	Which is closer to the country that borders the country containing {{entity_A}}: {{entity_B}} or {{entity_C}}?	{{entity_B}}还是{{entity_C}}，哪一个更靠近{{entity_A}}所在国家的邻国？
+A	5	5.1	5.1.4	Which is closer to the country that borders the country containing {{entity_A}}: {{entity_B}} or {{entity_C}}?	Which is closer to the country that borders the country containing {{entity_A}}: {{entity_B}} or {{entity_C}}?	{{entity_B}}还是{{entity_C}}，哪一个更靠近{{entity_A}}所在国家的邻国？
+A	6	6.1	6.1.1	What is the {{aggregation_type}} distance between {{entity_A}} in {{entity_B}}?	What is the minimum distance between {{entity_A}} in {{entity_B}}?	{{entity_B}}中{{entity_A}}之间的最小距离是多少？
+A	6	6.1	6.1.2	What is the {{aggregation_type}} distance between {{entity_A}} in {{entity_B}}?	What is the minimum distance between {{entity_A}} in {{entity_B}}?	位于{{entity_B}}的各{{entity_A}}之间的最短距离是多少？
+A	6	6.2	6.2.1	What is the {{aggregation_type}} distance between {{entity_A}} in {{entity_B}}?	What is the average distance between {{entity_A}} in {{entity_B}}?	{{entity_B}}中{{entity_A}}之间的平均距离是多少？
+A	6	6.2	6.2.2	What is the {{aggregation_type}} distance between {{entity_A}} in {{entity_B}}?	What is the average distance between {{entity_A}} in {{entity_B}}?	{{entity_B}}中各{{entity_A}}之间的平均距离是多少？
+A	6	6.2	6.2.3	What is the {{aggregation_type}} distance between {{entity_A}} in {{entity_B}}?	What is the average distance between {{entity_A}} in {{entity_B}}?	平均而言，{{entity_B}}内各{{entity_A}}之间相距多远？
+A	6	6.3	6.3.1	What is the {{aggregation_type}} distance between {{entity_A}} in {{entity_B}}?	What is the maximum distance between {{entity_A}} in {{entity_B}}?	{{entity_B}}中{{entity_A}}之间的最大距离是多少？
+A	6	6.3	6.3.2	What is the {{aggregation_type}} distance between {{entity_A}} in {{entity_B}}?	What is the maximum distance between {{entity_A}} in {{entity_B}}?	在{{entity_B}}内，各{{entity_A}}之间观察到的最大距离是多少？
+A	7	7.1	7.1.1	Which {{entity_A}} in {{entity_B}} minimizes total distance to all {{entity_C}}?	Which {{entity_A}} in {{entity_B}} minimizes total distance to all {{entity_C}}?	{{entity_B}}中哪个{{entity_A}}到所有{{entity_C}}的总距离最小？
+A	7	7.1	7.1.2	Which {{entity_A}} in {{entity_B}} minimizes total distance to all {{entity_C}}?	Which {{entity_A}} in {{entity_B}} minimizes total distance to all {{entity_C}}?	{{entity_B}}中哪个{{entity_A}}到所有{{entity_C}}的总距离最小？
+A	7	7.1	7.1.3	Which {{entity_A}} in {{entity_B}} minimizes total distance to all {{entity_C}}?	Which {{entity_A}} in {{entity_B}} minimizes total distance to all {{entity_C}}?	{{entity_B}}中的哪个{{entity_A}}与所有{{entity_C}}的整体距离最近？
+A	8	8.1	8.1.1	What is the distance between the {{rank_position}} nearest {{entity_A}} to the {{entity_B}} and the {{entity_C}}?	What is the distance between the nearest {{entity_A}} to the {{entity_B}} and the {{entity_C}}?	距{{entity_B}}最近的{{entity_A}}与{{entity_C}}之间的距离是多少？
+A	8	8.1	8.1.2	What is the distance between the {{rank_position}} nearest {{entity_A}} to the {{entity_B}} and the {{entity_C}}?	What is the distance between the nearest {{entity_A}} to the {{entity_B}} and the {{entity_C}}?	离{{entity_B}}最近的{{entity_A}}距{{entity_C}}有多远？
+A	8	8.2	8.2.1	What is the distance between the {{rank_position}} nearest {{entity_A}} to the {{entity_B}} and the {{entity_C}}?	What is the distance between the second nearest {{entity_A}} to the {{entity_B}} and the {{entity_C}}?	距离{{entity_B}}第二近的{{entity_A}}与{{entity_C}}之间的距离是多少？
+A	8	8.2	8.2.2	What is the distance between the {{rank_position}} nearest {{entity_A}} to the {{entity_B}} and the {{entity_C}}?	What is the distance between the second nearest {{entity_A}} to the {{entity_B}} and the {{entity_C}}?	距离{{entity_B}}第二近的{{entity_A}}与{{entity_C}}的距离是多少？
+A	8	8.3	8.3.1	What is the distance between the {{rank_position}} nearest {{entity_A}} to the {{entity_B}} and the {{entity_C}}?	What is the distance between the third nearest {{entity_A}} to the {{entity_B}} and the {{entity_C}}?	距离 {{entity_B}} 第三近的 {{entity_A}} 与 {{entity_C}} 之间的距离是多少？
+A	8	8.3	8.3.2	What is the distance between the {{rank_position}} nearest {{entity_A}} to the {{entity_B}} and the {{entity_C}}?	What is the distance between the third nearest {{entity_A}} to the {{entity_B}} and the {{entity_C}}?	距离{{entity_B}}第三近的{{entity_A}}与{{entity_C}}的距离是多少？
+A	9	9.1	9.1.1	What is the minimum distance from {{entity_A}} to the boundary of {{entity_B}}?	What is the minimum distance from {{entity_A}} to the boundary of {{entity_B}}?	{{entity_A}}到{{entity_B}}边界的最小距离是多少？
+A	9	9.1	9.1.2	What is the minimum distance from {{entity_A}} to the boundary of {{entity_B}}?	What is the minimum distance from {{entity_A}} to the boundary of {{entity_B}}?	{{entity_A}}在最近点与{{entity_B}}的边界距离有多近？
+A	9	9.1	9.1.3	What is the minimum distance from {{entity_A}} to the boundary of {{entity_B}}?	What is the minimum distance from {{entity_A}} to the boundary of {{entity_B}}?	{{entity_A}}与{{entity_B}}边界之间的最短距离是多少？
+B	10	10.1	10.1.1	How many {{entity_A}} are within {{value}} km of {{entity_B}}?	How many {{entity_A}} are within {{value}} km of {{entity_B}}?	在{{entity_B}}的{{value}}公里范围内有多少个{{entity_A}} ？
+B	10	10.1	10.1.2	How many {{entity_A}} are within {{value}} km of {{entity_B}}?	How many {{entity_A}} are within {{value}} km of {{entity_B}}?	距离{{entity_B}} {{value}}公里范围内有多少{{entity_A}} ？
+B	10	10.1	10.1.3	How many {{entity_A}} are within {{value}} km of {{entity_B}}?	How many {{entity_A}} are within {{value}} km of {{entity_B}}?	距离{{entity_B}} {{value}}公里范围内的{{entity_A}}有多少个？
+B	11	11.1	11.1.1	Which {{entity_A}} are within {{value}} km of {entity_B}}?	Which {{entity_A}} are within {{value}} km of {entity_B}}?	哪些{{entity_A}}在{{entity_B}}的{{value}}公里范围内？
+B	11	11.1	11.1.2	Which {{entity_A}} are within {{value}} km of {entity_B}}?	Which {{entity_A}} are within {{value}} km of {entity_B}}?	哪些{{entity_A}}距离{{entity_B}}在{{value}}公里以内？
+B	11	11.1	11.1.3	Which {{entity_A}} are within {{value}} km of {entity_B}}?	Which {{entity_A}} are within {{value}} km of {entity_B}}?	列出位于{{entity_B}}周围{{value}}公里范围内的{{entity_A}}。
+B	12	12.1	12.1.1	What is the total population of the area within {{value}} km of {{entity_A}}?	What is the total population of the area within {{value}} km of {{entity_A}}?	{{entity_A}}周围{{value}}公里范围内的总人口是多少？
+B	12	12.1	12.1.2	What is the total population of the area within {{value}} km of {{entity_A}}?	What is the total population of the area within {{value}} km of {{entity_A}}?	在{{entity_A}}{{value}}公里范围内有多少人居住？
+B	12	12.1	12.1.3	What is the total population of the area within {{value}} km of {{entity_A}}?	What is the total population of the area within {{value}} km of {{entity_A}}?	{{entity_A}}周围{{value}}公里半径范围内的总人口是多少？
+C	13	13.1	13.1.1	Does {{entity_A}} intersect {{entity_B}}?	Does {{entity_A}} intersect {{entity_B}}?	{{entity_A}}是否与{{entity_B}}相交？
+C	13	13.1	13.1.2	Does {{entity_A}} intersect {{entity_B}}?	Does {{entity_A}} intersect {{entity_B}}?	{{entity_A}}与{{entity_B}}在空间上是否相交？
+C	13	13.1	13.1.3	Does {{entity_A}} intersect {{entity_B}}?	Does {{entity_A}} intersect {{entity_B}}?	{{entity_A}}和{{entity_B}}之间是否存在空间相交？
+C	14	14.1	14.1.1	Do the geometries between {{entity_A}} intersect with the geometry of {{entity_B}}?	Do the geometries between {{entity_A}} intersect with the geometry of {{entity_B}}?	{{entity_A}}的几何图形是否与{{entity_B}}的几何图形相交？
+C	14	14.1	14.1.2	Do the geometries between {{entity_A}} intersect with the geometry of {{entity_B}}?	Do the geometries between {{entity_A}} intersect with the geometry of {{entity_B}}?	{{entity_A}}与{{entity_B}}的空间几何形状是否相交？
+C	14	14.1	14.1.3	Do the geometries between {{entity_A}} intersect with the geometry of {{entity_B}}?	Do the geometries between {{entity_A}} intersect with the geometry of {{entity_B}}?	{{entity_A}}和{{entity_B}}之间是否存在几何交集？
+C	15	15.1	15.1.1	In how many points do {{entity_A}} and {{entity_B}} intersect?	In how many points do {{entity_A}} and {{entity_B}} intersect?	{{entity_A}}和{{entity_B}}相交于多少个点？
+C	15	15.1	15.1.2	In how many points do {{entity_A}} and {{entity_B}} intersect?	In how many points do {{entity_A}} and {{entity_B}} intersect?	{{entity_A}}和{{entity_B}}相交于多少个位置？
+C	15	15.1	15.1.3	In how many points do {{entity_A}} and {{entity_B}} intersect?	In how many points do {{entity_A}} and {{entity_B}} intersect?	{{entity_A}}和{{entity_B}}之间的交点数量是多少？
+C	16	16.1	16.1.1	How many {{entity_A}} intersect {{entity_B}}?	How many {{entity_A}} intersect {{entity_B}}?	有多少个{{entity_A}}与{{entity_B}}相交？
+C	16	16.1	16.1.2	How many {{entity_A}} intersect {{entity_B}}?	How many {{entity_A}} intersect {{entity_B}}?	与{{entity_B}}相交的{{entity_A}}有多少个？
+C	16	16.1	16.1.3	How many {{entity_A}} intersect {{entity_B}}?	How many {{entity_A}} intersect {{entity_B}}?	与{{entity_B}}重叠的{{entity_A}}有多少条？
+C	17	17.1	17.1.1	Which {{entity_A}} intersect {{entity_B}}?	Which {{entity_A}} intersect {{entity_B}}?	哪些{{entity_A}}与{{entity_B}}相交？
+C	17	17.1	17.1.2	Which {{entity_A}} intersect {{entity_B}}?	Which {{entity_A}} intersect {{entity_B}}?	哪些{{entity_A}}与{{entity_B}}有空间交叉？
+C	17	17.1	17.1.3	Which {{entity_A}} intersect {{entity_B}}?	Which {{entity_A}} intersect {{entity_B}}?	列出与{{entity_B}}相交的{{entity_A}}。
+C	18	18.1	18.1.1	Which {{entity_A}} intersect {{entity_B}} but not {{entity_C}}?	Which {{entity_A}} intersect {{entity_B}} but not {{entity_C}}?	哪些{{entity_A}} 与{{entity_B}}相交但与{{entity_C}}不相交？
+C	18	18.1	18.1.2	Which {{entity_A}} intersect {{entity_B}} but not {{entity_C}}?	Which {{entity_A}} intersect {{entity_B}} but not {{entity_C}}?	哪些{{entity_A}}与{{entity_B}}重叠但与{{entity_C}}不重叠？
+C	18	18.1	18.1.3	Which {{entity_A}} intersect {{entity_B}} but not {{entity_C}}?	Which {{entity_A}} intersect {{entity_B}} but not {{entity_C}}?	列出与 {{entity_B}} 相交但不与 {{entity_C}} 相交的 {{entity_A}}。
+C	19	19.1	19.1.1	Do {{entity_A}} and {{entity_B}} overlap spatially?	Do {{entity_A}} and {{entity_B}} overlap spatially?	{{entity_A}}和{{entity_B}}在空间上是否重叠？
+C	19	19.1	19.1.2	Do {{entity_A}} and {{entity_B}} overlap spatially?	Do {{entity_A}} and {{entity_B}} overlap spatially?	{{entity_A}}与{{entity_B}}之间是否存在空间重叠？
+C	19	19.1	19.1.3	Do {{entity_A}} and {{entity_B}} overlap spatially?	Do {{entity_A}} and {{entity_B}} overlap spatially?	{{entity_A}}和{{entity_B}}是否有重叠区域？
+C	20	20.1	20.1.1	Does {{entity_A}} touch the boundary of {{entity_B}}?	Does {{entity_A}} touch the boundary of {{entity_B}}?	{{entity_A}}是否触及{{entity_B}}的边界？
+C	20	20.1	20.1.2	Does {{entity_A}} touch the boundary of {{entity_B}}?	Does {{entity_A}} touch the boundary of {{entity_B}}?	{{entity_A}}是否与{{entity_B}}的边界接触？
+C	21	21.1	21.1.1	Is {{entity_A}} adjacent to {{entity_B}}?	Is {{entity_A}} adjacent to {{entity_B}}?	{{entity_A}}是否与{{entity_B}}相邻？
+C	21	21.1	21.1.2	Is {{entity_A}} adjacent to {{entity_B}}?	Is {{entity_A}} adjacent to {{entity_B}}?	{{entity_A}}和{{entity_B}}是否共享边界？
+C	21	21.1	21.1.3	Is {{entity_A}} adjacent to {{entity_B}}?	Is {{entity_A}} adjacent to {{entity_B}}?	{{entity_A}}和{{entity_B}}是直接相邻的吗？
+C	22	22.1	22.1.1	Is {{entity_A}} physically disconnected from {{entity_B}}?	Is {{entity_A}} physically disconnected from {{entity_B}}?	{{entity_A}}是否与{{entity_B}}在地理上不相连？
+C	22	22.1	22.1.2	Is {{entity_A}} physically disconnected from {{entity_B}}?	Is {{entity_A}} physically disconnected from {{entity_B}}?	{{entity_A}}和{{entity_B}}在空间上是否不相交？
+C	22	22.1	22.1.3	Is {{entity_A}} physically disconnected from {{entity_B}}?	Is {{entity_A}} physically disconnected from {{entity_B}}?	{{entity_A}}是否与{{entity_B}}在地理上不相连？
+C	23	23.1	23.1.1	Does {{entity_A}} completely surround {{entity_B}}?	Does {{entity_A}} completely surround {{entity_B}}?	{{entity_A}}是否完全包围了{{entity_B}} ？
+C	23	23.1	23.1.2	Does {{entity_A}} completely surround {{entity_B}}?	Does {{entity_A}} completely surround {{entity_B}}?	{{entity_A}}是否完全围住{{entity_B}}？
+C	23	23.1	23.1.3	Does {{entity_A}} completely surround {{entity_B}}?	Does {{entity_A}} completely surround {{entity_B}}?	{{entity_B}}是否完全被{{entity_A}}包围？
+D	24	24.1	24.1.1	Which {{entity_A}} does the {{entity_B}} traverse?	Which {{entity_A}} does the {{entity_B}} traverse?	{{entity_B}}穿过哪些{{entity_A}}？
+D	24	24.1	24.1.2	Which {{entity_A}} does the {{entity_B}} traverse?	Which {{entity_A}} does the {{entity_B}} traverse?	哪些{{entity_A}}被{{entity_B}}穿过？
+D	24	24.1	24.1.3	Which {{entity_A}} does the {{entity_B}} traverse?	Which {{entity_A}} does the {{entity_B}} traverse?	{{entity_B}}经过哪些{{entity_A}}？
+D	25	25.1	25.1.3	How many {{entity_A}} does the {{entity_B}} traverse?	How many {{entity_A}} does the {{entity_B}} traverse?	{{entity_B}}会经过多少个{{entity_A}}？
+D	26	26.1	26.1.1	Which {{entity_A}} does the {{entity_B}} pass by?	Which {{entity_A}} does the {{entity_B}} pass by?	{{entity_B}}经过了哪些{{entity_A}}？
+D	26	26.1	26.1.2	Which {{entity_A}} does the {{entity_B}} pass by?	Which {{entity_A}} does the {{entity_B}} pass by?	{{entity_B}}经过哪些{{entity_A}} ？
+D	26	26.1	26.1.3	Which {{entity_A}} does the {{entity_B}} pass by?	Which {{entity_A}} does the {{entity_B}} pass by?	哪些{{entity_A}}位于{{entity_B}}沿线？
+D	27	27.1	27.1.1	How many {{entity_A}} does the {{entity_B}} pass by?	How many {{entity_A}} does the {{entity_B}} pass by?	{{entity_B}}经过了多少个{{entity_A}}？
+D	27	27.1	27.1.2	How many {{entity_A}} does the {{entity_B}} pass by?	How many {{entity_A}} does the {{entity_B}} pass by?	{{entity_B}}沿途经过多少个{{entity_A}}？
+D	27	27.1	27.1.3	How many {{entity_A}} does the {{entity_B}} pass by?	How many {{entity_A}} does the {{entity_B}} pass by?	{{entity_B}}沿途经过了多少个{{entity_A}}？
+E	28	28.1	28.1.1	Is {{entity_A}} administratively a part or {{entity_B}}?	Is {{entity_A}} administratively a part or {{entity_B}}?	{{entity_A}}在行政上是{{entity_B}}一部分吗？
+E	28	28.1	28.1.2	Is {{entity_A}} administratively a part or {{entity_B}}?	Is {{entity_A}} administratively a part or {{entity_B}}?	{{entity_A}}是{{entity_B}}的行政分区吗？
+E	29	29.1	29.1.1	How many {{entity_A}} make up {{entity_B}}?	How many {{entity_A}} make up {{entity_B}}?	有多少个{{entity_A}}组成了{{entity_B}}？
+E	29	29.1	29.1.2	How many {{entity_A}} make up {{entity_B}}?	How many {{entity_A}} make up {{entity_B}}?	{{entity_B}}中包含多少个{{entity_A}} ？
+E	29	29.1	29.1.3	How many {{entity_A}} make up {{entity_B}}?	How many {{entity_A}} make up {{entity_B}}?	构成 {{entity_B}} 的 {{entity_A}} 总数是多少？
+E	30	30.2	30.2.1	How many {{collection_of_entity}} are in {{entity_A}}?	How many rivers, streams and springs are in {{entity_A}}?	{{entity_A}}有多少条河流、溪流和泉水？
+E	30	30.2	30.2.2	How many {{collection_of_entity}} are in {{entity_A}}?	How many rivers, streams and springs are in {{entity_A}}?	{{entity_A}}包含多少条河流、溪流和泉水？
+E	30	30.2	30.2.3	How many {{collection_of_entity}} are in {{entity_A}}?	How many rivers, streams and springs are in {{entity_A}}?	{{entity_A}}内有多少条河流、溪流和泉水？
+E	30	30.3	30.3.1	How many {{collection_of_entity}} are in {{entity_A}}?	How many bars, cafes and restaurants are in {{entity_A}}?	{{entity_A}}有多少家酒吧、咖啡馆和餐厅？
+E	30	30.3	30.3.2	How many {{collection_of_entity}} are in {{entity_A}}?	How many bars, cafes and restaurants are in {{entity_A}}?	{{entity_A}}有多少家酒吧、咖啡馆和餐厅？
+E	30	30.3	30.3.3	How many {{collection_of_entity}} are in {{entity_A}}?	How many bars, cafes and restaurants are in {{entity_A}}?	{{entity_A}}内有多少家酒吧、咖啡馆和餐厅？
+E	30	30.4	30.4.1	How many {{collection_of_entity}} are in {{entity_A}}?	How many schools, colleges and universities are in {{entity_A}}?	{{entity_A}}有多少所学校、学院和大学？
+E	30	30.4	30.4.2	How many {{collection_of_entity}} are in {{entity_A}}?	How many schools, colleges and universities are in {{entity_A}}?	{{entity_A}}包含多少所学校、学院和大学？
+E	30	30.4	30.4.3	How many {{collection_of_entity}} are in {{entity_A}}?	How many schools, colleges and universities are in {{entity_A}}?	{{entity_A}}内有多少所学校、学院和大学？
+E	30	30.5	30.5.1	How many {{collection_of_entity}} are in {{entity_A}}?	How many hospitals, pharmacies and laboratories are in {{entity_A}}?	{{entity_A}}有多少家医院、药店和实验室？
+E	30	30.5	30.5.2	How many {{collection_of_entity}} are in {{entity_A}}?	How many hospitals, pharmacies and laboratories are in {{entity_A}}?	{{entity_A}}包含多少家医院、药店和实验室？
+E	30	30.5	30.5.3	How many {{collection_of_entity}} are in {{entity_A}}?	How many hospitals, pharmacies and laboratories are in {{entity_A}}?	{{entity_A}}内有多少家医院、药店和实验室？
+E	30	30.6	30.6.1	How many {{collection_of_entity}} are in {{entity_A}}?	How many cinemas, theatres and museums are in {{entity_A}}?	{{entity_A}}有多少家电影院、剧院和博物馆？
+E	30	30.6	30.6.2	How many {{collection_of_entity}} are in {{entity_A}}?	How many cinemas, theatres and museums are in {{entity_A}}?	{{entity_A}}有多少家电影院、剧院和博物馆？
+E	30	30.6	30.6.3	How many {{collection_of_entity}} are in {{entity_A}}?	How many cinemas, theatres and museums are in {{entity_A}}?	{{entity_A}}内有多少家电影院、剧院和博物馆？
+E	30	30.7	30.7.1	How many {{collection_of_entity}} are in {{entity_A}}?	How many hostels, guesthouses and hotels are in {{entity_A}}?	{{entity_A}}有多少家青年旅舍、宾馆和酒店？
+E	30	30.7	30.7.2	How many {{collection_of_entity}} are in {{entity_A}}?	How many hostels, guesthouses and hotels are in {{entity_A}}?	{{entity_A}}有多少家青年旅舍、宾馆和酒店？
+E	30	30.7	30.7.3	How many {{collection_of_entity}} are in {{entity_A}}?	How many hostels, guesthouses and hotels are in {{entity_A}}?	{{entity_A}}内有多少家旅馆、宾馆和酒店？
+E	31	31.1	31.1.1	Does the administrative boundary of {{entity_A}} fully contain the area of {{entity_B}}?	Does the administrative boundary of {{entity_A}} fully contain the area of {{entity_B}}?	{{entity_A}}的行政边界是否完全包含{{entity_B}}的区域？
+E	31	31.1	31.1.2	Does the administrative boundary of {{entity_A}} fully contain the area of {{entity_B}}?	Does the administrative boundary of {{entity_A}} fully contain the area of {{entity_B}}?	{{entity_B}}的区域是否完全包含在{{entity_A}}的行政边界内？
+E	31	31.1	31.1.3	Does the administrative boundary of {{entity_A}} fully contain the area of {{entity_B}}?	Does the administrative boundary of {{entity_A}} fully contain the area of {{entity_B}}?	{{entity_B}}是否完全被{{entity_A}}的行政边界所包围？
+E	32	32.1	32.1.1	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the largest {{entity_B}} of {{entity_C}}?	{{entity_A}}的行政边界是否完全包含{{entity_C}} 中最大的{{entity_B}} ？
+E	32	32.1	32.1.2	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the largest {{entity_B}} of {{entity_C}}?	{{entity_C}}中最大的{{entity_B}}是否完全位于{{entity_A}}的行政边界内？
+E	32	32.2	32.2.1	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the smallest {{entity_B}} of {{entity_C}}?	{{entity_A}}的行政边界是否完全包含{{entity_C}}中最小的{{entity_B}}？
+E	32	32.2	32.2.2	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the smallest {{entity_B}} of {{entity_C}}?	{{entity_C}}中最小的{{entity_B}}是否完全位于{{entity_A}}的行政边界内？
+E	32	32.3	32.3.1	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the longest {{entity_B}} of {{entity_C}}?	{{entity_A}}的行政边界是否完全包含{{entity_C}}中最长的{{entity_B}}？
+E	32	32.3	32.3.2	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the longest {{entity_B}} of {{entity_C}}?	{{entity_C}} 中最长的 {{entity_B}} 是否完全位于 {{entity_A}} 的行政边界内？
+E	32	32.4	32.4.1	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the shortest {{entity_B}} of {{entity_C}}?	{{entity_A}}的行政边界是否完全包含{{entity_C}}中最短的{{entity_B}}？
+E	32	32.4	32.4.2	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the shortest {{entity_B}} of {{entity_C}}?	{{entity_C}}中最短的{{entity_B}}是否完全位于{{entity_A}}的行政边界内？
+E	32	32.5	32.5.1	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the most populated {{entity_B}} of {{entity_C}}?	{{entity_A}}的行政边界是否完全包含{{entity_C}}中人口最多的{{entity_B}}？
+E	32	32.5	32.5.2	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the most populated {{entity_B}} of {{entity_C}}?	{{entity_C}}人口最多的{{entity_B}}是否完全位于{{entity_A}}的行政边界内？
+E	32	32.6	32.6.1	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the least populated {{entity_B}} of {{entity_C}}?	{{entity_A}}的行政边界是否完全包含{{entity_C}}中人口最少的{{entity_B}}？
+E	32	32.6	32.6.2	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the least populated {{entity_B}} of {{entity_C}}?	{{entity_C}}中人口最少的{{entity_B}}是否完全位于{{entity_A}}的行政边界内？
+E	32	32.7	32.7.1	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the most elongated {{entity_B}} of {{entity_C}}?	{{entity_A}}的行政边界是否完全包含{{entity_C}}中延伸度最大的{{entity_B}}？
+E	32	32.7	32.7.2	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the most elongated {{entity_B}} of {{entity_C}}?	{{entity_C}}中延伸度最大的{{entity_B}}是否完全位于{{entity_A}}的行政边界内？
+E	32	32.8	32.8.1	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the most compact {{entity_B}} of {{entity_C}}?	{{entity_A}}的行政边界是否完全包含{{entity_C}}中最紧凑的{{entity_B}} ？
+E	32	32.8	32.8.2	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the most compact {{entity_B}} of {{entity_C}}?	{{entity_C}}中最紧凑的{{entity_B}}是否完全位于{{entity_A}}的行政边界内？
+E	32	32.9	32.9.1	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the northernmost {{entity_B}} of {{entity_C}}?	{{entity_A}}的行政边界是否完全包含{{entity_C}}最北端的{{entity_B}}？
+E	32	32.9	32.9.2	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the northernmost {{entity_B}} of {{entity_C}}?	{{entity_C}}最北端的{{entity_B}}是否完全位于{{entity_A}}的行政边界内？
+E	32	32.10	32.10.1	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the southernmost {{entity_B}} of {{entity_C}}?	{{entity_A}}的行政边界是否完全包含{{entity_C}}最南端的{{entity_B}}？
+E	32	32.10	32.10.2	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the southernmost {{entity_B}} of {{entity_C}}?	{{entity_C}}最南端的{{entity_B}}是否完全位于{{entity_A}}的行政边界内？
+E	32	32.11	32.11.1	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the westernmost {{entity_B}} of {{entity_C}}?	{{entity_A}}的行政边界是否完全包含{{entity_C}}最西边的{{entity_B}} ？
+E	32	32.11	32.11.2	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the westernmost {{entity_B}} of {{entity_C}}?	{{entity_C}}最西边的{{entity_B}}是否完全位于{{entity_A}}的行政边界内？
+E	32	32.12	32.12.1	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the easternmost {{entity_B}} of {{entity_C}}?	{{entity_A}}的行政边界是否完全包含{{entity_C}}最东端的{{entity_B}}？
+E	32	32.12	32.12.2	Does the administrative border of {{entity_A}} fully contain the {{rank_type}} {{entity_B}} of {{entity_C}}?	Does the administrative border of {{entity_A}} fully contain the easternmost {{entity_B}} of {{entity_C}}?	{{entity_C}}最东边的{{entity_B}}是否完全位于{{entity_A}}的行政边界内？
+F	33	33.1	33.1.1	Which {{entity_A}} lies furthest {{cardinal_direction}} within {{entity_B}}?	Which {{entity_A}} lies furthest north within {{entity_B}}?	{{entity_B}}中最北的{{entity_A}}是哪个？
+F	33	33.1	33.1.2	Which {{entity_A}} lies furthest {{cardinal_direction}} within {{entity_B}}?	Which {{entity_A}} lies furthest north within {{entity_B}}?	{{entity_B}}中最北的{{entity_A}}是哪一个？
+F	33	33.2	33.2.1	Which {{entity_A}} lies furthest {{cardinal_direction}} within {{entity_B}}?	Which {{entity_A}} lies furthest south within {{entity_B}}?	{{entity_B}}中位置最靠南的{{entity_A}}是哪个？
+F	33	33.2	33.2.2	Which {{entity_A}} lies furthest {{cardinal_direction}} within {{entity_B}}?	Which {{entity_A}} lies furthest south within {{entity_B}}?	{{entity_B}}中最南边的{{entity_A}}是哪个？
+F	33	33.3	33.3.1	Which {{entity_A}} lies furthest {{cardinal_direction}} within {{entity_B}}?	Which {{entity_A}} lies furthest west within {{entity_B}}?	{{entity_B}}中最西边的{{entity_A}}是哪个？
+F	33	33.3	33.3.2	Which {{entity_A}} lies furthest {{cardinal_direction}} within {{entity_B}}?	Which {{entity_A}} lies furthest west within {{entity_B}}?	{{entity_B}}中最西边的{{entity_A}}是哪个？
+F	33	33.4	33.4.1	Which {{entity_A}} lies furthest {{cardinal_direction}} within {{entity_B}}?	Which {{entity_A}} lies furthest east within {{entity_B}}?	{{entity_B}}中最东边的{{entity_A}}是哪个？
+F	33	33.4	33.4.2	Which {{entity_A}} lies furthest {{cardinal_direction}} within {{entity_B}}?	Which {{entity_A}} lies furthest east within {{entity_B}}?	{{entity_B}}中最东边的{{entity_A}}是哪个？
+F	34	34.2	34.2.1	What is the {{rank_type}} {{entity_A}} in {{entity_B}} by {{attribute_A}}?	What is the smallest {{entity_A}} in {{entity_B}} by area?	{{entity_B}}中面积最小的{{entity_A}}是什么？
+F	34	34.2	34.2.2	What is the {{rank_type}} {{entity_A}} in {{entity_B}} by {{attribute_A}}?	What is the smallest {{entity_A}} in {{entity_B}} by area?	{{entity_B}}中面积最小的{{entity_A}}是哪个？
+F	34	34.5	34.5.1	What is the {{rank_type}} {{entity_A}} in {{entity_B}} by {{attribute_A}}?	What is the biggest {{entity_A}} in {{entity_B}} by perimeter?	{{entity_B}}中周长最大的{{entity_A}}是什么？
+F	34	34.6	34.6.1	What is the {{rank_type}} {{entity_A}} in {{entity_B}} by {{attribute_A}}?	What is the smallest {{entity_A}} in {{entity_B}} by perimeter?	{{entity_B}}中周长最小的{{entity_A}}是什么？
+F	34	34.6	34.6.2	What is the {{rank_type}} {{entity_A}} in {{entity_B}} by {{attribute_A}}?	What is the smallest {{entity_A}} in {{entity_B}} by perimeter?	{{entity_B}}中哪个{{entity_A}}的周长最小？
+F	34	34.7	34.7.1	What is the {{rank_type}} {{entity_A}} in {{entity_B}} by {{attribute_A}}?	What is the biggest {{entity_A}} in {{entity_B}} by compactness?	{{entity_B}}中紧凑度最大的{{entity_A}}是什么？
+F	34	34.8	34.8.1	What is the {{rank_type}} {{entity_A}} in {{entity_B}} by {{attribute_A}}?	What is the smallest {{entity_A}} in {{entity_B}} by compactness?	在{{entity_B}}中，紧凑度最小的{{entity_A}}是什么？
+F	34	34.9	34.9.1	What is the {{rank_type}} {{entity_A}} in {{entity_B}} by {{attribute_A}}?	What is the biggest {{entity_A}} in {{entity_B}} by elongation?	{{entity_B}}中延伸度最大的{{entity_A}}是什么？
+F	34	34.10	34.10.1	What is the {{rank_type}} {{entity_A}} in {{entity_B}} by {{attribute_A}}?	What is the smallest {{entity_A}} in {{entity_B}} by elongation?	在{{entity_B}}中，伸长率最小的{{entity_A}}是什么？
+F	34	34.11	34.11.1	What is the {{rank_type}} {{entity_A}} in {{entity_B}} by {{attribute_A}}?	What is the biggest {{entity_A}} in {{entity_B}} by irregularity?	{{entity_B}}中，不规则性最大的{{entity_A}}是什么？
+F	35	35.7	35.7.1	What is the {{rank_position}} {{attribute}} {{entity_A}} in {{entity_B}}?	What is the longest {{entity_A}} in {{entity_B}}?	{{entity_B}}中最长的{{entity_A}}是什么？
+F	35	35.8	35.8.1	What is the {{rank_position}} {{attribute}} {{entity_A}} in {{entity_B}}?	What is the second longest {{entity_A}} in {{entity_B}}?	{{entity_B}}中第二长的{{entity_A}}是什么？
+F	35	35.9	35.9.1	What is the {{rank_position}} {{attribute}} {{entity_A}} in {{entity_B}}?	What is the third longest {{entity_A}} in {{entity_B}}?	{{entity_B}}中第三长的{{entity_A}}是什么？
+F	35	35.10	35.10.1	What is the {{rank_position}} {{attribute}} {{entity_A}} in {{entity_B}}?	What is the shortest {{entity_A}} in {{entity_B}}?	{{entity_B}}中最短的{{entity_A}}是什么？
+F	35	35.11	35.11.1	What is the {{rank_position}} {{attribute}} {{entity_A}} in {{entity_B}}?	What is the second shortest {{entity_A}} in {{entity_B}}?	{{entity_B}}中第二短的{{entity_A}}是什么？
+F	35	35.12	35.12.1	What is the {{rank_position}} {{attribute}} {{entity_A}} in {{entity_B}}?	What is the third shortest {{entity_A}} in {{entity_B}}?	{{entity_B}}中第三短的{{entity_A}}是什么？
+F	36	36.1	36.1.1	Which {{entity_A}} are within {{value}} km of {{entity_B}} and {{cardinal_direction}} of {{entity_C}}?	Which {{entity_A}} are within {{value}} km of {{entity_B}} and north of {{entity_C}}?	哪些{{entity_A}}位于{{entity_B}}的{{value}}公里范围内，且位于{{entity_C}}的北部？
+F	36	36.1	36.1.2	Which {{entity_A}} are within {{value}} km of {{entity_B}} and {{cardinal_direction}} of {{entity_C}}?	Which {{entity_A}} are within {{value}} km of {{entity_B}} and north of {{entity_C}}?	哪些{{entity_A}}位于{{entity_C}}以北，且距离{{entity_B}} {{value}}公里以内？
+F	36	36.2	36.2.1	Which {{entity_A}} are within {{value}} km of {{entity_B}} and {{cardinal_direction}} of {{entity_C}}?	Which {{entity_A}} are within {{value}} km of {{entity_B}} and south of {{entity_C}}?	哪些{{entity_A}}在{{entity_B}}的{{value}}公里范围内，并且在{{entity_C}}的南边？
+F	36	36.2	36.2.2	Which {{entity_A}} are within {{value}} km of {{entity_B}} and {{cardinal_direction}} of {{entity_C}}?	Which {{entity_A}} are within {{value}} km of {{entity_B}} and south of {{entity_C}}?	哪些{{entity_A}}位于{{entity_C}}以南，且距离{{entity_B}} {{value}}公里以内？
+F	36	36.3	36.3.1	Which {{entity_A}} are within {{value}} km of {{entity_B}} and {{cardinal_direction}} of {{entity_C}}?	Which {{entity_A}} are within {{value}} km of {{entity_B}} and east of {{entity_C}}?	哪些{{entity_A}}位于{{entity_B}}{{value}}公里范围内，且在{{entity_C}}以东？
+F	36	36.3	36.3.2	Which {{entity_A}} are within {{value}} km of {{entity_B}} and {{cardinal_direction}} of {{entity_C}}?	Which {{entity_A}} are within {{value}} km of {{entity_B}} and east of {{entity_C}}?	哪些{{entity_A}}位于{{entity_C}}东边，且在{{entity_B}}的{{value}}公里范围内？
+F	36	36.4	36.4.1	Which {{entity_A}} are within {{value}} km of {{entity_B}} and {{cardinal_direction}} of {{entity_C}}?	Which {{entity_A}} are within {{value}} km of {{entity_B}} and west of {{entity_C}}?	哪些{{entity_A}}在{{entity_B}}的{{value}}公里范围内，并且位于{{entity_C}}的西侧？
+F	36	36.4	36.4.2	Which {{entity_A}} are within {{value}} km of {{entity_B}} and {{cardinal_direction}} of {{entity_C}}?	Which {{entity_A}} are within {{value}} km of {{entity_B}} and west of {{entity_C}}?	哪些{{entity_A}}位于{{entity_C}}以西，且距离{{entity_B}} {{value}}公里以内？
+F	36	36.5	36.5.1	Which {{entity_A}} are within {{value}} km of {{entity_B}} and {{cardinal_direction}} of {{entity_C}}?	Which {{entity_A}} are within {{value}} km of {{entity_B}} and northeast of {{entity_C}}?	哪些{{entity_A}}在{{entity_B}}的{{value}}公里范围内，且位于{{entity_C}}东北方？
+F	36	36.5	36.5.2	Which {{entity_A}} are within {{value}} km of {{entity_B}} and {{cardinal_direction}} of {{entity_C}}?	Which {{entity_A}} are within {{value}} km of {{entity_B}} and northeast of {{entity_C}}?	哪些{{entity_A}}位于{{entity_C}}的东北方向，且距离{{entity_B}}在{{value}}公里以内？
+F	36	36.6	36.6.1	Which {{entity_A}} are within {{value}} km of {{entity_B}} and {{cardinal_direction}} of {{entity_C}}?	Which {{entity_A}} are within {{value}} km of {{entity_B}} and northwest of {{entity_C}}?	哪些{{entity_A}}在{{entity_B}}的{{value}}公里范围内，并且在{{entity_C}}的西北方向？
+F	36	36.6	36.6.2	Which {{entity_A}} are within {{value}} km of {{entity_B}} and {{cardinal_direction}} of {{entity_C}}?	Which {{entity_A}} are within {{value}} km of {{entity_B}} and northwest of {{entity_C}}?	哪些{{entity_A}}位于{{entity_C}}的西北方向，且距离{{entity_B}}在{{value}}公里以内？
+F	36	36.7	36.7.1	Which {{entity_A}} are within {{value}} km of {{entity_B}} and {{cardinal_direction}} of {{entity_C}}?	Which {{entity_A}} are within {{value}} km of {{entity_B}} and southeast of {{entity_C}}?	哪些{{entity_A}}在{{entity_B}}的{{value}}公里范围内，并且在{{entity_C}}的东南方向？
+F	36	36.7	36.7.2	Which {{entity_A}} are within {{value}} km of {{entity_B}} and {{cardinal_direction}} of {{entity_C}}?	Which {{entity_A}} are within {{value}} km of {{entity_B}} and southeast of {{entity_C}}?	哪些{{entity_A}}位于{{entity_C}}东南方向，且在{{entity_B}}的{{value}}公里范围内？
+F	36	36.8	36.8.1	Which {{entity_A}} are within {{value}} km of {{entity_B}} and {{cardinal_direction}} of {{entity_C}}?	Which {{entity_A}} are within {{value}} km of {{entity_B}} and southwest of {{entity_C}}?	哪些{{entity_A}}在{{entity_B}}的{{value}}公里范围内，且位于{{entity_C}}西南方向？
+F	36	36.8	36.8.2	Which {{entity_A}} are within {{value}} km of {{entity_B}} and {{cardinal_direction}} of {{entity_C}}?	Which {{entity_A}} are within {{value}} km of {{entity_B}} and southwest of {{entity_C}}?	哪些{{entity_A}}位于{{entity_C}}西南方向，且在{{entity_B}}的{{value}}公里范围内？
+G	37	37.1	37.1.1	What is the most central point of {{entity_A}}?	What is the most central point of {{entity_A}}?	{{entity_A}}的最中心点在哪里？
+G	37	37.1	37.1.2	What is the most central point of {{entity_A}}?	What is the most central point of {{entity_A}}?	{{entity_A}}的几何中心在哪里？
+G	37	37.1	37.1.3	What is the most central point of {{entity_A}}?	What is the most central point of {{entity_A}}?	哪个点最能代表{{entity_A}}的中心？
+G	38	38.1	38.1.1	What is the most central point of {{entity_A}} where {{entity_B}} is located?	What is the most central point of {{entity_A}} where {{entity_B}} is located?	{{entity_B}}所在的{{entity_A}}的最中心点是什么？
+G	39	39.1	39.1.1	How does the centroid of {{entity_A}} change when computed at spatial resolutions {{value_1}} km and {{value_2}} km?	How does the centroid of {{entity_A}} change when computed at spatial resolutions {{value_1}} km and {{value_2}} km?	当以{{value_1}}公里和{{value_2}}公里的空间分辨率计算时， {{entity_A}}的质心如何变化？
+G	39	39.1	39.1.2	How does the centroid of {{entity_A}} change when computed at spatial resolutions {{value_1}} km and {{value_2}} km?	How does the centroid of {{entity_A}} change when computed at spatial resolutions {{value_1}} km and {{value_2}} km?	在{{value_1}}公里与{{value_2}}公里分辨率下，{{entity_A}}的质心位置如何变化？
+H	40	40.1	40.1.1	Which grid cell contains both {{entity_A}} and {{entity_B}}?	Which grid cell contains both {{entity_A}} and {{entity_B}}?	哪个网格单元同时包含{{entity_A}}和{{entity_B}} ？
+H	40	40.1	40.1.2	Which grid cell contains both {{entity_A}} and {{entity_B}}?	Which grid cell contains both {{entity_A}} and {{entity_B}}?	哪个空间网格单元同时包含{{entity_A}}和{{entity_B}} ？
+H	41	41.1	41.1.1	Which grid cell at resolution {{value}} contains both {{entity_A}} and {{entity_B}}?	Which grid cell at resolution {{value}} contains both {{entity_A}} and {{entity_B}}?	在分辨率为{{value}}的网格中，哪个网格单元同时包含{{entity_A}}和{{entity_B}} ？
+H	41	41.1	41.1.2	Which grid cell at resolution {{value}} contains both {{entity_A}} and {{entity_B}}?	Which grid cell at resolution {{value}} contains both {{entity_A}} and {{entity_B}}?	在分辨率{{value}}下，哪个网格单元同时包含{{entity_A}}和{{entity_B}} ？
+H	42	42.1	42.1.1	Which grid cell contains {{entity_A}} both in h3 and s2 formats?	Which grid cell contains {{entity_A}} both in h3 and s2 formats?	哪个网格单元在H3和S2格式下都包含{{entity_A}}？
+I	43	43.1	43.1.1	How far away was the {{event_A}} from {{entity_B}} in {{time_period}}?	How far away was the {{event_A}} from {{entity_B}} in {{time_period}}?	在{{time_period}} ， {{event_A}}距离{{entity_B}}有多远？
+I	43	43.1	43.1.2	How far away was the {{event_A}} from {{entity_B}} in {{time_period}}?	How far away was the {{event_A}} from {{entity_B}} in {{time_period}}?	在{{time_period}}期间， {{event_A}}距离{{entity_B}}有多远？
+I	43	43.1	43.1.3	How far away was the {{event_A}} from {{entity_B}} in {{time_period}}?	How far away was the {{event_A}} from {{entity_B}} in {{time_period}}?	在{{time_period}}期间， {{event_A}}和{{entity_B}}之间的距离是多少？
+I	44	44.1	44.1.1	Which {{entity_A}} were affected by {{event_A}}?	Which {{entity_A}} were affected by {{event_A}}?	哪些{{entity_A}}受到{{event_A}}的影响？
+I	44	44.1	44.1.2	Which {{entity_A}} were affected by {{event_A}}?	Which {{entity_A}} were affected by {{event_A}}?	哪些{{entity_A}}受到了{{event_A}}的影响？
+I	44	44.1	44.1.3	Which {{entity_A}} were affected by {{event_A}}?	Which {{entity_A}} were affected by {{event_A}}?	列出受{{event_A}}影响的{{entity_A}}。
+I	45	45.1	45.1.1	When did {{event_A}} hit {{entity A}}?	When did {{event_A}} hit {{entity A}}?	{{event_A}}是什么时候袭击{{entity_A}}的？
+I	45	45.1	45.1.2	When did {{event_A}} hit {{entity A}}?	When did {{event_A}} hit {{entity A}}?	{{event_A}}在什么时间影响了{{entity_A}} ？
+I	46	46.1	46.1.1	Do {{event_A}} and {{event_B}} overlap temporarily?	Do {{event_A}} and {{event_B}} overlap temporarily?	{{event_A}}和{{event_B}}在时间上是否重叠？
+I	46	46.1	46.1.2	Do {{event_A}} and {{event_B}} overlap temporarily?	Do {{event_A}} and {{event_B}} overlap temporarily?	{{event_A}}和{{event_B}}是否发生在重叠的时间段内？
+I	47	47.1	47.1.1	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	受{{event_A}}影响的区域有多大？
+I	47	47.1	47.1.2	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	{{event_A}}的总影响范围是多少？
+I	47	47.1	47.1.3	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	受{{event_A}}影响的区域面积有多大？
+I	48	48.1	48.1.1	How large is the area affected by {{event_A}} in {{entity_A}}?	How large is the area affected by {{event_A}} in {{entity_A}}?	{{entity_A}}中受{{event_A}}影响的面积有多大？
+I	48	48.1	48.1.2	How large is the area affected by {{event_A}} in {{entity_A}}?	How large is the area affected by {{event_A}} in {{entity_A}}?	{{entity_A}}的哪个区域受到了{{event_A}}的影响？
+J	49	49.1	49.1.1	Is {{entity_A}} {{cardinal_direction}} of {{entity_B}}?	Is {{entity_A}} north of {{entity_B}}?	{{entity_A}}在{{entity_B}}的北面吗？
+J	49	49.1	49.1.2	Is {{entity_A}} {{cardinal_direction}} of {{entity_B}}?	Is {{entity_A}} north of {{entity_B}}?	{{entity_A}}位于{{entity_B}}的北面吗？
+J	49	49.2	49.2.1	Is {{entity_A}} {{cardinal_direction}} of {{entity_B}}?	Is {{entity_A}} south of {{entity_B}}?	{{entity_A}}在{{entity_B}}的南边吗？
+J	49	49.2	49.2.2	Is {{entity_A}} {{cardinal_direction}} of {{entity_B}}?	Is {{entity_A}} south of {{entity_B}}?	{{entity_A}}位于{{entity_B}}的南边吗？
+J	49	49.3	49.3.1	Is {{entity_A}} {{cardinal_direction}} of {{entity_B}}?	Is {{entity_A}} east of {{entity_B}}?	{{entity_A}}在{{entity_B}}的东边吗？
+J	49	49.3	49.3.2	Is {{entity_A}} {{cardinal_direction}} of {{entity_B}}?	Is {{entity_A}} east of {{entity_B}}?	{{entity_A}}位于{{entity_B}}的东边吗？
+J	49	49.4	49.4.1	Is {{entity_A}} {{cardinal_direction}} of {{entity_B}}?	Is {{entity_A}} west of {{entity_B}}?	{{entity_A}}在{{entity_B}}的西边吗？
+J	49	49.4	49.4.2	Is {{entity_A}} {{cardinal_direction}} of {{entity_B}}?	Is {{entity_A}} west of {{entity_B}}?	{{entity_A}}位于{{entity_B}}的西面吗？
+J	49	49.5	49.5.1	Is {{entity_A}} {{cardinal_direction}} of {{entity_B}}?	Is {{entity_A}} northeast of {{entity_B}}?	{{entity_A}}是否在{{entity_B}}的东北方向？
+J	49	49.5	49.5.2	Is {{entity_A}} {{cardinal_direction}} of {{entity_B}}?	Is {{entity_A}} northeast of {{entity_B}}?	{{entity_A}}位于{{entity_B}}的东北方向吗？
+J	49	49.6	49.6.1	Is {{entity_A}} {{cardinal_direction}} of {{entity_B}}?	Is {{entity_A}} northwest of {{entity_B}}?	{{entity_A}}位于{{entity_B}}的西北方向吗？
+J	49	49.6	49.6.2	Is {{entity_A}} {{cardinal_direction}} of {{entity_B}}?	Is {{entity_A}} northwest of {{entity_B}}?	{{entity_A}}位于{{entity_B}}的西北方向吗？
+J	49	49.7	49.7.1	Is {{entity_A}} {{cardinal_direction}} of {{entity_B}}?	Is {{entity_A}} southeast of {{entity_B}}?	{{entity_A}}位于{{entity_B}}的东南方向吗？
+J	49	49.7	49.7.2	Is {{entity_A}} {{cardinal_direction}} of {{entity_B}}?	Is {{entity_A}} southeast of {{entity_B}}?	{{entity_A}}位于{{entity_B}}的东南方向吗？
+J	49	49.8	49.8.1	Is {{entity_A}} {{cardinal_direction}} of {{entity_B}}?	Is {{entity_A}} southwest of {{entity_B}}?	{{entity_A}}位于{{entity_B}}的西南方向吗？
+J	49	49.8	49.8.2	Is {{entity_A}} {{cardinal_direction}} of {{entity_B}}?	Is {{entity_A}} southwest of {{entity_B}}?	{{entity_A}}位于{{entity_B}}的西南方向吗？
+J	50	50.1	50.1.1	Is {{entity_A}} to the left or right of the route from {{entity_B}} to {{entity_C}}?	Is {{entity_A}} to the left or right of the route from {{entity_B}} to {{entity_C}}?	{{entity_A}}位于从{{entity_B}}到{{entity_C}}的路线的左侧还是右侧？
+J	50	50.1	50.1.2	Is {{entity_A}} to the left or right of the route from {{entity_B}} to {{entity_C}}?	Is {{entity_A}} to the left or right of the route from {{entity_B}} to {{entity_C}}?	{{entity_A}}位于从{{entity_B}}到{{entity_C}}的路线的左侧还是右侧？
+J	51	51.1	51.1.1	Does {{entity_A}} lie upstream or downstream of {{entity_B}}?	Does {{entity_A}} lie upstream or downstream of {{entity_B}}?	{{entity_A}}位于{{entity_B}}的上游还是下游？
+J	51	51.1	51.1.2	Does {{entity_A}} lie upstream or downstream of {{entity_B}}?	Does {{entity_A}} lie upstream or downstream of {{entity_B}}?	相对于{{entity_B}}，{{entity_A}}位于上游还是下游？
+J	52	52.1	52.1.1	What direction would you travel from {{entity_A}} to reach {{entity_B}}?	What direction would you travel from {{entity_A}} to reach {{entity_B}}?	从{{entity_A}}前往{{entity_B}}需朝哪个方向？
+J	52	52.1	52.1.2	What direction would you travel from {{entity_A}} to reach {{entity_B}}?	What direction would you travel from {{entity_A}} to reach {{entity_B}}?	从{{entity_A}}到{{entity_B}}需要往哪个方向走？
+K	53	53.1	53.1.1	Is {{entity_A}} larger in area than {{entity_B}}?	Is {{entity_A}} larger in area than {{entity_B}}?	{{entity_A}}的面积比{{entity_B}}大吗？
+K	53	53.1	53.1.2	Is {{entity_A}} larger in area than {{entity_B}}?	Is {{entity_A}} larger in area than {{entity_B}}?	{{entity_A}}的面积比{{entity_B}}的大吗？
+K	53	53.1	53.1.3	Is {{entity_A}} larger in area than {{entity_B}}?	Is {{entity_A}} larger in area than {{entity_B}}?	{{entity_A}}面积比{{entity_B}}大吗？
+K	54	54.1	54.1.1	Is {{entity_A}} more compact than {{entity_B}}?	Is {{entity_A}} more compact than {{entity_B}}?	{{entity_A}}比{{entity_B}}更紧凑吗？
+K	54	54.1	54.1.2	Is {{entity_A}} more compact than {{entity_B}}?	Is {{entity_A}} more compact than {{entity_B}}?	{{entity_A}}的紧凑度是否高于{{entity_B}}？
+K	55	55.1	55.1.1	Is {{entity_A}} more elongated than {{entity_B}}?	Is {{entity_A}} more elongated than {{entity_B}}?	{{entity_A}}比{{entity_B}}更细长吗？
+K	55	55.1	55.1.2	Is {{entity_A}} more elongated than {{entity_B}}?	Is {{entity_A}} more elongated than {{entity_B}}?	{{entity_A}}的伸长率是否大于{{entity_B}}？
+K	56	56.1	56.1.1	What is the perimeter of {{entity_A}}?	What is the perimeter of {{entity_A}}?	{{entity_A}}的周长是多少？
+K	56	56.1	56.1.2	What is the perimeter of {{entity_A}}?	What is the perimeter of {{entity_A}}?	给出{{entity_A}}的周长。
+K	57	57.1	57.1.1	How irregular is the boundary of {{entity_A}}, measured by {{irregularity_metric}} at {{scale_value}} km {{scale_unit}}?	How irregular is the boundary of {{entity_A}}, measured by perimeter-to-area ratio at {{value}} km resolution?	以{{value}}公里分辨率的周长面积比衡量，{{entity_A}}的边界有多不规则？
+K	57	57.1	57.1.2	How irregular is the boundary of {{entity_A}}, measured by {{irregularity_metric}} at {{scale_value}} km {{scale_unit}}?	How irregular is the boundary of {{entity_A}}, measured by perimeter-to-area ratio at {{value}} km resolution?	使用周长与面积比，在{{value}}公里分辨率下， {{entity_A}}的边界有多不规则？
+K	57	57.1	57.1.3	How irregular is the boundary of {{entity_A}}, measured by {{irregularity_metric}} at {{scale_value}} km {{scale_unit}}?	How irregular is the boundary of {{entity_A}}, measured by perimeter-to-area ratio at {{value}} km resolution?	在{{value}}公里分辨率下，以周长与面积比衡量，{{entity_A}}的边界不规则性如何？
+K	57	57.1	57.1.4	How irregular is the boundary of {{entity_A}}, measured by {{irregularity_metric}} at {{scale_value}} km {{scale_unit}}?	How irregular is the boundary of {{entity_A}}, measured by perimeter-to-area ratio at {{value}} km resolution?	在{{value}}公里分辨率下，根据周长与面积比， {{entity_A}}的边界有多不规则？
+K	57	57.2	57.2.1	How irregular is the boundary of {{entity_A}}, measured by {{irregularity_metric}} at {{scale_value}} km {{scale_unit}}?	How irregular is the boundary of {{entity_A}}, measured by shape index at {{value}} km simplification?	以{{value}}公里简化的形状指数来衡量，{{entity_A}}的边界不规则程度如何？
+K	57	57.2	57.2.2	How irregular is the boundary of {{entity_A}}, measured by {{irregularity_metric}} at {{scale_value}} km {{scale_unit}}?	How irregular is the boundary of {{entity_A}}, measured by shape index at {{value}} km simplification?	{{entity_A}}，在通过使用{{value}}公里作为形状指数的简化后，它的边界有多不规则？
+K	57	57.2	57.2.3	How irregular is the boundary of {{entity_A}}, measured by {{irregularity_metric}} at {{scale_value}} km {{scale_unit}}?	How irregular is the boundary of {{entity_A}}, measured by shape index at {{value}} km simplification?	在{{value}}公里简化下， {{entity_A}}的形状指数边界不规则性是多少？
+K	57	57.2	57.2.4	How irregular is the boundary of {{entity_A}}, measured by {{irregularity_metric}} at {{scale_value}} km {{scale_unit}}?	How irregular is the boundary of {{entity_A}}, measured by shape index at {{value}} km simplification?	在{{value}}公里简化后，根据形状指数{{entity_A}}的边界有多不规则？
+K	57	57.3	57.3.1	How irregular is the boundary of {{entity_A}}, measured by {{irregularity_metric}} at {{scale_value}} km {{scale_unit}}?	How irregular is the boundary of {{entity_A}}, measured by convex hull ratio at {{value}} km resolution?	以{{value}}公里分辨率的凸包比衡量，{{entity_A}}的边界不规则程度如何？
+K	57	57.3	57.3.2	How irregular is the boundary of {{entity_A}}, measured by {{irregularity_metric}} at {{scale_value}} km {{scale_unit}}?	How irregular is the boundary of {{entity_A}}, measured by convex hull ratio at {{value}} km resolution?	在{{value}}公里分辨率下，使用凸包比率衡量，{{entity_A}}的边界有多不规则？
+K	57	57.3	57.3.3	How irregular is the boundary of {{entity_A}}, measured by {{irregularity_metric}} at {{scale_value}} km {{scale_unit}}?	How irregular is the boundary of {{entity_A}}, measured by convex hull ratio at {{value}} km resolution?	在{{value}}公里分辨率下， {{entity_A}}的边界不规则度（以凸包比表示）是多少？
+K	57	57.3	57.3.4	How irregular is the boundary of {{entity_A}}, measured by {{irregularity_metric}} at {{scale_value}} km {{scale_unit}}?	How irregular is the boundary of {{entity_A}}, measured by convex hull ratio at {{value}} km resolution?	在{{value}}公里的分辨率下，根据凸包比， {{entity_A}}的边界有多不规则？
+K	57	57.4	57.4.1	How irregular is the boundary of {{entity_A}}, measured by {{irregularity_metric}} at {{scale_value}} km {{scale_unit}}?	How irregular is the boundary of {{entity_A}}, measured by boundary roughness index at {{value}} km smoothing?	以{{value}}公里平滑窗口的边界粗糙度指数衡量，{{entity_A}}的边界不规则程度如何？
+K	57	57.4	57.4.2	How irregular is the boundary of {{entity_A}}, measured by {{irregularity_metric}} at {{scale_value}} km {{scale_unit}}?	How irregular is the boundary of {{entity_A}}, measured by boundary roughness index at {{value}} km smoothing?	使用{{value}}公里平滑处理的边界粗糙度指数， {{entity_A}}的边界有多不规则？
+K	57	57.4	57.4.3	How irregular is the boundary of {{entity_A}}, measured by {{irregularity_metric}} at {{scale_value}} km {{scale_unit}}?	How irregular is the boundary of {{entity_A}}, measured by boundary roughness index at {{value}} km smoothing?	在{{value}}公里平滑处理下， {{entity_A}}的边界不规则度是多少？
+K	57	57.4	57.4.4	How irregular is the boundary of {{entity_A}}, measured by {{irregularity_metric}} at {{scale_value}} km {{scale_unit}}?	How irregular is the boundary of {{entity_A}}, measured by boundary roughness index at {{value}} km smoothing?	在平滑半径为{{value}}公里时，根据边界粗糙度指数{{entity_A}}的边界有多不规则？
+K	57	57.5	57.5.1	How irregular is the boundary of {{entity_A}}, measured by {{irregularity_metric}} at {{scale_value}} km {{scale_unit}}?	How irregular is the boundary of {{entity_A}}, measured by number of vertices per kilometre at {{value}} km sampling interval?	以{{value}}公里采样间隔、每公里顶点数衡量，{{entity_A}}的边界有多不规则？
+K	57	57.5	57.5.2	How irregular is the boundary of {{entity_A}}, measured by {{irregularity_metric}} at {{scale_value}} km {{scale_unit}}?	How irregular is the boundary of {{entity_A}}, measured by number of vertices per kilometre at {{value}} km sampling interval?	以{{value}}公里为采样间隔，使用每公里顶点数指标，{{entity_A}}的边界有多不规则？
+K	57	57.5	57.5.3	How irregular is the boundary of {{entity_A}}, measured by {{irregularity_metric}} at {{scale_value}} km {{scale_unit}}?	How irregular is the boundary of {{entity_A}}, measured by number of vertices per kilometre at {{value}} km sampling interval?	在采样间隔为{{value}}公里时{{entity_A}}的边界不规则性（按每公里顶点数计算）是多少？
+K	57	57.5	57.5.4	How irregular is the boundary of {{entity_A}}, measured by {{irregularity_metric}} at {{scale_value}} km {{scale_unit}}?	How irregular is the boundary of {{entity_A}}, measured by number of vertices per kilometre at {{value}} km sampling interval?	以{{value}}公里采样间隔、顶点密度衡量，{{entity_A}}的边界有多不规则？
+L	58	58.1	58.1.1	Is {{entity_A}} approximately near {{entity_B}}?	Is {{entity_A}} approximately near {{entity_B}}?	{{entity_A}}大约在{{entity_B}}附近吗？
+L	58	58.1	58.1.2	Is {{entity_A}} approximately near {{entity_B}}?	Is {{entity_A}} approximately near {{entity_B}}?	{{entity_A}}大约在{{entity_B}}的附近吗？
+L	58	58.1	58.1.3	Is {{entity_A}} approximately near {{entity_B}}?	Is {{entity_A}} approximately near {{entity_B}}?	{{entity_A}}和{{entity_B}}大致接近吗？
+L	59	59.1	59.1.1	Is {{entity_A}} far from {{entity_B}}?	Is {{entity_A}} far from {{entity_B}}?	{{entity_A}}离{{entity_B}}远吗？
+L	59	59.1	59.1.2	Is {{entity_A}} far from {{entity_B}}?	Is {{entity_A}} far from {{entity_B}}?	{{entity_A}}和{{entity_B}}距离远吗？
+L	59	59.1	59.1.3	Is {{entity_A}} far from {{entity_B}}?	Is {{entity_A}} far from {{entity_B}}?	{{entity_A}}与{{entity_B}}之间距离很远吗？
+L	60	60.1	60.1.1	Is {{entity_A}} more likely near {{entity_B}} than {{entity_C}}?	Is {{entity_A}} more likely near {{entity_B}} than {{entity_C}}?	{{entity_A}}更有可能在{{entity_B}}附近，而不是{{entity_C}}附近吗？
+L	60	60.1	60.1.2	Is {{entity_A}} more likely near {{entity_B}} than {{entity_C}}?	Is {{entity_A}} more likely near {{entity_B}} than {{entity_C}}?	{{entity_A}}可能比{{entity_C}}更靠近{{entity_B}}吗？
+L	61	61.1	61.1.1	Which {{entity_A}} are roughly closest to {{entity_B}}?	Which {{entity_A}} are roughly closest to {{entity_B}}?	哪个{{entity_A}}与{{entity_B}}差不多最接近？
+L	61	61.1	61.1.2	Which {{entity_A}} are roughly closest to {{entity_B}}?	Which {{entity_A}} are roughly closest to {{entity_B}}?	哪些{{entity_A}}距{{entity_B}}最近？
+L	61	61.1	61.1.3	Which {{entity_A}} are roughly closest to {{entity_B}}?	Which {{entity_A}} are roughly closest to {{entity_B}}?	列出大致离{{entity_B}}最近的{{entity_A}}。
+L	62	62.1	62.1.1	Is {{entity_A}} plausibly within {{entity_B}}?	Is {{entity_A}} plausibly within {{entity_B}}?	{{entity_A}}是否可能在{{entity_B}}内？
+L	62	62.1	62.1.2	Is {{entity_A}} plausibly within {{entity_B}}?	Is {{entity_A}} plausibly within {{entity_B}}?	{{entity_A}}位于{{entity_B}}内，这种说法是否合理？
+L	62	62.1	62.1.3	Is {{entity_A}} plausibly within {{entity_B}}?	Is {{entity_A}} plausibly within {{entity_B}}?	{{entity_A}}是否有理由位于{{entity_B}}之内？
+L	62	62.1	62.1.4	Is {{entity_A}} plausibly within {{entity_B}}?	Is {{entity_A}} plausibly within {{entity_B}}?	{{entity_A}}是否可能包含在{{entity_B}}中？
+M	63	63.1	63.1.1	What is the relative position of {{entity_A}} in the coordinate system of {{entity_B}}?	What is the relative position of {{entity_A}} in the coordinate system of {{entity_B}}?	{{entity_A}}在{{entity_B}}的坐标系中的相对位置是什么？
+M	63	63.1	63.1.2	What is the relative position of {{entity_A}} in the coordinate system of {{entity_B}}?	What is the relative position of {{entity_A}} in the coordinate system of {{entity_B}}?	{{entity_A}}相对于{{entity_B}}的坐标系位于何处？
+M	63	63.1	63.1.3	What is the relative position of {{entity_A}} in the coordinate system of {{entity_B}}?	What is the relative position of {{entity_A}} in the coordinate system of {{entity_B}}?	给出{{entity_A}}在{{entity_B}}坐标系中的位置。
+M	64	64.1	64.1.1	Convert the location of {{entity_A}} to {{grid_type}} at {{resolution_type}} {{value}} {{metric}}.	Convert the location of {{entity_A}} to H3 at resolution {{value}}.	将{{entity_A}}的位置转换为H3，分辨率为{{value}}。
+M	64	64.1	64.1.2	Convert the location of {{entity_A}} to {{grid_type}} at {{resolution_type}} {{value}} {{metric}}.	Convert the location of {{entity_A}} to H3 at resolution {{value}}.	分辨率为{{value}}时， {{entity_A}}的H3单元格是什么？
+M	64	64.1	64.1.3	Convert the location of {{entity_A}} to {{grid_type}} at {{resolution_type}} {{value}} {{metric}}.	Convert the location of {{entity_A}} to H3 at resolution {{value}}.	将{{entity_A}}的位置编码为{{value}}级分辨率的H3。
+M	64	64.2	64.2.1	Convert the location of {{entity_A}} to {{grid_type}} at {{resolution_type}} {{value}} {{metric}}.	Convert the location of {{entity_A}} to S2 at level {{value}}.	将{{entity_A}}的位置转换为第{{value}}级S2。
+M	64	64.2	64.2.2	Convert the location of {{entity_A}} to {{grid_type}} at {{resolution_type}} {{value}} {{metric}}.	Convert the location of {{entity_A}} to S2 at level {{value}}.	{{entity_A}}在{{value}}级时的S2网格单元是什么？
+M	64	64.2	64.2.3	Convert the location of {{entity_A}} to {{grid_type}} at {{resolution_type}} {{value}} {{metric}}.	Convert the location of {{entity_A}} to S2 at level {{value}}.	将{{entity_A}}的位置编码为{{value}}级的S2单元。
+M	64	64.3	64.3.1	Convert the location of {{entity_A}} to {{grid_type}} at {{resolution_type}} {{value}} {{metric}}.	Convert the location of {{entity_A}} to geohash at precision {{value}} characters.	将{{entity_A}}的位置转换为精度为{{value}}个字符的地理哈希。
+M	64	64.3	64.3.2	Convert the location of {{entity_A}} to {{grid_type}} at {{resolution_type}} {{value}} {{metric}}.	Convert the location of {{entity_A}} to geohash at precision {{value}} characters.	{{entity_A}}在{{value}}字符精度下的地理哈希值是什么？
+M	64	64.3	64.3.3	Convert the location of {{entity_A}} to {{grid_type}} at {{resolution_type}} {{value}} {{metric}}.	Convert the location of {{entity_A}} to geohash at precision {{value}} characters.	将{{entity_A}}的位置根据{{value}}的精度进行Geohash网状地理编码。
+M	64	64.4	64.4.1	Convert the location of {{entity_A}} to {{grid_type}} at {{resolution_type}} {{value}} {{metric}}.	Convert the location of {{entity_A}} to latitude-longitude grid at resolution {{value}} degrees.	将{{entity_A}}的位置转换为分辨率为{{value}}度的经纬度网格。
+M	64	64.4	64.4.2	Convert the location of {{entity_A}} to {{grid_type}} at {{resolution_type}} {{value}} {{metric}}.	Convert the location of {{entity_A}} to latitude-longitude grid at resolution {{value}} degrees.	将{{entity_A}}的位置转换为{{value}}度分辨率的经纬度网格。
+M	64	64.4	64.4.3	Convert the location of {{entity_A}} to {{grid_type}} at {{resolution_type}} {{value}} {{metric}}.	Convert the location of {{entity_A}} to latitude-longitude grid at resolution {{value}} degrees.	将{{entity_A}}编码成分辨率为{{value}}度的经纬度网格。
+N	65	65.1	65.1.1	What are the latitude and longitude of the centroid of {{entity_A}}?	What are the latitude and longitude of the centroid of {{entity_A}}?	{{entity_A}} 的质心的纬度和经度是多少？
+N	65	65.1	65.1.3	What are the latitude and longitude of the centroid of {{entity_A}}?	What are the latitude and longitude of the centroid of {{entity_A}}?	{{entity_A}}的几何中心位于哪个经度和纬度？
+N	66	66.1	66.1.1	What is the bounding box of {{entity_A}}?	What is the bounding box of {{entity_A}}?	{{entity_A}}的边界框是什么？
+N	66	66.1	66.1.2	What is the bounding box of {{entity_A}}?	What is the bounding box of {{entity_A}}?	{{entity_A}}的最小边界坐标是什么？
+N	66	66.1	66.1.3	What is the bounding box of {{entity_A}}?	What is the bounding box of {{entity_A}}?	哪个矩形范围包含{{entity_A}} ？

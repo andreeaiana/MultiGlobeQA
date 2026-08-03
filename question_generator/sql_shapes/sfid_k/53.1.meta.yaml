@@ -1,0 +1,67 @@
+tid: "53.1"
+tid_family: 53
+sfid: K
+ssfid: 1
+spatial_function: area_comparison
+ground_truth_type: boolean
+answer_unit: null
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+variants:
+  region:
+    description: "Is region A larger in area than region B (cross-country, polygons only)?"
+    applicable_kgs:
+      osmh3kg:
+        pool_a: { source: entities, filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+        pool_b: { source: entities, filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+      worldkg:
+        pool_a: { source: entities, filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+        pool_b: { source: entities, filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+      kwg:
+        pool_a: { source: entities, filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+        pool_b: { source: entities, filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+
+# "Cross-country" here means no in-pair country constraint — A and B can be
+# in different countries. Note that when run with a stratum, the executor
+# still narrows BOTH pools to the same N sampled countries (via
+# _sample_countries_for_cell), so true global cross-country pairing only
+# happens in pool-across-all mode (no stratum). The pool filter (above)
+# restricts to polygon geometries so ST_AreaSpheroid is meaningful.
+#
+# `a.id != b.id` guards against the rare same-rank-same-id case (different
+# seeds make this O(1/N), but the guard is defensive). NOT canonicalized
+# to a < b — both `(X larger than Y?)` and `(Y larger than X?)` can appear
+# at scale with opposite ground_truth, which is intentional benchmark
+# diversity (tests the model's symmetry handling).
+join_condition: "a.id != b.id AND a.unique_id = b.unique_id"
+
+sampling:
+  strategy: row_number_hash
+
+parameters:
+  rand_seed_a: 12345
+  rand_seed_b: 67890
+
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

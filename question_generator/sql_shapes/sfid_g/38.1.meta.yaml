@@ -1,0 +1,93 @@
+tid: "38.1"
+tid_family: 38
+sfid: G
+ssfid: 2
+spatial_function: centroid_of_containing_region
+# coordinates: validator only checks non-null. Output is a "lat,lon"
+# string built from ST_PointOnSurface of the smallest containing region.
+ground_truth_type: coordinates
+answer_unit: deg
+
+result_columns:
+  - entity_b_id
+  - entity_b_name
+  - entity_a_id
+  - entity_a_name
+  - ground_truth
+
+# Two-pool TID. pool_a = region (the "X" whose centroid we project),
+# pool_b = POI (the anchor whose location selects which region). The
+# slot semantics in the question template are entity_A = region_category,
+# entity_B = POI_instance — consistent with the registry.
+pools:
+  - pool_a
+  - pool_b
+
+# Per the registry: entity_A is a region_category slot (country, state,
+# etc.). The pipeline doesn't yet support per-KG node_type-narrowed
+# region variants, so the variants split on the COMMON region tiers we
+# have entity coverage for. shape_sha is variant-scoped — adding a
+# new variant won't invalidate the others.
+#
+# Both variants narrow pool_a to (geometry_type IN POLYGON / MULTIPOLYGON)
+# so the ST_Area ranking and ST_PointOnSurface projection have polygons
+# to chew on (a region row with a POINT geometry would yield ST_Area=0
+# and an undefined "interior point" — the type filter excludes that
+# degenerate case).
+variants:
+  # `country` variant DROPPED 2026-05-04 per Tier 2 coverage scan —
+  # `node_type = 'country'` matches 0 rows in osmh3kg/worldkg/kwg.
+  # Countries are encoded as the country_iso3 ATTRIBUTE on each entity,
+  # not as a separate `node_type='country'` row. The `region` variant
+  # below covers the conceptual question via the more general
+  # region_category filter.
+  region:
+    description: "Most central point of the REGION (any region_category) containing the {{entity_B}} POI."
+    applicable_kgs:
+      osmh3kg:
+        pool_a: { source: entities, filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+        pool_b: { source: entities, filter: "category = 'POI_category'" }
+      worldkg:
+        pool_a: { source: entities, filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+        pool_b: { source: entities, filter: "category = 'POI_category'" }
+      kwg:
+        pool_a: { source: entities, filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')" }
+        pool_b: { source: entities, filter: "category = 'POI_category'" }
+
+# Spatial join — the region (a) contains the POI (b). NOTE the argument
+# order: ST_Contains(a.geom, b.geom) — region ON THE LEFT, POI on the
+# right. Mirror image of 64.1's ST_Contains(b.geom, a.geom). Same-country
+# guard prevents spurious cross-border containment artifacts.
+# Both sides reference `geom` (Geometry-typed, materialized in the
+# pre-CTEs) so Sedona's RangeJoinExec activates.
+join_condition: "a.country_iso3 = b.country_iso3 AND ST_Contains(a.geom, b.geom)"
+
+sampling:
+  strategy: row_number_hash
+
+# {rand_seed_b}: feeds the hash() inside pool_b's per-country
+# ROW_NUMBER ORDER BY. Suffix `_b` because the anchor side is pool_b
+# (POIs); pool_a (regions) participates only via the spatial join +
+# area-rank, no separate seed.
+#
+# {per_country_cap}: default 50 (matches 12.1 / 37.1 / 64.1).
+parameters:
+  rand_seed_b: 67890
+  per_country_cap: 50
+
+# Both entity roles are sampled entities (the POI from pool_b and the
+# smallest containing region from pool_a), so gold provenance is
+# two-role. Same shape as 1.1 / 64.1 gold.
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

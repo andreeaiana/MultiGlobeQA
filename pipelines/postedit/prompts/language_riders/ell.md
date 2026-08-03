@@ -1,0 +1,4 @@
+- The Greek question mark is `;` (semicolon), NOT `?`. If the question ends with `?` (left over from MT), change it to `;` (`PUNC_CHG`).
+- Greek has three genders (`ο` / `η` / `το`) and four cases. Articles, pronouns, and adjective endings adjacent to the entity must agree with the entity's gender + case (`ART_CHG`, `AGR_CHG`, `DEC_CHG`).
+- The genitive case is heavily used for "of X" relations. Only fix surrounding article/case if the substituted entity visibly broke an adjacent word — do not modify text inside `{{...}}`.
+- Preserve existing accents on Greek words exactly as MT produced them; do not add accents to entity content.

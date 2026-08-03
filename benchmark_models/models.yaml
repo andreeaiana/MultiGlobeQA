@@ -1,0 +1,516 @@
+# Variant catalogue for benchmark_models.
+#
+# Each top-level key is a variant name; the value is a VariantConfig
+# validated by benchmark_models/config.py. The runner loads this file
+# at startup via load_models_catalogue() and constructs Model instances
+# from the entries. Keys starting with ``_`` are treated as YAML-anchor
+# templates and skipped by the loader (so e.g. ``_qwen35_a3b_defaults``
+# is a config block we can ``<<: *qwen35_a3b_defaults`` into multiple
+# variants without each anchor becoming a phantom variant).
+#
+# Backends: google (Gemini API), vllm_http (self-hosted open weights).
+# ``backends/openai.py`` ships as the OpenAI-compatible base class that
+# vllm_http builds on; add an ``openai`` variant here to target a hosted
+# OpenAI-compatible endpoint.
+# Tiers: plain (tier 1), reasoning (tier 2), tool_agent (tier 3)
+#
+# Install: uv sync --extra benchmark_models
+
+# ============================================================================
+# YAML anchor templates (loader filters keys starting with ``_``).
+# ============================================================================
+
+_qwen35_a3b_defaults: &qwen35_a3b_defaults
+  backend: vllm_http
+  model_path: Qwen/Qwen3.5-35B-A3B-FP8
+  dtype: auto
+  gpu_memory_utilization: 0.9
+
+_gemma3_27b_defaults: &gemma3_27b_defaults
+  backend: vllm_http
+  model_path: google/gemma-3-27B-it
+  dtype: bfloat16
+  gpu_memory_utilization: 0.90
+  # Pinned to Gemma 3 27B (rather than Gemma 4 31B) because the
+  # current pinned ``transformers`` (4.57.x) doesn't register the
+  # ``gemma4`` model_type — that needs transformers ≥ 5.5.0, which
+  # in turn requires the vLLM nightly. Gemma 3 has been supported
+  # since vLLM 0.18 with our transformers version, so the swap
+  # keeps the open-weights Gemma data point in the catalogue without
+  # a dependency-stack overhaul. The trade-off is that Gemma 3 has
+  # no native ``thinking`` toggle, so its tier-2 variant falls back
+  # to prompted CoT (see the ``gemma-3-27b-it-tier2`` entry below).
+
+_qwen35_27b_defaults: &qwen35_27b_defaults
+  backend: vllm_http
+  model_path: Qwen/Qwen3.5-27B-FP8
+  dtype: auto
+
+# YaRN-extended context for qwen35-27b tier-3a / tier-3c only. Native
+# 32 K is fine for tier-1, tier-2, and tier-3b — those are single-turn
+# or web-only. Tier-3a/3c use-kg agent loops grow per-step input by
+# ~5–7 K tokens (cumulative tool outputs reaccumulated each turn), so
+# 32 K runs out before the agent converges. Extending to 65 K via YaRN
+# (factor=2.0) is the standard inference-time technique documented on
+# the Qwen3.5 model card; perplexity hit is well under 1 % in the
+# 28 K–60 K regime where these loops actually live.
+#
+# At 65 K context with the default ``max_num_seqs: 64``, the KV cache
+# would be ~80 GiB on GPU and roughly the same CPU shadow — that broke
+# the 80 GiB SLURM ``--mem`` limit on Helix and SLURM OOM-killed the
+# step. We use ``max_num_seqs: 16`` (the agent never has more than 4
+# requests in flight given ``--batch-size 1`` + ``--max-concurrent 4``,
+# so 16 is generous) and ``slurm_mem_gb: 128`` to give a comfortable
+# system-RAM buffer.
+_qwen35_27b_yarn_64k: &qwen35_27b_yarn_64k
+  max_model_len: 65536
+  max_num_seqs: 16
+  slurm_mem_gb: 128
+  rope_scaling:
+    rope_type: yarn
+    factor: 2.0
+    original_max_position_embeddings: 32768
+
+# ============================================================================
+# Closed-source (API) — tier 1 + tier 3
+# ============================================================================
+
+gemini-3-flash-plain:
+  backend: google
+  model_id: gemini-3-flash-preview
+  thinking_level: minimal
+  tier: plain
+
+gemini-3-flash-tier3a:
+  backend: google
+  model_id: gemini-3-flash-preview
+  thinking_level: minimal
+  tier: tool_agent
+  sub_tier: "3a"
+
+gemini-3-flash-tier3b:
+  backend: google
+  model_id: gemini-3-flash-preview
+  thinking_level: minimal
+  tier: tool_agent
+  sub_tier: "3b"
+
+gemini-3-flash-tier3c:
+  backend: google
+  model_id: gemini-3-flash-preview
+  thinking_level: minimal
+  tier: tool_agent
+  sub_tier: "3c"
+
+gemini-3-flash-thinking-tier2:
+  backend: google
+  model_id: gemini-3-flash-preview
+  thinking_level: high
+  tier: reasoning
+
+gemini-3-flash-tier3a-image:
+  backend: google
+  model_id: gemini-3-flash-preview
+  thinking_level: minimal
+  tier: tool_agent
+  sub_tier: "3a"
+  multimodal_mode: "image"
+
+gemini-3-flash-tier3b-image:
+  backend: google
+  model_id: gemini-3-flash-preview
+  thinking_level: minimal
+  tier: tool_agent
+  sub_tier: "3b"
+  multimodal_mode: "image"
+
+gemini-3-flash-tier3c-image:
+  backend: google
+  model_id: gemini-3-flash-preview
+  thinking_level: minimal
+  tier: tool_agent
+  sub_tier: "3c"
+  multimodal_mode: "image"
+
+# Tier-3 -name variants for gemini (text-only baselines for the
+# image-vs-name ablation at the tool-augmented tier). The
+# ``[IMAGE_<slot>]`` placeholder is substituted with the entity's
+# textual name before the agent loop kicks off, so the model sees
+# only text + its KG/web tools — comparable to running tier-3 on the
+# regular non-multimodal share but with the multimodal slice's
+# specific question distribution. The gap to the matching -image
+# variant is the visual-grounding signal under tool augmentation.
+gemini-3-flash-tier3a-name:
+  backend: google
+  model_id: gemini-3-flash-preview
+  thinking_level: minimal
+  tier: tool_agent
+  sub_tier: "3a"
+  multimodal_mode: "name"
+
+gemini-3-flash-tier3b-name:
+  backend: google
+  model_id: gemini-3-flash-preview
+  thinking_level: minimal
+  tier: tool_agent
+  sub_tier: "3b"
+  multimodal_mode: "name"
+
+gemini-3-flash-tier3c-name:
+  backend: google
+  model_id: gemini-3-flash-preview
+  thinking_level: minimal
+  tier: tool_agent
+  sub_tier: "3c"
+  multimodal_mode: "name"
+
+# ============================================================================
+# Open-weights (vLLM) — tier 1
+# ============================================================================
+
+qwen35-a3b-plain:
+  <<: *qwen35_a3b_defaults
+  tier: plain
+  batch_size: 64
+
+qwen35-27b-plain:
+  <<: *qwen35_27b_defaults
+  tier: plain
+  batch_size: 32
+
+gemma-3-27b-it-plain:
+  <<: *gemma3_27b_defaults
+  tier: plain
+
+# ============================================================================
+# Open-weights (vLLM) — tier 2 (reasoning / thinking)
+# ============================================================================
+
+qwen35-a3b-thinking-tier2:
+  <<: *qwen35_a3b_defaults
+  tier: reasoning
+  thinking: true
+  batch_size: 64
+
+# Qwen3.5-27B and Gemma 3 27B both use prompted CoT (neither has a
+# native thinking toggle). SC@3 is applied only on the workhorse
+# Qwen3.5-35B-A3B-FP8 variant above; these two use greedy CoT.
+
+qwen35-27b-tier2:
+  <<: *qwen35_27b_defaults
+  tier: reasoning
+  batch_size: 32
+
+gemma-3-27b-it-tier2:
+  <<: *gemma3_27b_defaults
+  tier: reasoning
+
+# ============================================================================
+# Open-weights (vLLM) — tier 3 (tool-augmented)
+# ============================================================================
+
+qwen35-a3b-tier3a:
+  <<: *qwen35_a3b_defaults
+  tier: tool_agent
+  sub_tier: "3a"
+
+qwen35-a3b-tier3b:
+  <<: *qwen35_a3b_defaults
+  tier: tool_agent
+  sub_tier: "3b"
+
+qwen35-a3b-tier3c:
+  <<: *qwen35_a3b_defaults
+  tier: tool_agent
+  sub_tier: "3c"
+
+qwen35-27b-tier3a:
+  <<: [*qwen35_27b_defaults, *qwen35_27b_yarn_64k]
+  tier: tool_agent
+  sub_tier: "3a"
+
+qwen35-27b-tier3b:
+  <<: *qwen35_27b_defaults
+  tier: tool_agent
+  sub_tier: "3b"
+
+qwen35-27b-tier3c:
+  <<: [*qwen35_27b_defaults, *qwen35_27b_yarn_64k]
+  tier: tool_agent
+  sub_tier: "3c"
+
+gemma-3-27b-it-tier3a:
+  <<: *gemma3_27b_defaults
+  tier: tool_agent
+  sub_tier: "3a"
+
+gemma-3-27b-it-tier3b:
+  <<: *gemma3_27b_defaults
+  tier: tool_agent
+  sub_tier: "3b"
+
+gemma-3-27b-it-tier3c:
+  <<: *gemma3_27b_defaults
+  tier: tool_agent
+  sub_tier: "3c"
+
+# ============================================================================
+# Open-weights tier-3 multimodal — image vs name ablation
+# ============================================================================
+#
+# Tier-3 multimodal pairs the agent loop with either real image input
+# (-image) or a text-only baseline where ``[IMAGE_<slot>]`` is
+# substituted with the entity's textual name (-name). The image-vs-name
+# gap quantifies how much the visual modality contributes when the
+# model also has KG/web tool access. All three open-weights models are
+# vision-capable per their HF model cards
+# (``pipeline_tag: image-text-to-text``, ``vision_config`` block).
+#
+# qwen35-27b-tier3a/c-{image,name} carry the YaRN 64K context
+# extension (same as the text-only -tier3a / -tier3c variants) since
+# the agent loop's per-step input growth is independent of multimodal
+# mode — image inputs add ~1.5K tokens per step on top of the existing
+# 5-7K cumulative tool-output bloat. 3b stays at native 32K (web-only,
+# smaller per-tool outputs).
+
+qwen35-a3b-tier3a-image:
+  <<: *qwen35_a3b_defaults
+  tier: tool_agent
+  sub_tier: "3a"
+  multimodal_mode: "image"
+
+qwen35-a3b-tier3a-name:
+  <<: *qwen35_a3b_defaults
+  tier: tool_agent
+  sub_tier: "3a"
+  multimodal_mode: "name"
+
+qwen35-a3b-tier3b-image:
+  <<: *qwen35_a3b_defaults
+  tier: tool_agent
+  sub_tier: "3b"
+  multimodal_mode: "image"
+
+qwen35-a3b-tier3b-name:
+  <<: *qwen35_a3b_defaults
+  tier: tool_agent
+  sub_tier: "3b"
+  multimodal_mode: "name"
+
+qwen35-a3b-tier3c-image:
+  <<: *qwen35_a3b_defaults
+  tier: tool_agent
+  sub_tier: "3c"
+  multimodal_mode: "image"
+
+qwen35-a3b-tier3c-name:
+  <<: *qwen35_a3b_defaults
+  tier: tool_agent
+  sub_tier: "3c"
+  multimodal_mode: "name"
+
+qwen35-27b-tier3a-image:
+  <<: [*qwen35_27b_defaults, *qwen35_27b_yarn_64k]
+  tier: tool_agent
+  sub_tier: "3a"
+  multimodal_mode: "image"
+
+qwen35-27b-tier3a-name:
+  <<: [*qwen35_27b_defaults, *qwen35_27b_yarn_64k]
+  tier: tool_agent
+  sub_tier: "3a"
+  multimodal_mode: "name"
+
+qwen35-27b-tier3b-image:
+  <<: *qwen35_27b_defaults
+  tier: tool_agent
+  sub_tier: "3b"
+  multimodal_mode: "image"
+
+qwen35-27b-tier3b-name:
+  <<: *qwen35_27b_defaults
+  tier: tool_agent
+  sub_tier: "3b"
+  multimodal_mode: "name"
+
+qwen35-27b-tier3c-image:
+  <<: [*qwen35_27b_defaults, *qwen35_27b_yarn_64k]
+  tier: tool_agent
+  sub_tier: "3c"
+  multimodal_mode: "image"
+
+qwen35-27b-tier3c-name:
+  <<: [*qwen35_27b_defaults, *qwen35_27b_yarn_64k]
+  tier: tool_agent
+  sub_tier: "3c"
+  multimodal_mode: "name"
+
+gemma-3-27b-it-tier3a-image:
+  <<: *gemma3_27b_defaults
+  tier: tool_agent
+  sub_tier: "3a"
+  multimodal_mode: "image"
+
+gemma-3-27b-it-tier3a-name:
+  <<: *gemma3_27b_defaults
+  tier: tool_agent
+  sub_tier: "3a"
+  multimodal_mode: "name"
+
+gemma-3-27b-it-tier3b-image:
+  <<: *gemma3_27b_defaults
+  tier: tool_agent
+  sub_tier: "3b"
+  multimodal_mode: "image"
+
+gemma-3-27b-it-tier3b-name:
+  <<: *gemma3_27b_defaults
+  tier: tool_agent
+  sub_tier: "3b"
+  multimodal_mode: "name"
+
+gemma-3-27b-it-tier3c-image:
+  <<: *gemma3_27b_defaults
+  tier: tool_agent
+  sub_tier: "3c"
+  multimodal_mode: "image"
+
+gemma-3-27b-it-tier3c-name:
+  <<: *gemma3_27b_defaults
+  tier: tool_agent
+  sub_tier: "3c"
+  multimodal_mode: "name"
+
+# ============================================================================
+# Multimodal (tier 1) — image vs name ablation
+# ============================================================================
+#
+# Each slate model gets two companion variants. ``-image`` packs the
+# extracted JPEG/PNG bytes into a provider-specific content block;
+# ``-name`` substitutes the entity's display name into the
+# ``[IMAGE_<slot>]`` placeholder for a text-only baseline. Pair-wise
+# EM gap = visual contribution.
+
+gemini-3-flash-image:
+  backend: google
+  model_id: gemini-3-flash-preview
+  thinking_level: minimal
+  tier: plain
+  multimodal_mode: image
+
+gemini-3-flash-name:
+  backend: google
+  model_id: gemini-3-flash-preview
+  thinking_level: minimal
+  tier: plain
+  multimodal_mode: name
+
+qwen35-27b-image:
+  <<: *qwen35_27b_defaults
+  tier: plain
+  multimodal_mode: image
+
+qwen35-27b-name:
+  <<: *qwen35_27b_defaults
+  tier: plain
+  multimodal_mode: name
+
+qwen35-a3b-image:
+  <<: *qwen35_a3b_defaults
+  tier: plain
+  multimodal_mode: image
+
+qwen35-a3b-name:
+  <<: *qwen35_a3b_defaults
+  tier: plain
+  multimodal_mode: name
+
+gemma-3-27b-it-image:
+  <<: *gemma3_27b_defaults
+  tier: plain
+  multimodal_mode: image
+
+gemma-3-27b-it-name:
+  <<: *gemma3_27b_defaults
+  tier: plain
+  multimodal_mode: name
+
+# ============================================================================
+# Multimodal (tier 2) — image vs name with reasoning / thinking
+# ============================================================================
+#
+# Pairs the model's reasoning / thinking mode with either image input
+# (-image) or text-only baseline (-name). Tests whether extended
+# chain-of-thought helps spatial QA when the model has access to
+# visual information vs only the entity's name. Less central than the
+# tier-1 or tier-3 multimodal ablations (single-turn reasoning over
+# images is a niche case for spatial QA), but included for symmetry
+# across tiers.
+#
+# Native 32 K context is sufficient for tier-2 (single-turn, no agent
+# loop), so no YaRN extension needed even on qwen35-27b. The reasoning
+# budget (``max_tokens`` for prompted CoT on qwen / gemma, ``thinking``
+# budget for native reasoners on gemini) is bounded per-call.
+
+gemini-3-flash-thinking-tier2-image:
+  backend: google
+  model_id: gemini-3-flash-preview
+  thinking_level: high
+  tier: reasoning
+  multimodal_mode: image
+
+gemini-3-flash-thinking-tier2-name:
+  backend: google
+  model_id: gemini-3-flash-preview
+  thinking_level: high
+  tier: reasoning
+  multimodal_mode: name
+
+qwen35-a3b-thinking-tier2-image:
+  <<: *qwen35_a3b_defaults
+  tier: reasoning
+  thinking: true
+  batch_size: 64
+  multimodal_mode: image
+
+qwen35-a3b-thinking-tier2-name:
+  <<: *qwen35_a3b_defaults
+  tier: reasoning
+  thinking: true
+  batch_size: 64
+  multimodal_mode: name
+
+qwen35-27b-tier2-image:
+  <<: *qwen35_27b_defaults
+  tier: reasoning
+  batch_size: 32
+  multimodal_mode: image
+  # Observed 18.75% budget-truncation casualties at the default
+  # effective cap of 2048 (qwen 27B prompted-CoT spiraling inside the
+  # JSON `reasoning` field on numeric tids 1.1 / 77.1 — model loops
+  # "Let's try X. Let's refine. Let's assume Y..." until truncation).
+  # The OpenAI backend computes
+  #     effective = max(2048, config.max_tokens * 4)
+  # for prompted-CoT requests (backends/openai.py:367-372), so
+  # setting 1024 here yields 4096 effective — enough headroom to
+  # absorb the spirals while keeping cost bounded. Scope is -image
+  # only; the text-only -name run hasn't been collected yet and the
+  # plain tier2 text-only variant has not shown the same rate.
+  max_tokens: 1024
+
+qwen35-27b-tier2-name:
+  <<: *qwen35_27b_defaults
+  tier: reasoning
+  batch_size: 32
+  multimodal_mode: name
+
+gemma-3-27b-it-tier2-image:
+  <<: *gemma3_27b_defaults
+  tier: reasoning
+  multimodal_mode: image
+
+gemma-3-27b-it-tier2-name:
+  <<: *gemma3_27b_defaults
+  tier: reasoning
+  multimodal_mode: name
+

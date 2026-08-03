@@ -1,0 +1,53 @@
+tid: "47.1"
+tid_family: 47
+sfid: I
+ssfid: 1
+spatial_function: event_area_total
+ground_truth_type: distance_kilometers  # area_km2 — no specific validator rule
+answer_unit: km2
+
+# Note: ground_truth_type "area_km2" doesn't exist in the validator
+# dispatch; using "distance_kilometers" as a placeholder gets us the
+# numeric > 0 validation (area is always positive). If the validator
+# adds an explicit area type later, switch.
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - event_a_name
+  - ground_truth
+
+pools:
+  - pool_a
+
+variants:
+  hazard_event:
+    description: "Total area of event A's geometry (single-pool projection)."
+    applicable_kgs:
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'hazard_event_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+
+# Single-pool — no join_condition.
+join_condition: null
+
+sampling:
+  strategy: row_number_hash
+
+parameters:
+  rand_seed_a: 12345
+  per_country_cap: 50
+
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

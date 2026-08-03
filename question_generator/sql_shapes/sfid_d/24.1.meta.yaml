@@ -1,0 +1,121 @@
+tid: "24.1"
+tid_family: 24
+sfid: D
+ssfid: 1
+spatial_function: set_enumeration
+ground_truth_type: entity_list
+answer_unit: null
+
+# Result columns mirror the outer SELECT projection in 24.1.sql:
+#   entity_b_id      — synthetic MD5 id from osmh3kg_roads_aggregated
+#                      (one per (country_iso3, name, node_type) named road)
+#   entity_b_name    — the road's `name` column
+#   ground_truth     — sorted, comma-separated region-name list
+result_columns:
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - ground_truth
+
+# Two pools:
+#   pool_a = aggregated road view (anchor; one row per named road)
+#   pool_b = region entities, filtered to a single category per variant
+pools:
+  - pool_a
+  - pool_b
+
+# KG scope: osmh3kg only.
+#   - kwg has no road sub-category labels (only RoadSegment/Trail buckets;
+#     see road_setup.py).
+#   - worldkg coverage TBD; not yet declared.
+#
+# Variants (one per region category — most-common subset across KGs).
+# Adding more categories later is mechanical: clone a block and swap
+# node_type.
+#
+# pool_a uses source `osmh3kg_roads_aggregated` to read from the per-
+# session view registered by question_generator/road_setup.py. The view
+# already carries country_iso3 and uses synthesized MD5 ids that don't
+# match the strata Delta's entity_id; the executor's pool-build dispatch
+# handles that by suppressing the strata join for non-`entities` sources
+# (see shape_executor.execute_shape's pool-build loop).
+#
+# Per-KG vocabulary alignment:
+# osmh3kg has NO `district` / `county` / `state` node_types
+# (count = 0 per srun discovery). All admin polygons are buried under
+# the generic OSM `boundary=administrative` tag → node_type =
+# 'administrative' (80,311 entities; 71,720 polygons). Conceptual
+# admin-level discrimination (district vs county vs state) is not
+# expressible at the SQL filter level on this Delta — admin_level lives
+# inside OSM tags, not as a column. Variants therefore split on the
+# node_types osmh3kg actually carries:
+#   - administrative: catch-all admin polygon (most common, ~98% of
+#     polygon admins per 52.1.meta's citation)
+#   - neighbourhood: smaller intra-city subdivisions (153 polygons —
+#     low yield but non-zero)
+# Not covered: district, county, state (all 0 rows in osmh3kg).
+variants:
+  administrative:
+    description: "Roads traversing administrative-boundary regions (catch-all OSM boundary=administrative; covers districts/counties/states/etc. without admin-level discrimination on this KG)."
+    parameters:
+      entity_a_label: administrative regions
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: osmh3kg_roads_aggregated
+          filter: ""
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND node_type = 'administrative'"
+  neighbourhood:
+    description: "Roads traversing neighbourhood-type regions."
+    parameters:
+      entity_a_label: neighbourhoods
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: osmh3kg_roads_aggregated
+          filter: ""
+        pool_b:
+          source: entities
+          filter: "category = 'region_category' AND node_type = 'neighbourhood'"
+
+# join_condition is null — the spatial predicate is inlined in the
+# road × region CTE join (mirrors 9.1's null-join-condition design).
+join_condition: null
+
+sampling:
+  strategy: row_number_hash
+
+# Parameters:
+#   - rand_seed_a: hash seed for per-country ROW_NUMBER on the road anchor.
+#   - per_country_cap: caps anchor roads per country. Default 10 keeps
+#     the cross-join volume bounded (~150 countries × 10 = ~1.5k anchor
+#     candidates), with total_sample trimming the tail after HAVING ≥ 2.
+parameters:
+  rand_seed_a: 12345
+  per_country_cap: 10
+
+# Gold provenance — 10.1-style aggregate gold extension: include both
+# the anchor road and EVERY region the COLLECT_LIST aggregated. The
+# extension lives in 24.1.gold.sql; pool_map declares the anchor role
+# only (entity_b_id → pool_a) so attach_question_ids_to_gold knows which
+# result column carries the anchor key.
+#
+# CAVEAT (documented in gold.sql header): the aggregated road view's
+# `entity_uri` column carries the FIRST OSM way's URI per aggregated
+# road (MIN(n.entity_uri) in road_setup.py's GROUP BY). That URI is the
+# representative used for triple lookup; triples for the OTHER OSM ways
+# that compose the aggregated road are not fetched.
+gold_triples:
+  pool_map:
+    entity_b_id: pool_a
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

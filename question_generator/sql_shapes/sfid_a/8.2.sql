@@ -1,0 +1,76 @@
+-- TID 8.2 — chained kNN + distance (k=2).
+-- See 14.1.sql for the full design notes — only {k_rank} differs.
+-- Question: "What is the distance between the 2nd nearest {{entity_A}}
+--            to {{entity_B}} and {{entity_C}}?"
+WITH pool_b_capped AS (
+    SELECT
+      b.*,
+      ROW_NUMBER() OVER (
+        PARTITION BY country_iso3
+        ORDER BY hash(id, {rand_seed_b})
+      ) AS bucket_rank
+    FROM {pool_b} b
+  ),
+  anchors AS (
+    SELECT *
+    FROM pool_b_capped
+    WHERE bucket_rank <= {anchor_cap}
+  ),
+  distances_to_b AS (
+    SELECT
+      a.id          AS entity_a_id,
+      a.name        AS entity_a_name,
+      a.geometry    AS entity_a_geometry,
+      a.country_iso3 AS country_iso3,
+      b.id          AS entity_b_id,
+      b.name        AS entity_b_name,
+      CASE
+        WHEN ST_Intersects(ST_GeomFromWKT(a.geometry),
+                           ST_GeomFromWKT(b.geometry))
+          THEN 0.0
+        ELSE ST_DistanceSphere(
+               ST_ClosestPoint(ST_GeomFromWKT(a.geometry),
+                               ST_GeomFromWKT(b.geometry)),
+               ST_ClosestPoint(ST_GeomFromWKT(b.geometry),
+                               ST_GeomFromWKT(a.geometry))
+             ) / 1000.0
+      END AS distance_to_b_km
+    FROM {pool_a} a, anchors b
+    WHERE a.country_iso3 = b.country_iso3
+      AND a.id != b.id
+  ),
+  ranked AS (
+    SELECT *, ROW_NUMBER() OVER (
+      PARTITION BY entity_b_id
+      ORDER BY distance_to_b_km ASC, entity_a_id ASC
+    ) AS rank
+    FROM distances_to_b
+  ),
+  resolved AS (
+    SELECT * FROM ranked WHERE rank = {k_rank}
+  )
+SELECT
+  r.entity_a_id AS entity_a_id,
+  r.entity_a_name AS entity_a_name,
+  r.entity_b_id AS entity_b_id,
+  r.entity_b_name AS entity_b_name,
+  c.id   AS entity_c_id,
+  c.name AS entity_c_name,
+  CAST(
+    CASE
+      WHEN ST_Intersects(ST_GeomFromWKT(r.entity_a_geometry),
+                         ST_GeomFromWKT(c.geometry))
+        THEN 0.0
+      ELSE ST_DistanceSphere(
+             ST_ClosestPoint(ST_GeomFromWKT(r.entity_a_geometry),
+                             ST_GeomFromWKT(c.geometry)),
+             ST_ClosestPoint(ST_GeomFromWKT(c.geometry),
+                             ST_GeomFromWKT(r.entity_a_geometry))
+           ) / 1000.0
+    END AS STRING
+  ) AS ground_truth
+FROM resolved r, {pool_c} c
+WHERE r.country_iso3 = c.country_iso3
+  AND r.entity_a_id != c.id
+  AND r.entity_b_id != c.id
+LIMIT {total_sample};

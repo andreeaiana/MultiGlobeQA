@@ -1,0 +1,4 @@
+- Italian articles vary by gender and following sound: `il`/`lo`/`l'`/`la` (singular), `i`/`gli`/`le` (plural). Use `lo` before s+consonant, z, ps, gn, x, y; `l'` before vowels. Flip (`ART_CHG`) when entity substitution broke the rule.
+- Articulated prepositions (`CONTR_CHG`): `a + il → al`, `da + il → dal`, `di + il → del`, `in + il → nel`, `su + il → sul`, plus their gender/number variants (`alla`, `dalla`, `dello`, `nei`, `sugli`). Apply when MT left the un-contracted form.
+- Elision: `lo`/`la` → `l'` before vowels; `di` may elide before vowel-initial entities in idiomatic phrases. Apply (`ELISION`) only when standard.
+- Italian uses ASCII `?` with no special spacing. Capitalised entity names keep their original form inside `{{...}}`.

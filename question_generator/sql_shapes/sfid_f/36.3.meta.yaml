@@ -1,0 +1,109 @@
+tid: "36.3"
+tid_family: 36
+sfid: F
+ssfid: 4
+spatial_function: comparison
+ground_truth_type: entity_single_name
+answer_unit: null
+
+result_columns:
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - entity_c_id
+  - entity_c_name
+  - radius_km
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+  - pool_c
+
+# Single variant: pool_a is the COLLECTED POI
+# category, pool_b is the radius anchor POI, pool_c is the directional
+# reference POI. All three live in the POI domain (same applicable
+# subcategory list), but rand_seed_b vs rand_seed_c
+# diverge the rankings so pool_b and pool_c don't collide.
+variants:
+  poi_anchors:
+    description: "POIs within radius of anchor B and east of reference C."
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'POI_category'"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'POI_category'"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category'"
+        pool_c:
+          source: entities
+          filter: "category = 'POI_category'"
+
+# join_condition omitted — pair sampling lives in the rank-equality CTE
+# and the radius/directional predicates live in the outer SELECT's
+# spatial JOIN ON. No top-level binary predicate to factor out.
+join_condition: null
+
+sampling:
+  strategy: row_number_hash
+
+# rand_seed_b / rand_seed_c: independent shuffle seeds for pool_b /
+# pool_c. Different seeds keep the two sides' rankings divergent so
+# rank-equality joins don't pair the same entity (pool_b and pool_c
+# share the POI domain).
+# radius_km: the permitted value range is [1, 50] km;
+# default 10 sits comfortably in the middle. Substitutes into the
+# distance threshold in the outer JOIN's spatial predicate.
+# parameters_per_kg.kwg overrides to 50 km — kwg's sparser entity
+# coverage needs a wider radius to find enough matches in the radius
+# join.
+parameters:
+  rand_seed_b: 12345
+  rand_seed_c: 67890
+  per_country_anchor_cap: 20
+  radius_km: 10
+
+# Per-KG override: see TidMeta.parameters_per_kg.
+parameters_per_kg:
+  kwg:
+    radius_km: 50
+
+# COLLECT_LIST aggregate gold (10.1-style with two anchors): without
+# extending the gold with every collected pool_a entity, the model
+# cannot verify the answer list. 36.3.gold.sql attributes each
+# collected pool_a triple to the relevant anchor pair (entity_b_id +
+# entity_c_id) so the exporter joins them under the same question_id.
+gold_triples:
+  pool_map:
+    entity_b_id: pool_b
+    entity_c_id: pool_c
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

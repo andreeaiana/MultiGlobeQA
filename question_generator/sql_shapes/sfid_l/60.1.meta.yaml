@@ -1,0 +1,68 @@
+tid: "60.1"
+tid_family: 60
+sfid: L
+ssfid: 1
+spatial_function: qualitative_comparative_proximity
+ground_truth_type: boolean
+answer_unit: null
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - entity_c_id
+  - entity_c_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+  - pool_c
+
+variants:
+  poi:
+    description: "Is POI A more likely near POI B than POI C (same country, same h3 cell)?"
+    applicable_kgs:
+      osmh3kg:
+        pool_a: { source: entities, filter: "category = 'POI_category'" }
+        pool_b: { source: entities, filter: "category = 'POI_category'" }
+        pool_c: { source: entities, filter: "category = 'POI_category'" }
+      worldkg:
+        pool_a: { source: entities, filter: "category = 'POI_category'" }
+        pool_b: { source: entities, filter: "category = 'POI_category'" }
+        pool_c: { source: entities, filter: "category = 'POI_category'" }
+      kwg:
+        pool_a: { source: entities, filter: "category = 'POI_category'" }
+        pool_b: { source: entities, filter: "category = 'POI_category'" }
+        pool_c: { source: entities, filter: "category = 'POI_category'" }
+
+# Three-way same-country + same-h3-cell + no-self (a≠b, a≠c, b<c to
+# avoid duplicate triples). The unique_id rank-equality joins are
+# encoded in the SQL's INNER JOIN ON clauses (a.unique_id = b.unique_id
+# AND a.unique_id = c.unique_id) — this WHERE just adds the structural
+# constraints.
+join_condition: "a.country_iso3 = b.country_iso3 AND a.country_iso3 = c.country_iso3 AND a.h3_res3 = b.h3_res3 AND a.h3_res3 = c.h3_res3 AND a.id != b.id AND a.id != c.id AND b.id < c.id"
+
+sampling:
+  strategy: row_number_hash
+
+parameters:
+  rand_seed_a: 12345
+  rand_seed_b: 67890
+  rand_seed_c: 13579
+
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+    entity_c_id: pool_c
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

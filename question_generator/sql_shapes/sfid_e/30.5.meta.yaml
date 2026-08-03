@@ -1,0 +1,76 @@
+tid: "30.5"
+tid_family: 30
+sfid: E
+ssfid: 2
+spatial_function: collection_count_hospitals_pharmacies_laboratories
+ground_truth_type: count
+answer_unit: count
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+# Per-KG POI vocabulary alignment (Cat 2 fix, Tier 2 Spark coverage scan
+# 2026-05-04):
+#   - osmh3kg: lowercase OSM amenity tags (hospital/pharmacy/laboratory —
+#     56,378 POIs combined).
+#   - worldkg: PascalCase WorldKG ontology classes
+#     (AmenityHospital/Pharmacy/Laboratory — 452,816 combined).
+#   - kwg: kept with only `Pharmacy` (80,528 entities). kwg's POI
+#     vocabulary lacks `hospital` and `laboratory` node_types; the count
+#     truthfully reflects only the pharmacy subset (hospitals = 0,
+#     laboratories = 0 in kwg's data).
+variants:
+  region_pois:
+    description: "How many hospitals, pharmacies and laboratories are in {{entity_A}}?"
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category' AND node_type IN ('hospital', 'pharmacy', 'laboratory')"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category' AND node_type IN ('AmenityHospital', 'Pharmacy', 'Laboratory')"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category = 'POI_category' AND node_type = 'Pharmacy'"
+
+join_condition: "a.country_iso3 = b.country_iso3 AND ST_Contains(a.geom, b.geom)"
+
+sampling:
+  strategy: row_number_hash
+
+parameters:
+  rand_seed_a: 12345
+  per_country_cap: 50
+  collection_label: "hospitals, pharmacies and laboratories"
+
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

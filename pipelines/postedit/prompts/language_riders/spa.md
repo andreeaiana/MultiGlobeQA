@@ -1,0 +1,4 @@
+- Spanish articles must match gender (`el` / `la`) and number (`los` / `las`). Flip them (`ART_CHG`) when the substituted entity has a different gender than the template defaulted to.
+- The contractions `a el → al` and `de el → del` are mandatory before masculine articles. Apply (`CONTR_CHG`) when MT left them un-contracted.
+- Inverted question mark `¿` opens questions; closing `?` is unmodified ASCII. If an entity substitution shifted the opening into the wrong position, rewrap punctuation (`PUNC_CHG`).
+- Personal `a` is required before specified human-referent entities serving as direct object. Do not add it for non-human entities (cities, places, features) — those are usually fine.

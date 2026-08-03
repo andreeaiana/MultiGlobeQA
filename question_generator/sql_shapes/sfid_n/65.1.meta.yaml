@@ -1,0 +1,98 @@
+tid: "65.1"
+tid_family: 65
+sfid: N
+ssfid: 1
+spatial_function: centroid_coordinate_retrieval
+ground_truth_type: coordinates
+answer_unit: "lat/long pair"
+
+# SINGLE-POOL single-row-per-entity. The region's polygon centroid IS
+# the answer — projected as "lat,lon" composite string (mirror
+# sfid_o/63.1's convention so the validator's coordinates rule applies
+# to the single ground_truth column).
+#
+# KG SCOPE (post Tier 2 coverage scan 2026-05-04):
+#   - city: osmh3kg + worldkg only (kwg dropped — Tier 2 found 0 matches;
+#     kwg's region vocab is admin-region-coded, not OSM city tags)
+#   - district / county / state: worldkg ONLY (osmh3kg uses OSM admin
+#     vocabulary like 'neighbourhood', 'village', 'administrative' —
+#     no district/county/state node_types; kwg uses
+#     AdministrativeRegion_1/2 buckets — different concept)
+# Region polygons (POLYGON / MULTIPOLYGON) only.
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_a_node_type
+  - entity_a_subcategory
+  - entity_a_country
+  - ground_truth
+
+pools:
+  - pool_a
+
+# Variants per region node_type. Mirror sfid_h/70.x's variant-per-
+# subcategory pattern but applied to region node_types. Starting set:
+# city, district, county, state. Sibling node_types (town, country,
+# province, ...) are deferrable to follow-up commits if needed — these
+# four cover the high-volume registry slot 1 sub-region types.
+variants:
+  city:
+    description: "Centroid coordinates of a city polygon."
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND node_type = 'city' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND node_type = 'City' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+  district:
+    description: "Centroid coordinates of a district polygon."
+    applicable_kgs:
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND node_type = 'District' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+  county:
+    description: "Centroid coordinates of a county polygon."
+    applicable_kgs:
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND node_type = 'County' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+  state:
+    description: "Centroid coordinates of a state polygon."
+    applicable_kgs:
+      worldkg:
+        pool_a:
+          source: entities
+          filter: "category = 'region_category' AND node_type = 'State' AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+
+# Single-pool unary projection — no inter-pool join.
+join_condition: null
+
+sampling:
+  strategy: row_number_hash
+
+parameters:
+  rand_seed_a: 12345
+  per_country_cap: 50
+
+# Single-anchor gold (mirror 112.1.gold.sql / 9.1.gold.sql). The
+# centroid is derived from the entity's polygon geometry — the standard
+# two-hop chain (hasGeometry → asWKT) gives the polygon WKT a model
+# can ST_Centroid itself.
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345

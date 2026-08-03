@@ -1,0 +1,4 @@
+- Urdu (Nastaliq, RTL) uses postpositions: `میں` (in), `پر` (on), `کا/کی/کے` (of, with gender/number agreement), `سے` (from/with), `کو` (dative/accusative). When entity substitution requires a different postposition, swap (`ADP_CHG`).
+- The genitive postposition `کا` agrees with the head noun's gender + number: `کا` (masc sing/plural inflected), `کی` (feminine), `کے` (masc plural / oblique). If the head noun changed gender, flip (`AGR_CHG`).
+- Urdu punctuation is script-specific: `؟` (Arabic question mark, U+061F) replaces `?`; `،` (Arabic comma, U+060C) replaces `,`; `۔` (Urdu full stop, U+06D4) replaces `.`. If MT left ASCII punctuation, swap (`PUNC_CHG`).
+- Urdu has no grammatical articles. Do NOT add definite/indefinite articles. Do not modify verb morphology.

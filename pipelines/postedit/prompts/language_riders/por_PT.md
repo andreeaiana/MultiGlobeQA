@@ -1,0 +1,4 @@
+- European Portuguese articles match gender + number: `o`/`a` (singular), `os`/`as` (plural). Flip (`ART_CHG`) when entity gender differs from the template default.
+- Mandatory contractions (`CONTR_CHG`): `de + o → do`, `de + a → da`, `em + o → no`, `em + a → na`, `a + a → à`, `por + o → pelo`, `por + a → pela`, plus plural forms. Apply when MT left them un-contracted.
+- Portuguese uses ASCII `?`. No inverted question/exclamation marks (unlike Spanish).
+- Brazilian-style spellings (`fato` vs `facto`, `ação` vs `acção`) — do not introduce changes; the file is locked to European Portuguese (`por_PT`).

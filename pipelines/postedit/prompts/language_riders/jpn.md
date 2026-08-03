@@ -1,0 +1,4 @@
+- Japanese has no articles; the most common substitution-induced fixes are case/topic particles after the entity: `は` (topic), `が` (subject), `を` (direct object), `に` (location/dative), `で` (locative-instrumental), `と` (with), `から` (from), `まで` (to). Use `ADP_CHG` to swap a particle when the syntactic role demands it.
+- Japanese uses full-width punctuation: `。` (period), `、` (comma), `？` (question mark), `「」` (quotes). If MT left ASCII `?` after a Japanese sentence, change to `？` (`PUNC_CHG`); same for `,` → `、`.
+- No spaces between Japanese words; do not insert spaces around `{{...}}` if the surrounding template had none.
+- Do not change verb forms (polite vs plain copula). Counter words follow strict rules — leave them as MT produced them.

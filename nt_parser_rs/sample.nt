@@ -1,0 +1,17 @@
+# Sample N-Triples file for testing — uses real 2-hop GeoSPARQL pattern
+# entity → geo:hasGeometry → geo_node → geo:asWKT → wkt_literal
+
+<http://example.org/entity/Paris> <http://www.w3.org/2000/01/rdf-schema#label> "Paris" .
+<http://example.org/entity/Paris> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/ontology/City> .
+<http://example.org/entity/Paris> <http://www.opengis.net/ont/geosparql#hasGeometry> <http://example.org/resource/geoParisCity> .
+<http://example.org/resource/geoParisCity> <http://www.opengis.net/ont/geosparql#asWKT> "POINT(2.3522 48.8566)"^^<http://www.opengis.net/ont/geosparql#wktLiteral> .
+
+<http://example.org/entity/Berlin> <http://www.w3.org/2000/01/rdf-schema#label> "Berlin" .
+<http://example.org/entity/Berlin> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/ontology/City> .
+<http://example.org/entity/Berlin> <http://www.opengis.net/ont/geosparql#hasGeometry> <http://example.org/resource/geoBerlinCity> .
+<http://example.org/resource/geoBerlinCity> <http://www.opengis.net/ont/geosparql#asWKT> "POINT(13.4050 52.5200)"^^<http://www.opengis.net/ont/geosparql#wktLiteral> .
+
+<http://example.org/entity/EiffelTower> <http://www.w3.org/2000/01/rdf-schema#label> "Eiffel Tower" .
+<http://example.org/entity/EiffelTower> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/ontology/Landmark> .
+<http://example.org/entity/EiffelTower> <http://www.opengis.net/ont/geosparql#hasGeometry> <http://example.org/resource/geoEiffelTower> .
+<http://example.org/resource/geoEiffelTower> <http://www.opengis.net/ont/geosparql#asWKT> "POINT(2.2945 48.8584)"^^<http://www.opengis.net/ont/geosparql#wktLiteral> .

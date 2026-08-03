@@ -1,0 +1,12 @@
+You are answering a spatial question about real-world locations and entities.
+
+Question:
+$question
+
+Expected answer: $answer_type_description$unit_clause
+$distance_clause
+Think step by step. Reason through the question carefully, then commit to a final answer.
+
+Use {"reasoning": "<your reasoning>", "answer": null} to indicate that you do not have the answer.
+
+Respond with a single JSON object containing the "reasoning" field and the "answer" field (and a "unit" field for numeric answers). Do not add any text outside the JSON object.

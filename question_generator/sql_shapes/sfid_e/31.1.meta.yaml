@@ -1,0 +1,80 @@
+tid: "31.1"
+tid_family: 31
+sfid: E
+ssfid: 3
+spatial_function: full_containment_boolean
+ground_truth_type: boolean
+answer_unit: null
+
+result_columns:
+  - entity_a_id
+  - entity_a_name
+  - entity_b_id
+  - entity_b_name
+  - ground_truth
+
+pools:
+  - pool_a
+  - pool_b
+
+variants:
+  region_in_region:
+    description: "Does region A's polygon fully contain region/natural-feature B's geometry?"
+    # Symmetric pool design (mirror of 28.1's any_admin variant): both
+    # pools are polygon-bearing region/natural-feature entities for the
+    # KG. Geometric containment (ST_Contains in SELECT) decides true/false
+    # naturally — no admin-level asymmetry needed. Question is well-defined
+    # in either direction:
+    #   - "Does Germany contain Bavaria?" → true
+    #   - "Does Bavaria contain Germany?" → false
+    # A model that always answers based on "which name sounds bigger"
+    # should fail — the SQL forces actual geometric reasoning.
+    #
+    # Filter is wider than 28.1's any_admin (which restricted to admin
+    # boundaries) to also include natural-feature polygons (parks,
+    # protected areas, lakes-as-polygons), matching the registry's
+    # "region_instance / natural_feature_instance" entity_B type spec.
+    # worldkg excluded: its region entities are POINT geometries.
+    applicable_kgs:
+      osmh3kg:
+        pool_a:
+          source: entities
+          filter: "category IN ('region_category', 'natural_feature_category') AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category IN ('region_category', 'natural_feature_category') AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+      kwg:
+        pool_a:
+          source: entities
+          filter: "category IN ('region_category', 'natural_feature_category') AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+        pool_b:
+          source: entities
+          filter: "category IN ('region_category', 'natural_feature_category') AND geometry_type IN ('POLYGON', 'MULTIPOLYGON')"
+
+# In-country, no-self join. Same shape as 28.1 — class-balanced sampling
+# via target_true_count / target_false_count, no rank-equality.
+join_condition: "a.country_iso3 = b.country_iso3 AND a.id != b.id"
+
+sampling:
+  strategy: row_number_hash
+
+parameters:
+  # Class-balanced sampling targets. Sum should equal total_sample if
+  # you want a full benchmark cell; here 25 + 25 = 50 matches the smoke
+  # default. Scale these proportionally for other cell sizes.
+  target_true_count: 25
+  target_false_count: 25
+
+gold_triples:
+  pool_map:
+    entity_a_id: pool_a
+    entity_b_id: pool_b
+  predicates:
+    - label
+    - type
+    - geometry_link
+    - geometry_wkt
+
+defaults:
+  total_sample: 5000
+  run_seed: 12345
