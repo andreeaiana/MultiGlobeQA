@@ -7,19 +7,12 @@ Orchestrates plan-driven benchmark generation:
 4. Validate and export results
 """
 
-import random
-import sys
 
-import mlflow
 import pyspark.sql.functions as F
 from loguru import logger
 from pyspark.sql import DataFrame, SparkSession
 
 from question_generator.config import (
-    DEFAULT_ENTITIES_PER_TEMPLATE,
-    KWG_ENTITIES_PATH,
-    OSMH3KG_NODES_PATH,
-    OUTPUT_BENCHMARK_DELTA_PATH,
     SEDONA_PACKAGES,
     SPARK_CHECKPOINT_DIR,
     SPARK_DRIVER_MEMORY,
@@ -27,11 +20,8 @@ from question_generator.config import (
     SPARK_MASTER,
     SPARK_TEMP_DIR,
     MULTIGLOBEQA_CHECKPOINT_ENABLED,
-    WORLDKG_NODES_PATH,
-    strata_path,
 )
 from question_generator.tracker import (
-    log_execution_metrics,
     setup_mlflow,
 )
 
