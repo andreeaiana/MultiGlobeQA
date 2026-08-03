@@ -220,10 +220,9 @@ def _assert_registry_covers_examples(
     "--gold-triples",
     "gold_triples_path",
     type=click.Path(exists=True, path_type=Path),
-    default=Path("benchmark/final/large/"),
-    show_default=True,
-    help="Path to the gold triples — optional; defaults to "
-    "``benchmark/final/large/``, which auto-discovers gold via the "
+    default=None,
+    help="Path to the gold triples. Required for oracle runs, ignored "
+    "otherwise. Auto-discovers gold via the "
     "``<kg>/<sfid>/gold_triples.jsonl/`` layout. Accepts (1) a "
     "single JSONL file, (2) a leaf ``gold_triples.jsonl/`` shard "
     "directory, or (3) any higher-level root containing that "
@@ -527,6 +526,11 @@ def smoke(
                     f"For {variant!r} (tier 3), use --oracle-mode=t3."
                 )
 
+            if gold_triples_path is None:
+                raise click.ClickException(
+                    "--gold-triples is required for oracle runs: point it at the "
+                    "benchmark root holding gold_triples.jsonl/ shards."
+                )
             click.echo(f"Loading gold triples from {gold_triples_path}...")
             gold_triples_map = load_gold_triples(gold_triples_path)
             oracle_context = OracleContext(
