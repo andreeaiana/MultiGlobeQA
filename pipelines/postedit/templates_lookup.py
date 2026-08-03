@@ -1,13 +1,10 @@
-"""Look up the human-edited per-language template for a given vid.
+"""Look up the post-edited per-language template for a given vid.
 
-The renumbered templates registry at
-``benchmark/raw_eng_renumbered/templates.csv`` carries one column per
-target language (``eng``, ``bul``, ``deu``, …, ``zho_CN``). The
-post-edit pipeline asks the LLM to compare TEMPLATE vs QUESTION; for
-non-English languages the most informative TEMPLATE is the
-language-specific one (so the LLM sees both fields in the same
-language), with the English ``base_template`` as a fallback when a
-row's vid happens to miss the registry.
+Reads ``data/templates/templates_<lang>.tsv``, one file per language, each
+keyed by ``vid``. The post-edit pipeline asks the LLM to compare TEMPLATE
+against QUESTION; for a non-English language the informative TEMPLATE is that
+language's own, so the LLM sees both fields in one language. The English
+``base_template`` is the fallback when a vid is missing.
 """
 
 from __future__ import annotations
@@ -54,25 +51,27 @@ class TemplateRegistry:
         self._warn_lock = threading.Lock()
 
     @classmethod
-    def load(cls, csv_path: Path) -> "TemplateRegistry":
+    def load(cls, templates_dir: Path) -> "TemplateRegistry":
+        """Load every ``templates_<lang>.tsv`` under ``templates_dir``."""
         by_vid_lang: dict[tuple[str, str], str] = {}
-        with csv_path.open(encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            fieldnames = reader.fieldnames or []
-            missing_cols = [c for c in _LANG_COLS if c not in fieldnames]
-            if missing_cols:
-                raise ValueError(
-                    f"templates.csv missing language columns: {missing_cols}"
-                )
-            for row in reader:
-                vid = row["ftidv"]
-                for lang in _LANG_COLS:
-                    txt = (row.get(lang) or "").strip()
+        missing = []
+        for lang in _LANG_COLS:
+            path = Path(templates_dir) / f"templates_{lang}.tsv"
+            if not path.exists():
+                missing.append(lang)
+                continue
+            with path.open(encoding="utf-8") as f:
+                for row in csv.DictReader(f, delimiter="\t"):
+                    txt = (row.get("variant") or "").strip()
                     if txt:
-                        by_vid_lang[(vid, lang)] = _normalize_braces(txt)
+                        by_vid_lang[(row["vid"], lang)] = _normalize_braces(txt)
+        if missing:
+            raise ValueError(
+                f"{templates_dir}: no template table for {missing}"
+            )
         logger.info(
             "Loaded {} (vid, lang) template entries from {}",
-            len(by_vid_lang), csv_path,
+            len(by_vid_lang), templates_dir,
         )
         return cls(by_vid_lang)
 

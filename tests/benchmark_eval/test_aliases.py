@@ -3,7 +3,7 @@
 Covers:
 
 * Programmatic construction via :meth:`AliasStore.from_entries`.
-* Loading from the committed mock JSON (``output/entity_aliases.json``).
+* Loading from the committed fixture (``tests/fixtures/entity_aliases.json``).
 * Resolving exact / canonicalized / multilingual / unknown names.
 * Collision behavior (``gold_canonical_id`` preference).
 * Non-string inputs, empty strings, ``None``.

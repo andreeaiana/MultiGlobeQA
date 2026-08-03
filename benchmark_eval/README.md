@@ -128,7 +128,7 @@ Strict `em_micro` requires the model's declared unit to match gold (so `10000 m`
 
 ## Alias Store
 
-Entity / cardinal / predefined resolution goes through `output/entity_aliases.json`, a flat lookup keyed by canonical id:
+Entity / cardinal / predefined resolution goes through a per-language alias store, a flat lookup keyed by canonical id:
 
 ```json
 {
@@ -147,11 +147,9 @@ Entity / cardinal / predefined resolution goes through `output/entity_aliases.js
 }
 ```
 
-`output/entity_aliases.json` is gitignored (generated, not tracked). Build it once after pulling benchmark data:
-
-```bash
-python scripts/build_entity_aliases.py
-```
+The stores are released with the benchmark data, one file per language, and passed
+to `score` with `--aliases <dir>/<lang>.json`. `AliasStore.for_language` falls back to
+the English store when a language's file is absent.
 
 The script populates the file from OSM entities in the benchmark, plus multilingual aliases for cardinal directions and predefined values.
 

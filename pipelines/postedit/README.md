@@ -145,11 +145,10 @@ edit the markdown file — no code change needed.
 ### Target-language template lookup
 
 The `TEMPLATE` field of the user prompt is the **target-language**
-template from the per-language column of
-`benchmark/raw_eng_renumbered/templates.csv` (so the LLM sees both
-TEMPLATE and QUESTION in the same language). The lookup falls back to
-the row's English `base_template` if a `(vid, lang)` pair is missing
-from the registry.
+template, read from `data/templates/templates_<lang>.tsv` and keyed by
+`vid`, so the LLM sees both TEMPLATE and QUESTION in the same language.
+The lookup falls back to the row's English `base_template` when a
+`(vid, lang)` pair is missing.
 
 ## MLflow tracking
 
@@ -218,7 +217,7 @@ uv run python pipelines/postedit/postedit_pipeline.py \
     --input output/postedit/smoke/eng.jsonl \
     --output output/postedit/smoke/eng_results.jsonl \
     --language eng \
-    --templates-csv benchmark/raw_eng_renumbered/templates.csv \
+    --templates-dir data/templates \
     --models gemini \
     --skip-vllm-health-check \
     --no-mlflow
@@ -231,7 +230,7 @@ uv run python pipelines/postedit/postedit_pipeline.py \
     --input output/postedit/smoke/ron.jsonl \
     --output output/postedit/smoke/ron_results.jsonl \
     --language ron \
-    --templates-csv benchmark/raw_eng_renumbered/templates.csv \
+    --templates-dir data/templates \
     --models gemini \
     --skip-vllm-health-check \
     --no-mlflow

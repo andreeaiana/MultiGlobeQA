@@ -65,7 +65,7 @@ from pipelines.postedit.config import (
     DEFAULT_OUTPUT_DIR,
     DEFAULT_PER_QUESTION_TIMEOUT_S,
     DEFAULT_QUESTION_CONCURRENCY,
-    DEFAULT_TEMPLATES_CSV,
+    DEFAULT_TEMPLATES_DIR,
     KG_BUCKETS,
     MODEL_NAMES,
     RESUME_MODES,
@@ -521,9 +521,9 @@ def parse_args() -> argparse.Namespace:
              "No effect on multimodal.",
     )
     parser.add_argument(
-        "--templates-csv", type=Path, default=DEFAULT_TEMPLATES_CSV,
+        "--templates-dir", type=Path, default=DEFAULT_TEMPLATES_DIR,
         help=f"Path to the per-language templates registry CSV "
-             f"(default: {DEFAULT_TEMPLATES_CSV})",
+             f"(default: {DEFAULT_TEMPLATES_DIR})",
     )
 
     # Output
@@ -708,7 +708,7 @@ def _run_cell(
 def _legacy_single_file_main(args: argparse.Namespace) -> int:
     """Single-file mode driven by ``--input`` (fixtures + ad-hoc runs).
 
-    Loads the templates registry if ``--templates-csv`` points to an
+    Loads the templates registry if ``--templates-dir`` points to an
     existing file; otherwise the prompt's TEMPLATE field is the row's
     English ``base_template``.
     """
@@ -728,12 +728,12 @@ def _legacy_single_file_main(args: argparse.Namespace) -> int:
         return 0
 
     template_registry: TemplateRegistry | None = None
-    if args.templates_csv and args.templates_csv.is_file():
-        template_registry = TemplateRegistry.load(args.templates_csv)
+    if args.templates_dir and args.templates_dir.is_dir():
+        template_registry = TemplateRegistry.load(args.templates_dir)
     else:
         logger.info(
             "Single-file --input mode: templates registry not loaded "
-            "(--templates-csv missing or path doesn't exist); "
+            "(--templates-dir missing or path doesn't exist); "
             "prompts will use the row's base_template as TEMPLATE."
         )
 
@@ -808,7 +808,7 @@ def main() -> int:
                     total_rows * len(selected))
         return 0
 
-    template_registry = TemplateRegistry.load(args.templates_csv)
+    template_registry = TemplateRegistry.load(args.templates_dir)
 
     clients = preflight_clients(
         selected, skip_vllm_health_check=args.skip_vllm_health_check,

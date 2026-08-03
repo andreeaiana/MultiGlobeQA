@@ -2,7 +2,7 @@
 
 Stratified benchmark sampling via `ROW_NUMBER() OVER (PARTITION BY ... ORDER BY hash(..., run_seed))`.
 Diversity keys and per-bucket caps are configured per SFID letter and may be
-overridden per-TID in sql_registry.yaml via:
+overridden per sub-template in the shape's meta.yaml via:
 
     sampling:
       diversity_keys: ["a.country_iso3", "a.strata_cell"]

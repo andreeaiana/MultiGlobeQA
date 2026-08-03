@@ -591,10 +591,7 @@ class TestBundledRegistryFreshness:
     def test_covers_all_14_sfids_in_the_share(self) -> None:
         reg = load_template_registry()
         sfids = {t.sfid for t in reg.templates.values()}
-        # Renumbered (2026-05-09) share uses contiguous A-N — the
-        # two pre-renumbering dropped families (old J = Spatio-Temporal
-        # Change, old N = Visibility & Exposure) are no longer in the
-        # taxonomy at all. See benchmark/raw_eng_renumbered/mapping_sfid.csv.
+        # The benchmark covers fourteen spatial-function families, A-N.
         expected = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"}
         assert sfids == expected, (
             f"unexpected SFID coverage: missing={expected - sfids} "

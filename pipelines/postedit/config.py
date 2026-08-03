@@ -6,7 +6,7 @@ from pathlib import Path
 # --- Paths ---
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 DEFAULT_BENCHMARK_ROOT = PROJECT_ROOT / "benchmark" / "sampled_multilingual"
-DEFAULT_TEMPLATES_CSV = PROJECT_ROOT / "benchmark" / "raw_eng_renumbered" / "templates.csv"
+DEFAULT_TEMPLATES_DIR = PROJECT_ROOT / "data" / "templates"
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "output" / "postedit"
 # The post-edited benchmark the pipeline writes. Has the same
 # layout as DEFAULT_BENCHMARK_ROOT (<kg>/sfid_*/<lang>/benchmark.jsonl/part-*,

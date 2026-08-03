@@ -287,7 +287,7 @@ python -m benchmark_models smoke -v gemini-3-flash-plain --oracle-mode structure
     --gold-triples path/to/triples_share/ --n 5
 ```
 
-**Gold triples file format:** JSONL with one `{question_id, gold_triples}` row per question; `gold_triples` is a JSON-encoded list of `{subject, predicate, object}` triples. See `output/sample_gold_triples.jsonl` for an example. Coverage of every benchmark `question_id` is required — runs abort if a question is missing gold.
+**Gold triples file format:** JSONL with one `{question_id, gold_triples}` row per question; `gold_triples` is a JSON-encoded list of `{subject, predicate, object}` triples. Coverage of every benchmark `question_id` is required — runs abort if a question is missing gold.
 
 ## Recovering from Transient Errors
 
