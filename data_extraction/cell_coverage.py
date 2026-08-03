@@ -16,7 +16,7 @@ from delta import DeltaTable
 def init_spark_session():
     """Create a SparkSession with Delta Lake and Sedona packages."""
     builder = (
-        SparkSession.builder.appName("SpatialBench_CellCoverage")
+        SparkSession.builder.appName("MultiGlobeQA_CellCoverage")
         .master(SPARK_MASTER)
         .config("spark.driver.memory", SPARK_DRIVER_MEMORY)
         .config("spark.executor.memory", SPARK_EXECUTOR_MEMORY)

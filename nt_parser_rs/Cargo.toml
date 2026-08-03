@@ -3,7 +3,7 @@ name = "nt_parser"
 version = "0.1.0"
 edition = "2021"
 description = "High-performance N-Triples to Delta Lake converter"
-authors = ["SpatialBenchRAG Team"]
+authors = ["MultiGlobeQA Team"]
 
 [dependencies]
 rio_api = "0.8"

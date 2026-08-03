@@ -58,41 +58,41 @@ BenchmarkExporter → JSONL / Parquet Output
 
 ```bash
 # Generate benchmark with dummy data (no real KG data needed)
-uv run spatialbenchrag generate --dry-run --samples 100 --seed 42 --output-format jsonl,parquet
+uv run multiglobeqa generate --dry-run --samples 100 --seed 42 --output-format jsonl,parquet
 
 # Full pipeline with real data
-uv run spatialbenchrag run --kg all --samples 3000 --seed 42
+uv run multiglobeqa run --kg all --samples 3000 --seed 42
 
 # Validate an existing benchmark
-uv run spatialbenchrag validate --input data/benchmark_output/benchmark.jsonl
+uv run multiglobeqa validate --input data/benchmark_output/benchmark.jsonl
 ```
 
 ### CLI Subcommands
 
 ```bash
   # 1. Extract raw data
-  uv run spatialbenchrag extract --kg all
+  uv run multiglobeqa extract --kg all
 
   # 2. Convert triples → entity table
-  uv run spatialbenchrag convert --kg all
+  uv run multiglobeqa convert --kg all
 
   # 3. PageRank (needs triples, writes separate sibling table)
-  uv run spatialbenchrag pagerank --kg all
+  uv run multiglobeqa pagerank --kg all
 
   # 4. Enrich (needs entity table + PageRank already joined)
-  uv run spatialbenchrag enrich --kg all
+  uv run multiglobeqa enrich --kg all
 
   # 5. Generate benchmark
-  uv run spatialbenchrag generate --pipeline-mode compute-first --seed 42
+  uv run multiglobeqa generate --pipeline-mode compute-first --seed 42
 ```
 
 ```
-spatialbenchrag extract   --kg {worldkg,osmh3kg,kwg,all}     # Extract raw data
-spatialbenchrag convert   --kg {worldkg,osmh3kg,kwg,all}     # Convert to Delta tables
-spatialbenchrag pagerank  --kg {worldkg,osmh3kg,kwg,all}     # Compute PageRank
-spatialbenchrag generate  --samples N --seed S               # Generate benchmark
-spatialbenchrag validate  --input benchmark.jsonl             # Validate answers
-spatialbenchrag run       --kg all --samples 3000 --seed 42  # Full pipeline
+multiglobeqa extract   --kg {worldkg,osmh3kg,kwg,all}     # Extract raw data
+multiglobeqa convert   --kg {worldkg,osmh3kg,kwg,all}     # Convert to Delta tables
+multiglobeqa pagerank  --kg {worldkg,osmh3kg,kwg,all}     # Compute PageRank
+multiglobeqa generate  --samples N --seed S               # Generate benchmark
+multiglobeqa validate  --input benchmark.jsonl             # Validate answers
+multiglobeqa run       --kg all --samples 3000 --seed 42  # Full pipeline
 ```
 
 ## Data Preparation
@@ -101,18 +101,18 @@ spatialbenchrag run       --kg all --samples 3000 --seed 42  # Full pipeline
 
 1. Download WorldKG NT files to `data/worldkg/`
 2. Parse with Rust parser: `cd nt_parser_rs && cargo run --release`
-3. Convert: `uv run spatialbenchrag convert --kg worldkg`
+3. Convert: `uv run multiglobeqa convert --kg worldkg`
 
 ### OSMH3KG
 
 1. Download OSM extracts: `bash data_extraction/download_osm.sh`
-2. Generate H3 grid: `uv run spatialbenchrag extract --kg osmh3kg`
-3. Convert: `uv run spatialbenchrag convert --kg osmh3kg`
+2. Generate H3 grid: `uv run multiglobeqa extract --kg osmh3kg`
+3. Convert: `uv run multiglobeqa convert --kg osmh3kg`
 
 ### KnowWhereGraph
 
 1. Configure SPARQL endpoints in environment
-2. Crawl: `uv run spatialbenchrag extract --kg kwg`
+2. Crawl: `uv run multiglobeqa extract --kg kwg`
 
 ## Configuration
 
@@ -120,13 +120,13 @@ All configuration can be overridden via environment variables:
 
 | Variable                     | Default                            | Description                 |
 | ---------------------------- | ---------------------------------- | --------------------------- |
-| `SPATIALBENCH_DATA_DIR`      | `./data`                           | Root data directory         |
+| `MULTIGLOBEQA_DATA_DIR`      | `./data`                           | Root data directory         |
 | `WORLDKG_NODES_PATH`         | `data/worldkg/worldkg_nodes`       | WorldKG Delta table         |
 | `OSMH3KG_NODES_PATH`         | `data/osmh3kg/osmh3kg_nodes`       | OSMH3KG Delta table         |
 | `KWG_ENTITIES_PATH`          | `data/kwg/knowwheregraph_entities` | KWG Delta table             |
 | `SPARK_MASTER`               | `local[*]`                         | Spark master URL            |
 | `SPARK_DRIVER_MEMORY`        | `4g`                               | Spark driver memory         |
-| `SPATIALBENCH_FAIL_ON_ERROR` | `false`                            | Fail on template errors     |
+| `MULTIGLOBEQA_FAIL_ON_ERROR` | `false`                            | Fail on template errors     |
 | `DEFAULT_SAMPLE_SIZE`        | `3000`                             | Default entity sample count |
 | `MLFLOW_TRACKING_URI`        | `file://./logs/mlruns`             | MLflow tracking URI         |
 | `OUTPUT_BENCHMARK_DIR`       | `data/benchmark_output`            | Benchmark output directory  |

@@ -80,7 +80,7 @@ _WB_INX_FALLBACK: dict[str, str] = {
 def _http_get(url: str, timeout: int = 60) -> bytes:
     """Fetch a URL and return its content as bytes."""
     logger.debug("Fetching %s", url)
-    req = Request(url, headers={"User-Agent": "SpatialBenchRAG/0.1"})
+    req = Request(url, headers={"User-Agent": "MultiGlobeQA/0.1"})
     with urlopen(req, timeout=timeout) as resp:
         return resp.read()
 

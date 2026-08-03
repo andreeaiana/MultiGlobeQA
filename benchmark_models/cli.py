@@ -30,7 +30,7 @@ from benchmark_models.snapshot import build_paths_only_snapshot_id
 
 @click.group()
 def cli() -> None:
-    """benchmark_models — systems-under-evaluation for SpatialBenchRAG."""
+    """benchmark_models — systems-under-evaluation for MultiGlobeQA."""
 
 
 def _assert_registry_covers_examples(

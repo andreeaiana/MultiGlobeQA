@@ -32,7 +32,7 @@ from benchmark_eval.scorer import _SPEC as _SCORING_SPEC, Scorer, ScorerConfig
 
 @click.group()
 def cli() -> None:
-    """benchmark_eval — primary-metric scoring for SpatialBenchRAG."""
+    """benchmark_eval — primary-metric scoring for MultiGlobeQA."""
 
 
 @cli.command()

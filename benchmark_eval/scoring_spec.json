@@ -1,5 +1,5 @@
 {
-  "description": "Canonical scoring rules for SpatialBenchRAG eval. Every hyperparameter that materially affects a score lives here; CLI flags exposed by ``benchmark_eval score`` become 'deviations' when they differ from these defaults and are logged alongside the run. Code-side fallback constants must match this file (CI assertion in tests/benchmark_eval/test_spec_drift.py).",
+  "description": "Canonical scoring rules for MultiGlobeQA eval. Every hyperparameter that materially affects a score lives here; CLI flags exposed by ``benchmark_eval score`` become 'deviations' when they differ from these defaults and are logged alongside the run. Code-side fallback constants must match this file (CI assertion in tests/benchmark_eval/test_spec_drift.py).",
   "numeric": {
     "alpha": 0.05,
     "default_delta_distance_km": 5.0,

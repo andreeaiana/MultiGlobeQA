@@ -215,13 +215,13 @@ def _prefix_map_sha(kg_prefix: dict[str, list[str]]) -> str:
 def _gold_triples_table_path(kg: str, sha: str) -> str:
     """Stable on-disk location for the pre-filtered, bloom-indexed gold-triples Delta.
 
-    If ``SPATIALBENCH_GOLD_CACHE_DIR`` is set, the Delta lives directly under
-    that directory (``$SPATIALBENCH_GOLD_CACHE_DIR/<kg>_triples_gold_<sha>``)
+    If ``MULTIGLOBEQA_GOLD_CACHE_DIR`` is set, the Delta lives directly under
+    that directory (``$MULTIGLOBEQA_GOLD_CACHE_DIR/<kg>_triples_gold_<sha>``)
     instead of under ``data/<kg>/``. Used to stage the gold Delta on
     node-local SSD when the default ``data/`` lives on a slow network FS.
     """
     import os
-    override = os.environ.get("SPATIALBENCH_GOLD_CACHE_DIR")
+    override = os.environ.get("MULTIGLOBEQA_GOLD_CACHE_DIR")
     if override:
         return str(Path(override) / f"{kg}_triples_gold_{sha}")
     from question_generator import config as _cfg

@@ -19,7 +19,7 @@ def spark() -> SparkSession:
     """
     spark = (
         SparkSession.builder
-        .appName("SpatialBenchRAG-Tests")
+        .appName("MultiGlobeQA-Tests")
         .master("local[2]")
         .config("spark.driver.memory", "1g")
         .config("spark.sql.shuffle.partitions", "2")

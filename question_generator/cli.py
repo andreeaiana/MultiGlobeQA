@@ -1,12 +1,12 @@
-"""CLI entry point for SpatialBenchRAG pipeline orchestration.
+"""CLI entry point for MultiGlobeQA pipeline orchestration.
 
 Provides subcommands for each stage of the benchmark generation pipeline:
-    spatialbenchrag extract   --kg {worldkg,osmh3kg,kwg,all}
-    spatialbenchrag convert   --kg {worldkg,osmh3kg,kwg,all}
-    spatialbenchrag pagerank  --kg {worldkg,osmh3kg,kwg,all}
-    spatialbenchrag generate  --run runs/<spec>.yaml
-    spatialbenchrag validate  --input benchmark.jsonl
-    spatialbenchrag run       --kg all --run runs/<spec>.yaml
+    multiglobeqa extract   --kg {worldkg,osmh3kg,kwg,all}
+    multiglobeqa convert   --kg {worldkg,osmh3kg,kwg,all}
+    multiglobeqa pagerank  --kg {worldkg,osmh3kg,kwg,all}
+    multiglobeqa generate  --run runs/<spec>.yaml
+    multiglobeqa validate  --input benchmark.jsonl
+    multiglobeqa run       --kg all --run runs/<spec>.yaml
 """
 
 import argparse
@@ -332,7 +332,7 @@ def cmd_validate(args: argparse.Namespace) -> int:
         from question_generator.validator import BenchmarkValidator
 
         spark = (
-            SparkSession.builder.appName("SpatialBenchRAG-Validate")
+            SparkSession.builder.appName("MultiGlobeQA-Validate")
             .master("local[*]")
             .config("spark.driver.memory", "2g")
             .config("spark.ui.enabled", "false")
@@ -393,8 +393,8 @@ def cmd_run(args: argparse.Namespace) -> int:
 def main() -> int:
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
-        prog="spatialbenchrag",
-        description="SpatialBenchRAG — Spatial Q&A Benchmark Generation Pipeline",
+        prog="multiglobeqa",
+        description="MultiGlobeQA — Spatial Q&A Benchmark Generation Pipeline",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     subparsers = parser.add_subparsers(dest="command", help="Pipeline stage to run")

@@ -26,7 +26,7 @@ from question_generator.config import (
     SPARK_EXECUTOR_MEMORY,
     SPARK_MASTER,
     SPARK_TEMP_DIR,
-    SPATIALBENCH_CHECKPOINT_ENABLED,
+    MULTIGLOBEQA_CHECKPOINT_ENABLED,
     WORLDKG_NODES_PATH,
     strata_path,
 )
@@ -134,7 +134,7 @@ def init_spark() -> SparkSession:
         shuffle_partitions,
     )
 
-    if SPATIALBENCH_CHECKPOINT_ENABLED:
+    if MULTIGLOBEQA_CHECKPOINT_ENABLED:
         import os as _os
         _os.makedirs(SPARK_CHECKPOINT_DIR, exist_ok=True)
         spark.sparkContext.setCheckpointDir(SPARK_CHECKPOINT_DIR)
@@ -208,7 +208,7 @@ def generate_from_run_spec(run_spec_path: str) -> DataFrame | None:
     # spends 10+ min in driver-side planning before submitting the first stage
     # (Spark UI shows nothing during that window).
     staging_root = _os.getenv(
-        "SPATIALBENCH_SHAPE_STAGING_ROOT",
+        "MULTIGLOBEQA_SHAPE_STAGING_ROOT",
         _os.path.join("spark-warehouse", f"staging_{run.run_name}"),
     )
     # Gold-flat staging mirrors the main staging tree but lives in a sibling
@@ -223,8 +223,8 @@ def generate_from_run_spec(run_spec_path: str) -> DataFrame | None:
     # and run params skips already-done cells; any edit to a shape (sql, gold
     # sql, meta) or to (run_seed, total_sample, per_bucket_cap) flips the
     # relevant hash and forces that cell to re-run. Set
-    # SPATIALBENCH_SHAPE_RESUME=0 to force a full re-run (wipes staging roots).
-    resume_enabled = _os.getenv("SPATIALBENCH_SHAPE_RESUME", "1") != "0"
+    # MULTIGLOBEQA_SHAPE_RESUME=0 to force a full re-run (wipes staging roots).
+    resume_enabled = _os.getenv("MULTIGLOBEQA_SHAPE_RESUME", "1") != "0"
     if not resume_enabled:
         for root in (staging_root, gold_staging_root):
             if _os.path.exists(root):
@@ -480,7 +480,7 @@ def generate_from_run_spec(run_spec_path: str) -> DataFrame | None:
 
         logger.info("Shape-based run complete: {}", run.run_name)
         # Staging dir is retained across runs to support resume. Set
-        # SPATIALBENCH_SHAPE_RESUME=0 to force a full re-run, or delete
+        # MULTIGLOBEQA_SHAPE_RESUME=0 to force a full re-run, or delete
         # the directory manually.
         return validated
     finally:

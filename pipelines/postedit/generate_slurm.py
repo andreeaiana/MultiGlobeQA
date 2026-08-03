@@ -106,13 +106,13 @@ module load devel/cuda/12.8
 # boundaries. SLURM purges $TMPDIR (/scratch/slurm_tmpdir/job_<id>) on job
 # exit, and inductor bakes absolute paths into its cache — leaving stale
 # references that PermissionError on the next run.
-export TORCHINDUCTOR_CACHE_DIR=/pfs/work9/workspace/scratch/ma_aiana-spatialbenchrag/.cache/torchinductor
-export VLLM_CACHE_ROOT=/pfs/work9/workspace/scratch/ma_aiana-spatialbenchrag/.cache/vllm
+export TORCHINDUCTOR_CACHE_DIR=/pfs/work9/workspace/scratch/ma_aiana-multiglobeqa/.cache/torchinductor
+export VLLM_CACHE_ROOT=/pfs/work9/workspace/scratch/ma_aiana-multiglobeqa/.cache/vllm
 mkdir -p "$TORCHINDUCTOR_CACHE_DIR" "$VLLM_CACHE_ROOT"
 
 # Start vLLM in background.
 echo "[$(date)] starting vLLM (Qwen3.5-27B-FP8) on port 8000"
-source /pfs/work9/workspace/scratch/ma_aiana-spatialbenchrag/.venv-vllm/bin/activate
+source /pfs/work9/workspace/scratch/ma_aiana-multiglobeqa/.venv-vllm/bin/activate
 vllm serve Qwen/Qwen3.5-27B-FP8 \\
     --host 0.0.0.0 --port 8000 \\
     --max-model-len 8192 \\

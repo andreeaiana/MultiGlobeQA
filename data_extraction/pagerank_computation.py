@@ -88,7 +88,7 @@ _KG_REGISTRY: dict[str, dict[str, str]] = {
 def init_spark() -> SparkSession:
     """Create a SparkSession with Delta Lake and GraphFrames packages."""
     builder = (
-        SparkSession.builder.appName("SpatialBench_PageRank")
+        SparkSession.builder.appName("MultiGlobeQA_PageRank")
         .master(SPARK_MASTER)
         .config("spark.driver.memory", SPARK_DRIVER_MEMORY)
         .config("spark.executor.memory", SPARK_EXECUTOR_MEMORY)

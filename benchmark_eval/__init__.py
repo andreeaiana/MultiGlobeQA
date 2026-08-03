@@ -1,4 +1,4 @@
-"""Eval pipeline for SpatialBenchRAG — primary metrics.
+"""Eval pipeline for MultiGlobeQA — primary metrics.
 
 Computes Exact Match (EM) and Normalized Error (NE) per prediction,
 dispatching on the question's answer type, and aggregates the

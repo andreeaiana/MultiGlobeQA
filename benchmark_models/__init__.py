@@ -1,7 +1,7 @@
-"""Benchmark Models — systems-under-evaluation for SpatialBenchRAG.
+"""Benchmark Models — systems-under-evaluation for MultiGlobeQA.
 
 Implements the model section: a clean, model-agnostic abstraction for running
-zero-shot QA across LLMs and (later) RAG systems on the SpatialBenchRAG
+zero-shot QA across LLMs and (later) RAG systems on the MultiGlobeQA
 benchmark, organized into capability tiers (plain LLM, reasoning,
 tool-augmented). See README.md for the user-facing overview.
 

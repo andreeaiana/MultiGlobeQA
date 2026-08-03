@@ -10,7 +10,7 @@ from pathlib import Path
 # Base Paths
 BASE_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = BASE_DIR.parent
-DATA_DIR = Path(os.getenv("SPATIALBENCH_DATA_DIR", str(PROJECT_ROOT / "data")))
+DATA_DIR = Path(os.getenv("MULTIGLOBEQA_DATA_DIR", str(PROJECT_ROOT / "data")))
 
 # Delta Table paths - can be overridden via environment variables
 WORLDKG_TRIPLES_PATH: str = os.getenv(
@@ -66,18 +66,18 @@ DEFAULT_ENTITIES_PER_TEMPLATE: int = int(os.getenv("ENTITIES_PER_TEMPLATE", "30"
 # Note: there is NO cap on the number of gold triples per entity — aggregate
 # queries (e.g. "how many wildfires in region X") need complete provenance
 # across all matching facts, not a sampled subset.
-MAX_POOL_SIZE: int = int(os.getenv("SPATIALBENCH_MAX_POOL_SIZE", "500000"))
-MAX_WKT_BYTES: int = int(os.getenv("SPATIALBENCH_MAX_WKT_BYTES", "1048576"))
+MAX_POOL_SIZE: int = int(os.getenv("MULTIGLOBEQA_MAX_POOL_SIZE", "500000"))
+MAX_WKT_BYTES: int = int(os.getenv("MULTIGLOBEQA_MAX_WKT_BYTES", "1048576"))
 GOLD_TRIPLES_UNRECOVERABLE_ERROR_THRESHOLD: float = float(
-    os.getenv("SPATIALBENCH_GOLD_TRIPLES_ERROR_THRESHOLD", "0.05")
+    os.getenv("MULTIGLOBEQA_GOLD_TRIPLES_ERROR_THRESHOLD", "0.05")
 )
 
 # Spark checkpointing for long-running planet-scale jobs: trim the DAG after
 # each TID/strata SQL so resume + retry don't re-execute the entire pipeline
-# from scratch on JVM restart. Default ON; set SPATIALBENCH_CHECKPOINT=false
+# from scratch on JVM restart. Default ON; set MULTIGLOBEQA_CHECKPOINT=false
 # for short smoke runs where the extra Parquet write cost outweighs benefit.
-SPATIALBENCH_CHECKPOINT_ENABLED: bool = os.getenv(
-    "SPATIALBENCH_CHECKPOINT", "true"
+MULTIGLOBEQA_CHECKPOINT_ENABLED: bool = os.getenv(
+    "MULTIGLOBEQA_CHECKPOINT", "true"
 ).lower() == "true"
 SPARK_CHECKPOINT_DIR: str = os.getenv(
     "SPARK_CHECKPOINT_DIR",
@@ -111,7 +111,7 @@ def cells_path(kg_label: str) -> str:
     return str(DATA_DIR / kg_label / f"{kg_label}_cells")
 
 # Error handling
-FAIL_ON_TEMPLATE_ERROR: bool = os.getenv("SPATIALBENCH_FAIL_ON_ERROR", "false").lower() == "true"
+FAIL_ON_TEMPLATE_ERROR: bool = os.getenv("MULTIGLOBEQA_FAIL_ON_ERROR", "false").lower() == "true"
 
 # TIDs to skip during template processing (comma-separated).
 # Excluded TIDs need infrastructure not yet wired into the pipeline:
@@ -124,7 +124,7 @@ FAIL_ON_TEMPLATE_ERROR: bool = os.getenv("SPATIALBENCH_FAIL_ON_ERROR", "false").
 EXCLUDED_TIDS: frozenset[str] = frozenset(
     t.strip()
     for t in os.getenv(
-        "SPATIALBENCH_EXCLUDED_TIDS",
+        "MULTIGLOBEQA_EXCLUDED_TIDS",
         "37,38,45,46,48,49.1,49.2,49.3,50,51",
     ).split(",")
     if t.strip()
@@ -133,7 +133,7 @@ EXCLUDED_TIDS: frozenset[str] = frozenset(
 # TIDs to include (comma-separated). When set, ONLY these TIDs are processed.
 # Empty string (default) means all TIDs are included. Useful for debugging.
 # e.g. "1,13,64" to only generate distance, intersection, and grid-cell questions.
-_included_raw = os.getenv("SPATIALBENCH_INCLUDED_TIDS", "")
+_included_raw = os.getenv("MULTIGLOBEQA_INCLUDED_TIDS", "")
 INCLUDED_TIDS: frozenset[str] | None = (
     frozenset(t.strip() for t in _included_raw.split(",") if t.strip())
     if _included_raw.strip()

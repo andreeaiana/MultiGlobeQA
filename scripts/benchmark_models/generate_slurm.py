@@ -262,8 +262,8 @@ _CLUSTER_CPU_PARTITION: dict[Cluster, str] = {
 # portable across user accounts on the same cluster. Override per-user
 # via ``--workspace-root`` if needed.
 _CLUSTER_WORKSPACE_ROOT: dict[Cluster, str] = {
-    "bwuc3": "/pfs/work9/workspace/scratch/ma_aiana-spatialbenchrag",
-    "helix": "/gpfs/bwfor/work/ws/ma_aiana-spatialbenchrag",
+    "bwuc3": "/pfs/work9/workspace/scratch/ma_aiana-multiglobeqa",
+    "helix": "/gpfs/bwfor/work/ws/ma_aiana-multiglobeqa",
     "dws":   "/work/mboeckli",
 }
 
