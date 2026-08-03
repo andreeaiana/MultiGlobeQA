@@ -223,8 +223,6 @@ I	44	44.1	44.1.2	Which {{entity_A}} were affected by {{event_A}}?	Which {{entity
 I	44	44.1	44.1.3	Which {{entity_A}} were affected by {{event_A}}?	Which {{entity_A}} were affected by {{event_A}}?	ჩამოთვალეთ {{entity_A}}, რომლებზეც გავლენა მოახდინა {{event_A}}მა.
 I	45	45.1	45.1.1	When did {{event_A}} hit {{entity A}}?	When did {{event_A}} hit {{entity A}}?	როდის დაატყდა თავს {{event_A}} {{entity_A}}ს?
 I	45	45.1	45.1.2	When did {{event_A}} hit {{entity A}}?	When did {{event_A}} hit {{entity A}}?	რა დროს იქონია {{event_A}}-მ გავლენა {{entity_A}}-ზე?
-I	46	46.1	46.1.1	Do {{event_A}} and {{event_B}} overlap temporarily?	Do {{event_A}} and {{event_B}} overlap temporarily?	ემთხვევა თუ არა {{event_A}} და {{event_B}} დროში?
-I	46	46.1	46.1.2	Do {{event_A}} and {{event_B}} overlap temporarily?	Do {{event_A}} and {{event_B}} overlap temporarily?	მოხდა თუ არა {{event_A}} და {{event_B}} დროის თანამკვეთ პერიოდებში?
 I	47	47.1	47.1.1	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	რა სიდიდისაა {{event_A}}ის მიერ დაზარალებული ტერიტორია?
 I	47	47.1	47.1.2	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	რა არის {{event_A}}ის მიერ დაზიანებული საერთო ფართობი?
 I	47	47.1	47.1.3	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	რა სიდიდისაა {{event_A}}ით გამოწვეული ზემოქმედების არეალი?

@@ -224,8 +224,6 @@ I	44	44.1	44.1.2	Which {{entity_A}} were affected by {{event_A}}?	Which {{entity
 I	44	44.1	44.1.3	Which {{entity_A}} were affected by {{event_A}}?	Which {{entity_A}} were affected by {{event_A}}?	{{event_A}}'dan etkilenen {{entity_A}}'ları listeleyin.
 I	45	45.1	45.1.1	When did {{event_A}} hit {{entity A}}?	When did {{event_A}} hit {{entity A}}?	{{event_A}} {{entity_A}}'ya ne zaman çarptı?
 I	45	45.1	45.1.2	When did {{event_A}} hit {{entity A}}?	When did {{event_A}} hit {{entity A}}?	{{event_A}}, {{entity_A}}'yı saat kaçta etkiledi?
-I	46	46.1	46.1.1	Do {{event_A}} and {{event_B}} overlap temporarily?	Do {{event_A}} and {{event_B}} overlap temporarily?	{{event_A}} ve {{event_B}} geçici olarak çakışıyor mu?
-I	46	46.1	46.1.2	Do {{event_A}} and {{event_B}} overlap temporarily?	Do {{event_A}} and {{event_B}} overlap temporarily?	{{event_A}} ve {{event_B}} çakışan zaman dilimlerinde mi gerçekleşti?
 I	47	47.1	47.1.1	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	{{event_A}} olayından etkilenen alan ne kadar büyük?
 I	47	47.1	47.1.2	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	{{event_A}} olayından etkilenen toplam alan nedir?
 I	47	47.1	47.1.3	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	{{event_A}} olayından etkilenen alanın büyüklüğü nedir?

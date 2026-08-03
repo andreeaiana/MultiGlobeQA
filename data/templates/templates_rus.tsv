@@ -223,8 +223,6 @@ I	44	44.1	44.1.2	Which {{entity_A}} were affected by {{event_A}}?	Which {{entity
 I	44	44.1	44.1.3	Which {{entity_A}} were affected by {{event_A}}?	Which {{entity_A}} were affected by {{event_A}}?	Перечислите {{entity_A}}, затронутые {{event_A}}.
 I	45	45.1	45.1.1	When did {{event_A}} hit {{entity A}}?	When did {{event_A}} hit {{entity A}}?	Когда {{event_A}} затронул {{entity_A}}?
 I	45	45.1	45.1.2	When did {{event_A}} hit {{entity A}}?	When did {{event_A}} hit {{entity A}}?	В какое время {{event_A}} затронул {{entity_A}}?
-I	46	46.1	46.1.1	Do {{event_A}} and {{event_B}} overlap temporarily?	Do {{event_A}} and {{event_B}} overlap temporarily?	Пересекаются ли {{event_A}} и {{event_B}} по времени?
-I	46	46.1	46.1.2	Do {{event_A}} and {{event_B}} overlap temporarily?	Do {{event_A}} and {{event_B}} overlap temporarily?	Произошли ли {{event_A}} и {{event_B}} в пересекающиеся периоды времени?
 I	47	47.1	47.1.1	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	Насколько велика площадь, пострадавшая от {{event_A}}?
 I	47	47.1	47.1.2	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	Какова общая площадь территории, затронутая {{event_A}}?
 I	47	47.1	47.1.3	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	Каков размер территории, затронутой {{event_A}}?

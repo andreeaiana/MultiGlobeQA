@@ -223,8 +223,6 @@ I	44	44.1	44.1.2	Which {{entity_A}} were affected by {{event_A}}?	Which {{entity
 I	44	44.1	44.1.3	Which {{entity_A}} were affected by {{event_A}}?	Which {{entity_A}} were affected by {{event_A}}?	Elenca le {{entity_A}} impattate da {{event_A}}.
 I	45	45.1	45.1.1	When did {{event_A}} hit {{entity A}}?	When did {{event_A}} hit {{entity A}}?	Quando {{event_A}} ha colpito {{entity_A}}?
 I	45	45.1	45.1.2	When did {{event_A}} hit {{entity A}}?	When did {{event_A}} hit {{entity A}}?	A che ora {{event_A}} ha colpito {{entity_A}}?
-I	46	46.1	46.1.1	Do {{event_A}} and {{event_B}} overlap temporarily?	Do {{event_A}} and {{event_B}} overlap temporarily?	Gli eventi {{event_A}} e {{event_B}} si sovrappongono temporaneamente?
-I	46	46.1	46.1.2	Do {{event_A}} and {{event_B}} overlap temporarily?	Do {{event_A}} and {{event_B}} overlap temporarily?	Gli eventi {{event_A}} e {{event_B}} si sono verificati in periodi di tempo sovrapposti?
 I	47	47.1	47.1.1	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	Qual è l&#39;estensione dell&#39;area interessata da {{event_A}}?
 I	47	47.1	47.1.2	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	Qual è l&amp;#39;area totale impattata da {{event_A}}?
 I	47	47.1	47.1.3	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	Qual è la dimensione dell&amp;#39;area impattata da {{event_A}}?

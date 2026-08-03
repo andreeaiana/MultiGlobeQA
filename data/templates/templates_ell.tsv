@@ -223,8 +223,6 @@ I	44	44.1	44.1.2	Which {{entity_A}} were affected by {{event_A}}?	Which {{entity
 I	44	44.1	44.1.3	Which {{entity_A}} were affected by {{event_A}}?	Which {{entity_A}} were affected by {{event_A}}?	Απαριθμήστε τα {{entity_A}} που επηρεάζονται από το {{event_A}}.
 I	45	45.1	45.1.1	When did {{event_A}} hit {{entity A}}?	When did {{event_A}} hit {{entity A}}?	Πότε συνέβη το {{event_A}} στο {{entity_A}};
 I	45	45.1	45.1.2	When did {{event_A}} hit {{entity A}}?	When did {{event_A}} hit {{entity A}}?	Τι ώρα επηρέασε το {{event_A}} το {{entity_A}};
-I	46	46.1	46.1.1	Do {{event_A}} and {{event_B}} overlap temporarily?	Do {{event_A}} and {{event_B}} overlap temporarily?	Συμπίπτουν χρονικά το {{event_A}} και το {{event_B}};
-I	46	46.1	46.1.2	Do {{event_A}} and {{event_B}} overlap temporarily?	Do {{event_A}} and {{event_B}} overlap temporarily?	Συνέβησαν το {{event_A}} και το {{event_B}} κατά τη διάρκεια επικαλυπτόμενων χρονικών περιόδων;
 I	47	47.1	47.1.1	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	Πόσο μεγάλη είναι η περιοχή που επηρεάζεται από το {{event_A}};
 I	47	47.1	47.1.2	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	Ποια είναι η συνολική έκταση της περιοχής που επηρεάστηκε από το {{event_A}};
 I	47	47.1	47.1.3	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	Ποιο είναι το μέγεθος της περιοχής που επηρεάζεται από το {{event_A}};

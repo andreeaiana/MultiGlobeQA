@@ -224,8 +224,6 @@ I	44	44.1	44.1.2	Which {{entity_A}} were affected by {{event_A}}?	Which {{entity
 I	44	44.1	44.1.3	Which {{entity_A}} were affected by {{event_A}}?	Which {{entity_A}} were affected by {{event_A}}?	{{event_A}} سے متاثر ہونے والے {{entity_A}} کی فہرست بنائیں۔
 I	45	45.1	45.1.1	When did {{event_A}} hit {{entity A}}?	When did {{event_A}} hit {{entity A}}?	{{event_A}} نے {{entity_A}} کو کب متاثر کیا؟
 I	45	45.1	45.1.2	When did {{event_A}} hit {{entity A}}?	When did {{event_A}} hit {{entity A}}?	{{event_A}} نے {{entity_A}} پر کس وقت اثر ڈالا؟
-I	46	46.1	46.1.1	Do {{event_A}} and {{event_B}} overlap temporarily?	Do {{event_A}} and {{event_B}} overlap temporarily?	کیا {{event_A}} اور {{event_B}} عارضی طور پر ایک دوسرے پر اوورلیپ کرتے ہیں؟
-I	46	46.1	46.1.2	Do {{event_A}} and {{event_B}} overlap temporarily?	Do {{event_A}} and {{event_B}} overlap temporarily?	کیا {{event_A}} اور {{event_B}} ایک دوسرے سے ملتے جلتے وقت کے دورانیوں میں واقع ہوئے؟
 I	47	47.1	47.1.1	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	{{event_A}} سے متاثرہ علاقہ کتنا بڑا ہے؟
 I	47	47.1	47.1.2	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	سے متاثرہ کل رقبہ کتنا ہے؟ {{event_A}}
 I	47	47.1	47.1.3	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	{{event_A}} سے متاثرہ علاقے کا سائز کیا ہے؟

@@ -223,8 +223,6 @@ I	44	44.1	44.1.2	Which {{entity_A}} were affected by {{event_A}}?	Which {{entity
 I	44	44.1	44.1.3	Which {{entity_A}} were affected by {{event_A}}?	Which {{entity_A}} were affected by {{event_A}}?	Liệt kê {{entity_A}} bị ảnh hưởng bởi {{event_A}}.
 I	45	45.1	45.1.1	When did {{event_A}} hit {{entity A}}?	When did {{event_A}} hit {{entity A}}?	Khi nào {{event_A}} xảy ra với {{entity_A}}?
 I	45	45.1	45.1.2	When did {{event_A}} hit {{entity A}}?	When did {{event_A}} hit {{entity A}}?	{{event_A}} tác động đến {{entity_A}} vào lúc nào?
-I	46	46.1	46.1.1	Do {{event_A}} and {{event_B}} overlap temporarily?	Do {{event_A}} and {{event_B}} overlap temporarily?	{{event_A}} và {{event_B}} có trùng lặp nhau trong một khoảng thời gian ngắn không?
-I	46	46.1	46.1.2	Do {{event_A}} and {{event_B}} overlap temporarily?	Do {{event_A}} and {{event_B}} overlap temporarily?	Liệu {{event_A}} và {{event_B}} có xảy ra trong các khoảng thời gian trùng lặp không?
 I	47	47.1	47.1.1	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	Diện tích bị ảnh hưởng bởi {{event_A}} là bao nhiêu?
 I	47	47.1	47.1.2	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	Tổng diện tích bị ảnh hưởng bởi {{event_A}} là bao nhiêu?
 I	47	47.1	47.1.3	How large is the area affected by {{event_A}}?	How large is the area affected by {{event_A}}?	Diện tích bị ảnh hưởng bởi {{event_A}} là bao nhiêu?

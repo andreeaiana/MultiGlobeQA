@@ -472,11 +472,6 @@
    "sfid": "I",
    "answer_type": "Date"
   },
-  "46.1": {
-   "tid": "46.1",
-   "sfid": "I",
-   "answer_type": "Boolean (yes/no, true/false)"
-  },
   "47.1": {
    "tid": "47.1",
    "sfid": "I",
