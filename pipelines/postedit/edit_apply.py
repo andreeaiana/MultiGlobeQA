@@ -10,7 +10,7 @@ plan ``async-shimmying-truffle.md``.
 
 import re
 
-from entity_match import MATCH_EXACT, MATCH_NONE, match_entity
+from pipelines.postedit.entity_match import MATCH_EXACT, MATCH_NONE, match_entity
 
 _MARKER_RE = re.compile(r"\{\{([^{}]+)\}\}")
 _NESTED_BRACE_RE = re.compile(r"\{\{[^{}]*\{\{|\}\}[^{}]*\}\}")

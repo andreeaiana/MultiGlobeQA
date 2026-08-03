@@ -24,8 +24,6 @@ from typing import Any
 
 from benchmark_models.base import Model
 from benchmark_models.config import (
-    AnthropicVariantConfig,
-    DeepSeekVariantConfig,
     GoogleVariantConfig,
     MultimodalMode,
     OpenAIVariantConfig,

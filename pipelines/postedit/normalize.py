@@ -9,7 +9,7 @@ from typing import Iterator, Optional
 
 from loguru import logger
 
-from schema import InputQuestion
+from pipelines.postedit.schema import InputQuestion
 
 # Match {{placeholder_name}} in templates
 PLACEHOLDER_RE = re.compile(r"\{\{(\w+)\}\}")

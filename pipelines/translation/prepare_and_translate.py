@@ -19,8 +19,8 @@ from pathlib import Path
 import pandas as pd
 from google.cloud import translate_v3
 
-from config import VARIANTS_FILE, TRANSLATIONS_DIR, TARGET_LANGUAGES
-from placeholder_utils import (
+from pipelines.translation.config import VARIANTS_FILE, TRANSLATIONS_DIR, TARGET_LANGUAGES
+from pipelines.translation.placeholder_utils import (
     normalize_whitespace,
     protect_placeholders,
     restore_placeholders,

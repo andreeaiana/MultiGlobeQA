@@ -5,8 +5,8 @@ from collections import Counter
 from dataclasses import dataclass
 from typing import Optional
 
-from config import MODEL_NAMES
-from schema import ModelResult
+from pipelines.postedit.config import MODEL_NAMES
+from pipelines.postedit.schema import ModelResult
 
 
 @dataclass

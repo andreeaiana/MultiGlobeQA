@@ -21,8 +21,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Iterable, Optional
 
-from cell_walker import iter_output_results
-from config import DEFAULT_OUTPUT_DIR
+from pipelines.postedit.cell_walker import iter_output_results
+from pipelines.postedit.config import DEFAULT_OUTPUT_DIR
 
 try:
     import pandas as pd

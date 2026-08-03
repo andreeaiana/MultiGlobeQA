@@ -20,7 +20,7 @@ from typing import Any, Optional
 
 from loguru import logger
 
-from config import (
+from pipelines.postedit.config import (
     DEEPSEEK_BASE_URL,
     DEEPSEEK_MODEL,
     GEMINI_MODEL,

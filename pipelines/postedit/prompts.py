@@ -22,7 +22,7 @@ from pathlib import Path
 
 from loguru import logger
 
-from config import TAXONOMY_WITH_DESCRIPTIONS
+from pipelines.postedit.config import TAXONOMY_WITH_DESCRIPTIONS
 
 
 _TAXONOMY_BLOCK = "\n".join(

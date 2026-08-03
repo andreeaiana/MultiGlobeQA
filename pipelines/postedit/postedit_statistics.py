@@ -31,14 +31,14 @@ from itertools import combinations
 from pathlib import Path
 from typing import Iterable, Optional
 
-from cell_walker import (
+from pipelines.postedit.cell_walker import (
     iter_cells,
     iter_output_results,
     iter_records,
     output_path_for,
 )
-from config import DEFAULT_FINAL_ROOT, DEFAULT_OUTPUT_DIR, MODEL_NAMES, TAXONOMY
-from ensemble import normalize_for_compare
+from pipelines.postedit.config import DEFAULT_FINAL_ROOT, DEFAULT_OUTPUT_DIR, MODEL_NAMES, TAXONOMY
+from pipelines.postedit.ensemble import normalize_for_compare
 
 
 # Edit-distance buckets

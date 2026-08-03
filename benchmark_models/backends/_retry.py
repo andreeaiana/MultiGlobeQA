@@ -1,7 +1,7 @@
 """Retry with exponential backoff for transient API errors.
 
 Used by every backend (``GoogleModel``, ``OpenAIModel``,
-``AnthropicModel``, ``VLLMModel``) and by ``SmolagentsModel`` (tier 3)
+``GoogleModel``, ``VLLMHttpModel``) and by ``SmolagentsModel`` (tier 3)
 to wrap the provider SDK call and retry on transient failures:
 
 * Rate limits (HTTP 429)

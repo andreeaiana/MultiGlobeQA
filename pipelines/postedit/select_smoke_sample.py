@@ -48,8 +48,8 @@ from typing import Iterator
 
 from loguru import logger
 
-from cell_walker import iter_cells, iter_records
-from config import DEFAULT_BENCHMARK_ROOT
+from pipelines.postedit.cell_walker import iter_cells, iter_records
+from pipelines.postedit.config import DEFAULT_BENCHMARK_ROOT
 
 
 SMOKE_OUT_DIR = Path(__file__).resolve().parents[2] / "output" / "postedit" / "smoke"

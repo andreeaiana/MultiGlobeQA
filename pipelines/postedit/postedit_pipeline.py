@@ -57,8 +57,8 @@ from typing import Iterable, Optional
 
 from loguru import logger
 
-from cell_walker import Cell, iter_cells, iter_records, output_path_for
-from config import (
+from pipelines.postedit.cell_walker import Cell, iter_cells, iter_records, output_path_for
+from pipelines.postedit.config import (
     DEFAULT_BATCH_SIZE,
     DEFAULT_BENCHMARK_ROOT,
     DEFAULT_LANGUAGE,
@@ -73,20 +73,20 @@ from config import (
     RESUME_RETRY_FAILED,
     RESUME_SKIP_DONE,
 )
-from edit_apply import strip_entity_braces, validate_and_strip
-from ensemble import decide
-from llm_clients import BaseLLMClient, LLMError, VLLMClient, build_clients
-from logging_setup import setup_logging
-import mlflow_logging
-from normalize import normalize_record
-from prompts import build_user_prompt, get_system_prompt
-from resume import (
+from pipelines.postedit.edit_apply import strip_entity_braces, validate_and_strip
+from pipelines.postedit.ensemble import decide
+from pipelines.postedit.llm_clients import BaseLLMClient, LLMError, VLLMClient, build_clients
+from pipelines.postedit.logging_setup import setup_logging
+from pipelines.postedit import mlflow_logging
+from pipelines.postedit.normalize import normalize_record
+from pipelines.postedit.prompts import build_user_prompt, get_system_prompt
+from pipelines.postedit.resume import (
     load_existing_qids,
     rewrite_dropping_qids,
     split_done_failed,
 )
-from schema import EnsembleRecord, InputQuestion, ModelResult, parse_model_json
-from templates_lookup import TemplateRegistry
+from pipelines.postedit.schema import EnsembleRecord, InputQuestion, ModelResult, parse_model_json
+from pipelines.postedit.templates_lookup import TemplateRegistry
 
 DEFAULT_FINAL_ROOT = Path(__file__).resolve().parents[2] / "benchmark" / "final" / "large"
 

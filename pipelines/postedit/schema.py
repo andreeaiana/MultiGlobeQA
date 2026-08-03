@@ -6,7 +6,7 @@ from typing import Any, Optional
 
 from pydantic import BaseModel, Field, field_validator
 
-from config import TAXONOMY
+from pipelines.postedit.config import TAXONOMY
 
 
 class InputQuestion(BaseModel):

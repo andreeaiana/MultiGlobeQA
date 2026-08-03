@@ -1,0 +1,162 @@
+{
+ "kwg:administrativeRegion.USA.06027": {
+  "aliases": [],
+  "canonical": "Inyo County, California"
+ },
+ "kwg:administrativeRegion.USA.39095": {
+  "aliases": [],
+  "canonical": "Lucas County, Ohio"
+ },
+ "kwg:administrativeRegion.USA.72035": {
+  "aliases": [],
+  "canonical": "Cayey Municipio, Puerto Rico"
+ },
+ "kwg:administrativeRegion.USA.72145": {
+  "aliases": [],
+  "canonical": "Vega Baja Municipio, Puerto Rico"
+ },
+ "kwg:bphcSite.BPS-H80-000625": {
+  "aliases": [],
+  "canonical": "Bureau of Primary Health Care (BPHC) site with ID BPS-H80-000625"
+ },
+ "kwg:bphcSite.BPS-H80-017740": {
+  "aliases": [],
+  "canonical": "Bureau of Primary Health Care (BPHC) site with ID BPS-H80-017740"
+ },
+ "kwg:bphcSite.BPS-H80-021866": {
+  "aliases": [],
+  "canonical": "Bureau of Primary Health Care (BPHC) site with ID BPS-H80-021866"
+ },
+ "kwg:bphcSite.BPS-H80-031479": {
+  "aliases": [],
+  "canonical": "Bureau of Primary Health Care (BPHC) site with ID BPS-H80-031479"
+ },
+ "kwg:bphcSite.BPS-H80-031951": {
+  "aliases": [],
+  "canonical": "Bureau of Primary Health Care (BPHC) site with ID BPS-H80-031951"
+ },
+ "kwg:bphcSite.BPS-LAL-037928": {
+  "aliases": [],
+  "canonical": "BPHC_Site"
+ },
+ "kwg:rxOpenFacility.30THAVENUEPHARMACYINC350630thAve": {
+  "aliases": [],
+  "canonical": "30TH AVENUE PHARMACY INC"
+ },
+ "kwg:rxOpenFacility.ApexDrugStoresInc5520DRAKEROAD": {
+  "aliases": [],
+  "canonical": "\"Apex Drug Stores Inc\" (42.555, -83.401)"
+ },
+ "kwg:rxOpenFacility.BonSecoursVirginiaHealthSourceInc6900ForestAveSte100": {
+  "aliases": [],
+  "canonical": "Bon Secours - Virginia HealthSource, Inc."
+ },
+ "kwg:rxOpenFacility.CENTRODESALUDFAMILIARLAFEINC700SOchoaSt": {
+  "aliases": [],
+  "canonical": "CENTRO DE SALUD FAMILIAR LA FE INC"
+ },
+ "kwg:rxOpenFacility.CLANCORPORATION199EBUENAVISTAAVE": {
+  "aliases": [],
+  "canonical": "CLAN CORPORATION"
+ },
+ "kwg:rxOpenFacility.FARMACIALACANDELARIAINCCarr107km30": {
+  "aliases": [],
+  "canonical": "\"FARMACIA LA CANDELARIA INC\" (18.456, -67.146)"
+ },
+ "kwg:rxOpenFacility.FARMACIALACANDELARIAINCPR122AVECASTOPEREZ": {
+  "aliases": [],
+  "canonical": "\"FARMACIA LA CANDELARIA INC\" (18.113, -67.04)"
+ },
+ "kwg:rxOpenFacility.FarmaciaGarciaInc121CalleVidalFelix": {
+  "aliases": [],
+  "canonical": "Farmacia Garcia Inc"
+ },
+ "kwg:rxOpenFacility.HancockPharmacyInc715KnickerbockerAve": {
+  "aliases": [],
+  "canonical": "\"Hancock Pharmacy Inc\" (40.694, -73.91)"
+ },
+ "kwg:rxOpenFacility.OSFMultiSpecialtyGroup2917W95thSt": {
+  "aliases": [],
+  "canonical": "\"OSF Multi-Specialty Group\" (41.721, -87.695)"
+ },
+ "kwg:rxOpenFacility.PLYMOUTHPARKPHARMACYINC1112SADDLERIVERRD": {
+  "aliases": [],
+  "canonical": "PLYMOUTH PARK PHARMACY INC"
+ },
+ "kwg:rxOpenFacility.RITEAIDOFMICHIGANINC2480LAPEERROAD": {
+  "aliases": [],
+  "canonical": "\"RITE AID OF MICHIGAN INC\" (42.678, -83.251)"
+ },
+ "kwg:rxOpenFacility.RITEAIDOFVIRGINIAINC5210OAKLAWNBOULEVARD": {
+  "aliases": [],
+  "canonical": "\"RITE AID OF VIRGINIA INC\" (37.26, -77.325)"
+ },
+ "kwg:rxOpenFacility.SheaEnterprises2235VeteransHwy": {
+  "aliases": [],
+  "canonical": "Shea Enterprises"
+ },
+ "kwg:rxOpenFacility.UNIONSIDERXINC509WESTSIDEAVENUE": {
+  "aliases": [],
+  "canonical": "UNION SIDE RX INC"
+ },
+ "kwg:rxOpenFacility.WalmartInc10096KenaiSpurHwy": {
+  "aliases": [],
+  "canonical": "\"Walmart Inc.\" (60.564, -151.226)"
+ },
+ "kwg:rxOpenFacility.WalmartInc730TENNEYST": {
+  "aliases": [],
+  "canonical": "\"Walmart Inc.\" (41.221, -89.923)"
+ },
+ "kwg:zipCodeArea.00624": {
+  "aliases": [],
+  "canonical": "Zip code tabulation area with zipcode 00624"
+ },
+ "kwg:zipCodeArea.00693": {
+  "aliases": [],
+  "canonical": "Zip code tabulation area with zipcode 00693"
+ },
+ "kwg:zipCodeArea.00720": {
+  "aliases": [],
+  "canonical": "Zip code tabulation area with zipcode 00720"
+ },
+ "kwg:zipCodeArea.00736": {
+  "aliases": [],
+  "canonical": "Zip code tabulation area with zipcode 00736"
+ },
+ "kwg:zipCodeArea.04757": {
+  "aliases": [],
+  "canonical": "Zip code tabulation area with zipcode 04757"
+ },
+ "kwg:zipCodeArea.06278": {
+  "aliases": [],
+  "canonical": "Zip code tabulation area with zipcode 06278"
+ },
+ "kwg:zipCodeArea.27351": {
+  "aliases": [],
+  "canonical": "Zip code tabulation area with zipcode 27351"
+ },
+ "kwg:zipCodeArea.78565": {
+  "aliases": [],
+  "canonical": "Zip code tabulation area with zipcode 78565"
+ },
+ "kwg:zipCodeArea.81640": {
+  "aliases": [],
+  "canonical": "Zip code tabulation area with zipcode 81640"
+ },
+ "kwg:zipCodeArea.96913": {
+  "aliases": [],
+  "canonical": "Zip code tabulation area with zipcode 96913"
+ },
+ "kwg:zipCodeArea.99546": {
+  "aliases": [],
+  "canonical": "Zip code tabulation area with zipcode 99546"
+ },
+ "osm:4078326421": {
+  "aliases": [],
+  "canonical": "San Pedro Macati"
+ },
+ "osm:9702103839": {
+  "aliases": [],
+  "canonical": "Rex Bookstore"
+ }
+}

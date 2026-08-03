@@ -35,7 +35,7 @@ from pathlib import Path
 
 from loguru import logger
 
-from config import KG_BUCKETS, TARGET_LANGUAGES
+from pipelines.postedit.config import KG_BUCKETS, TARGET_LANGUAGES
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
