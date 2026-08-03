@@ -83,10 +83,10 @@ class AliasStore:
     ) -> AliasStore:
         """Load the per-language alias store for ``lang``.
 
-        Loads ``<aliases_dir>/<lang>.json`` if present (built by
-        ``scripts/build_alias_stores.py`` from the multilingual
-        entity-name parquets). When the requested language file is
-        missing, falls back to ``<aliases_dir>/<fallback>.json``
+        Loads ``<aliases_dir>/<lang>.json`` if present. The stores are
+        released alongside the benchmark data, one per language. When the
+        requested language file is missing, falls back to
+        ``<aliases_dir>/<fallback>.json``
         (English source by default) so the eval still runs on
         languages whose target-lang store hasn't been built yet.
 
@@ -108,8 +108,9 @@ class AliasStore:
                 return cls.load(fb)
         raise FileNotFoundError(
             f"No alias store for language {lang!r} at {target} and no "
-            f"fallback {fallback!r} either. Build with "
-            f"``scripts.build_alias_stores`` first."
+            f"fallback {fallback!r} either. The per-language alias stores "
+            f"ship with the benchmark data; see the README for where to "
+            f"download them."
         )
 
     @classmethod
