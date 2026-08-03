@@ -178,17 +178,16 @@ class TestTypeRegistry:
 # ============================================================================
 
 
-# The full SFID vocabulary as observed in the Templates sheet on
-# 2026-04-09. Templates are final per design review, so this list is
-# stable. If a new family is added later, update both this list and
-# the SPATIAL_FUNCTIONS registry; the test fails both ways.
+# The spatial-function families the released benchmark uses. If a family is
+# added, update both this set and the SPATIAL_FUNCTIONS registry; the test
+# fails either way.
 EXPECTED_SFIDS = frozenset(
-    {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P"}
+    {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N"}
 )
 
 # Total distinct (sfid, ssfid) pairs (with the two known gaps at
 # A.VII and I.VI).
-EXPECTED_SUBFUNCTION_COUNT = 60
+EXPECTED_SUBFUNCTION_COUNT = 55
 
 
 class TestSpatialFunctions:
@@ -224,7 +223,7 @@ class TestSpatialFunctions:
 
     def test_list_spatial_functions_in_registration_order(self) -> None:
         listed = list_spatial_functions()
-        assert [s.sfid for s in listed] == list("ABCDEFGHIJKLMNOP")
+        assert [s.sfid for s in listed] == list("ABCDEFGHIJKLMN")
 
 
 class TestSpatialSubFunctions:

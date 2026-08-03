@@ -225,14 +225,14 @@ class TestLoadGoldRowsPerTidFallback:
         self, tmp_path: Path
     ) -> None:
         """When the per-row ``ground_truth_type`` disagrees with the
-        registry (e.g. TID 115.1 labels gold as ``coordinates`` but
+        registry (e.g. TID 66.1 labels gold as ``coordinates`` but
         the data shape is a 4-number bbox), the registry's
         ``answer_type`` wins. This catches benchmark-side mislabels
         without waiting on a generator-side fix."""
         registry = TemplateRegistry(
             templates={
-                "115.1": TemplateInfo(
-                    tid="115.1", sfid="P",
+                "66.1": TemplateInfo(
+                    tid="66.1", sfid="N",
                     answer_type="Bounding box (4-float)",
                     answer_unit="degrees",
                 ),
@@ -243,7 +243,7 @@ class TestLoadGoldRowsPerTidFallback:
             path,
             [
                 _row(
-                    qid="q-bbox", tid="115.1", sfid="P",
+                    qid="q-bbox", tid="66.1", sfid="N",
                     # Per-row says coordinates (wrong) but the gold
                     # shape is a 4-number bbox.
                     ground_truth="45.18,-67.27,45.20,-67.25",

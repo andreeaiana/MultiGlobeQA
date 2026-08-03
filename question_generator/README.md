@@ -1,155 +1,141 @@
 # question_generator
 
-Builds the spatial QA benchmark from raw KG data: ingestion, entity sampling, template instantiation, validation, and export.
+Builds the benchmark from knowledge-graph data: ingestion, entity sampling,
+template instantiation, answer computation, validation and export.
 
-## Architecture Overview
+Every answer is produced by spatial SQL over the graph, so it is verifiable and
+reproducible from a seed.
 
-```
-Raw Data (KWG / OSM / WorldKG)
-    │
-    ▼
-NT Parser (Rust) → RDF Triples
-    │
-    ▼
-nt_to_delta.transformer → Entity Delta Tables
-    │
-    ▼
-PageRank Computation → Ranked Entities
-    │
-    ▼
-Sampler (Pragmatic or Hierarchical) → Sampled Entities
-    │
-    ▼
-TemplateManager → SQL/UDF Execution via SedonaExecutor or StandardSparkExecutor
-    │
-    ▼
-BenchmarkValidator → Validated Answers
-    │
-    ▼
-BenchmarkExporter → JSONL / Parquet Output
-```
-
-### Knowledge Graphs
-
-| KG                 | Source                                 | Coverage             | Entity Types                                  |
-| ------------------ | -------------------------------------- | -------------------- | --------------------------------------------- |
-| **WorldKG**        | OpenStreetMap via geographic triples   | Global               | POIs, landmarks, natural features             |
-| **OSMH3KG**        | OpenStreetMap + H3 DGG                 | Configurable regions | OSM features with H3 spatial indexing         |
-| **KnowWhereGraph** | Multi-source (USGS, EPA, Census, etc.) | US-focused           | Observations, administrative regions, hazards |
-
-### Template System
-
-19 benchmark templates across 10 Spatial Function ID (SFID) categories:
-
-| SFID | Category           | Example Question                         |
-| ---- | ------------------ | ---------------------------------------- |
-| A    | Metric Distance    | "What is the distance between X and Y?"  |
-| B    | Metric Containment | "How many X are within 1km of Y?"        |
-| C    | Topological        | "Does X intersect Y?"                    |
-| D    | Network/Path       | "What is the shortest path from X to Y?" |
-| E    | Administrative     | "Does boundary of X contain Y?"          |
-| F    | Ordering           | "What is the largest X in Y?"            |
-| H    | Hierarchy          | "What region contains X?"                |
-| K    | Directional        | "Is X north of Y?"                       |
-| L    | Shape/Geometry     | "What is the fractal dimension of X?"    |
-| P    | Coordinates        | "What are the coordinates of X?"         |
-
-## Quick Start
-
-```bash
-# Generate benchmark with dummy data (no real KG data needed)
-uv run multiglobeqa generate --dry-run --samples 100 --seed 42 --output-format jsonl,parquet
-
-# Full pipeline with real data
-uv run multiglobeqa run --kg all --samples 3000 --seed 42
-
-# Validate an existing benchmark
-uv run multiglobeqa validate --input data/benchmark_output/benchmark.jsonl
-```
-
-### CLI Subcommands
-
-```bash
-  # 1. Extract raw data
-  uv run multiglobeqa extract --kg all
-
-  # 2. Convert triples → entity table
-  uv run multiglobeqa convert --kg all
-
-  # 3. PageRank (needs triples, writes separate sibling table)
-  uv run multiglobeqa pagerank --kg all
-
-  # 4. Enrich (needs entity table + PageRank already joined)
-  uv run multiglobeqa enrich --kg all
-
-  # 5. Generate benchmark
-  uv run multiglobeqa generate --pipeline-mode compute-first --seed 42
-```
+## Pipeline
 
 ```
-multiglobeqa extract   --kg {worldkg,osmh3kg,kwg,all}     # Extract raw data
-multiglobeqa convert   --kg {worldkg,osmh3kg,kwg,all}     # Convert to Delta tables
-multiglobeqa pagerank  --kg {worldkg,osmh3kg,kwg,all}     # Compute PageRank
-multiglobeqa generate  --samples N --seed S               # Generate benchmark
-multiglobeqa validate  --input benchmark.jsonl             # Validate answers
-multiglobeqa run       --kg all --samples 3000 --seed 42  # Full pipeline
+raw KG dumps
+   → nt_parser_rs (Rust)            N-Triples → RDF triples
+   → data_extraction.nt_to_delta    triples → entity Delta tables
+   → PageRank                       entity prominence
+   → shape_executor                 sampling + spatial SQL per sub-template
+   → validator                      answer sanity checks
+   → exporter                       JSONL / Parquet
 ```
 
-## Data Preparation
+## Knowledge graphs
 
-### WorldKG
+| KG | source | coverage | geometries |
+|---|---|---|---|
+| WorldKG | OpenStreetMap | global | points |
+| OSMH3KG | OpenStreetMap + H3 grid | configurable regions | points, lines, polygons |
+| KnowWhereGraph | USGS, EPA, Census, USDA and others | US-focused | points, polygons, topology |
 
-1. Download WorldKG NT files to `data/worldkg/`
-2. Parse with Rust parser: `cd nt_parser_rs && cargo run --release`
-3. Convert: `uv run multiglobeqa convert --kg worldkg`
+Coverage varies: not every spatial family can be asked of every graph.
 
-### OSMH3KG
+## Spatial-function families
 
-1. Download OSM extracts: `bash data_extraction/download_osm.sh`
-2. Generate H3 grid: `uv run multiglobeqa extract --kg osmh3kg`
-3. Convert: `uv run multiglobeqa convert --kg osmh3kg`
+Fourteen families, defined in
+`benchmark_models/schemas/spatial_functions.py`:
 
-### KnowWhereGraph
+| | | | |
+|---|---|---|---|
+| A | Metric distance & proximity | H | Grid & spatial indexing |
+| B | Metric containment | I | Spatio-temporal events |
+| C | Topological relationships | J | Directional & orientation |
+| D | Network & path-based | K | Shape & geometry properties |
+| E | Containment & administrative hierarchy | L | Uncertainty & fuzzy reasoning |
+| F | Spatial comparison & ordering | M | Transformation & reference change |
+| G | Centrality & medial geometry | N | Spatial reference & geometry |
 
-1. Configure SPARQL endpoints in environment
-2. Crawl: `uv run multiglobeqa extract --kg kwg`
+## SQL shapes
+
+Each of the 129 sub-templates is a triplet under `sql_shapes/<sfid>/`:
+
+| file | contents |
+|---|---|
+| `<tid>.meta.yaml` | applicable graphs, entity pools, sampling strategy, parameters, which predicates to collect as gold triples |
+| `<tid>.sql` | the question-generation query |
+| `<tid>.gold.sql` | the gold-triple extraction query |
+
+A shape may declare several **variants** — different entity pairings over the same
+SQL. Reference one as `<tid>:<variant>`; a bare `<tid>` resolves when the shape
+declares only one.
+
+## CLI
+
+```
+multiglobeqa extract   --kg {worldkg,osmh3kg,kwg,all}    fetch raw KG data
+multiglobeqa convert   --kg {worldkg,osmh3kg,kwg,all}    triples → Delta tables
+multiglobeqa pagerank  --kg {worldkg,osmh3kg,kwg,all}    entity prominence
+multiglobeqa enrich    --kg {worldkg,osmh3kg,kwg,all}    cell coverage, population, strata
+multiglobeqa generate  --run <spec>.yaml                 instantiate questions
+multiglobeqa validate  --input benchmark.jsonl           check an existing benchmark
+multiglobeqa run       --kg all --run <spec>.yaml        extract → convert → pagerank → generate
+```
+
+### Run spec
+
+`generate` is driven by a YAML spec, validated by `RunSpec` in `shape_loader.py`:
+
+```yaml
+run_name: example
+tids:                      # <tid> or <tid>:<variant>
+  - 1.1:poi
+kgs:      [kwg, osmh3kg, worldkg]
+strata:   [HIC_high, LIC_high]     # <income>_<density>, or omit for all
+run_seed: 12345
+total_sample: 2000
+output_dir: data/benchmark_output/example
+countries_per_cell: 2      # optional, default 2
+overrides: {}              # optional per-tid sampling overrides
+```
+
+Strata cells are `<income>_<density>`, income in {HIC, UMC, LMC, LIC} and density in
+{high, medium, low}.
+
+## Data preparation
+
+| KG | steps |
+|---|---|
+| WorldKG | download the NT dumps, then `cd nt_parser_rs && cargo run --release`, then `multiglobeqa convert --kg worldkg` |
+| OSMH3KG | `bash data_extraction/download_osm.sh`, then `multiglobeqa extract --kg osmh3kg`, then `convert` |
+| KnowWhereGraph | set the SPARQL endpoint, then `multiglobeqa extract --kg kwg` |
+
+Population rasters come from `data_extraction/download_population.sh`; the strata
+assignment in `enrich` needs them.
 
 ## Configuration
 
-All configuration can be overridden via environment variables:
+| variable | default | purpose |
+|---|---|---|
+| `MULTIGLOBEQA_DATA_DIR` | `./data` | root data directory |
+| `MULTIGLOBEQA_INCLUDED_TIDS` | all | comma-separated allowlist, e.g. `1,13,64` |
+| `MULTIGLOBEQA_FAIL_ON_ERROR` | `false` | abort instead of skipping a failing template |
+| `MULTIGLOBEQA_MAX_WKT_BYTES` | — | drop geometries above this size |
+| `MULTIGLOBEQA_MAX_POOL_SIZE` | — | cap entities per pool |
+| `MULTIGLOBEQA_GOLD_TRIPLES_ERROR_THRESHOLD` | — | tolerated share of gold-triple failures |
+| `ENTITIES_PER_TEMPLATE` | 30 | entities sampled per template |
+| `WORLDKG_NODES_PATH`, `OSMH3KG_NODES_PATH`, `KWG_ENTITIES_PATH` | under `data/` | Delta table locations |
+| `SPARK_MASTER`, `SPARK_DRIVER_MEMORY`, `SPARK_EXECUTOR_MEMORY`, `SPARK_TEMP_DIR` | `local[*]`, `4g` | Spark |
+| `PAGERANK_DAMPING`, `PAGERANK_MAX_ITER` | 0.85, — | PageRank |
+| `MLFLOW_TRACKING_URI`, `MLFLOW_EXPERIMENT_NAME` | local | run tracking |
 
-| Variable                     | Default                            | Description                 |
-| ---------------------------- | ---------------------------------- | --------------------------- |
-| `MULTIGLOBEQA_DATA_DIR`      | `./data`                           | Root data directory         |
-| `WORLDKG_NODES_PATH`         | `data/worldkg/worldkg_nodes`       | WorldKG Delta table         |
-| `OSMH3KG_NODES_PATH`         | `data/osmh3kg/osmh3kg_nodes`       | OSMH3KG Delta table         |
-| `KWG_ENTITIES_PATH`          | `data/kwg/knowwheregraph_entities` | KWG Delta table             |
-| `SPARK_MASTER`               | `local[*]`                         | Spark master URL            |
-| `SPARK_DRIVER_MEMORY`        | `4g`                               | Spark driver memory         |
-| `MULTIGLOBEQA_FAIL_ON_ERROR` | `false`                            | Fail on template errors     |
-| `DEFAULT_SAMPLE_SIZE`        | `3000`                             | Default entity sample count |
-| `MLFLOW_TRACKING_URI`        | `file://./logs/mlruns`             | MLflow tracking URI         |
-| `OUTPUT_BENCHMARK_DIR`       | `data/benchmark_output`            | Benchmark output directory  |
+## Output schema
 
-## Output Format
+One JSON object per question:
 
-The benchmark is exported in JSONL and/or Parquet format with the following schema:
+| column | description |
+|---|---|
+| `question_id` | UUID; the join key for predictions and gold triples |
+| `tid` / `vid` | sub-template id (`13.1`) and paraphrase-variant id (`13.1.2`) |
+| `variant_stid` | variant index within the sub-template |
+| `sfid` | spatial-function family, A–N |
+| `question` | the rendered question |
+| `base_template` | the template with `{{entity_A}}`-style placeholders, English |
+| `ground_truth` / `ground_truth_type` | the computed answer and its type |
+| `entity_a_id` / `entity_a_name` | first operand; `entity_b_*` and `entity_c_*` when the template is binary or ternary |
+| `parameters` | JSON of the sampling parameters the shape used |
+| `kg_source` | originating graph |
+| `strata_cell` | `<income>_<density>` |
+| `is_true_premise` | false-premise questions have no valid answer |
+| `is_valid` | passed answer validation |
+| `language` | ISO 639-3 code |
 
-| Column              | Type    | Description                                         |
-| ------------------- | ------- | --------------------------------------------------- |
-| `question_id`       | string  | Unique identifier (UUID)                            |
-| `tid`               | string  | Template ID                                         |
-| `sfid`              | string  | Spatial Function ID                                 |
-| `question`          | string  | Interpolated question text                          |
-| `base_template`     | string  | Original template with placeholders                 |
-| `ground_truth`      | string  | Computed answer                                     |
-| `ground_truth_type` | string  | Answer type (distance_meters, count, boolean, etc.) |
-| `entity_a_id`       | string  | Entity A identifier                                 |
-| `entity_a_name`     | string  | Entity A human-readable name                        |
-| `entity_b_id`       | string  | Entity B identifier (if binary)                     |
-| `entity_b_name`     | string  | Entity B human-readable name (if binary)            |
-| `parameters`        | string  | JSON parameters used                                |
-| `kg_source`         | string  | Source knowledge graph                              |
-| `is_valid`          | boolean | Whether ground truth passes validation              |
-| `validation_errors` | string  | Validation error messages (if any)                  |
-
+Gold triples are written alongside, keyed by `question_id`: the KG triples the answer
+was computed from.

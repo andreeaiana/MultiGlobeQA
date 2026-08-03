@@ -56,7 +56,7 @@ class SpatialSubFunctionInfo:
 
 
 # ----------------------------------------------------------------------------
-# SPATIAL_FUNCTIONS — 16 entries (A through P)
+# SPATIAL_FUNCTIONS — 14 entries (A through N)
 # ----------------------------------------------------------------------------
 
 
@@ -71,13 +71,11 @@ _SF_ENTRIES: tuple[SpatialFunctionInfo, ...] = (
     SpatialFunctionInfo("G", "Centrality & Medial Geometry"),
     SpatialFunctionInfo("H", "Grid & Spatial Indexing"),
     SpatialFunctionInfo("I", "Spatio-Temporal Events"),
-    SpatialFunctionInfo("J", "Spatio-Temporal Change"),
-    SpatialFunctionInfo("K", "Directional & Orientation"),
-    SpatialFunctionInfo("L", "Shape & Geometry Properties"),
-    SpatialFunctionInfo("M", "Uncertainty & Fuzzy Reasoning"),
-    SpatialFunctionInfo("N", "Visibility & Exposure"),
-    SpatialFunctionInfo("O", "Spatial Transformation & Reference Change"),
-    SpatialFunctionInfo("P", "Spatial Reference & Geometry"),
+    SpatialFunctionInfo("J", "Directional & Orientation"),
+    SpatialFunctionInfo("K", "Shape & Geometry Properties"),
+    SpatialFunctionInfo("L", "Uncertainty & Fuzzy Reasoning"),
+    SpatialFunctionInfo("M", "Spatial Transformation & Reference Change"),
+    SpatialFunctionInfo("N", "Spatial Reference & Geometry"),
 )
 
 SPATIAL_FUNCTIONS: Mapping[str, SpatialFunctionInfo] = MappingProxyType(
@@ -87,7 +85,7 @@ SPATIAL_FUNCTIONS: Mapping[str, SpatialFunctionInfo] = MappingProxyType(
 
 
 # ----------------------------------------------------------------------------
-# SPATIAL_SUBFUNCTIONS — 60 entries
+# SPATIAL_SUBFUNCTIONS — 55 entries
 # ----------------------------------------------------------------------------
 
 
@@ -143,31 +141,24 @@ _SSF_ENTRIES: tuple[SpatialSubFunctionInfo, ...] = (
     SpatialSubFunctionInfo("I", "IV", "Temporal overlap"),
     SpatialSubFunctionInfo("I", "V", "Spatial overlap"),
     SpatialSubFunctionInfo("I", "VII", "Spatial impact"),
-    # ---- J: Spatio-Temporal Change ----
-    SpatialSubFunctionInfo("J", "I", "State comparison"),
-    SpatialSubFunctionInfo("J", "II", "Trend over time"),  # streamlined
-    SpatialSubFunctionInfo("J", "III", "Identity evolution"),
-    # ---- K: Directional & Orientation ----
-    SpatialSubFunctionInfo("K", "I", "Cardinal direction"),  # streamlined
-    SpatialSubFunctionInfo("K", "II", "Relative to path / location"),
-    SpatialSubFunctionInfo("K", "III", "Angular orientation"),
-    # ---- L: Shape & Geometry Properties ----
-    SpatialSubFunctionInfo("L", "I", "Area comparison"),
-    SpatialSubFunctionInfo("L", "II", "Perimeter"),
-    SpatialSubFunctionInfo("L", "III", "Shape reasoning"),  # streamlined
-    # ---- M: Uncertainty & Fuzzy Reasoning ----
-    SpatialSubFunctionInfo("M", "I", "Approximate distance"),
-    SpatialSubFunctionInfo("M", "II", "Vague spatial reference"),  # streamlined
-    SpatialSubFunctionInfo("M", "III", "Probabilistic containment"),
-    # ---- N: Visibility & Exposure ----
-    SpatialSubFunctionInfo("N", "I", "Visibility range"),
-    SpatialSubFunctionInfo("N", "II", "Occlusion"),
-    # ---- O: Spatial Transformation & Reference Change ----
-    SpatialSubFunctionInfo("O", "I", "Relative position"),
-    SpatialSubFunctionInfo("O", "II", "Reference system conversion"),  # streamlined
-    # ---- P: Spatial Reference & Geometry ----
-    SpatialSubFunctionInfo("P", "I", "Absolute coordinate retrieval"),
-    SpatialSubFunctionInfo("P", "II", "Spatial extent representation"),
+    # ---- J: Directional & Orientation ----
+    SpatialSubFunctionInfo("J", "I", "Cardinal direction"),  # streamlined
+    SpatialSubFunctionInfo("J", "II", "Relative to path / location"),
+    SpatialSubFunctionInfo("J", "III", "Angular orientation"),
+    # ---- K: Shape & Geometry Properties ----
+    SpatialSubFunctionInfo("K", "I", "Area comparison"),
+    SpatialSubFunctionInfo("K", "II", "Perimeter"),
+    SpatialSubFunctionInfo("K", "III", "Shape reasoning"),  # streamlined
+    # ---- L: Uncertainty & Fuzzy Reasoning ----
+    SpatialSubFunctionInfo("L", "I", "Approximate distance"),
+    SpatialSubFunctionInfo("L", "II", "Vague spatial reference"),  # streamlined
+    SpatialSubFunctionInfo("L", "III", "Probabilistic containment"),
+    # ---- M: Spatial Transformation & Reference Change ----
+    SpatialSubFunctionInfo("M", "I", "Relative position"),
+    SpatialSubFunctionInfo("M", "II", "Reference system conversion"),  # streamlined
+    # ---- N: Spatial Reference & Geometry ----
+    SpatialSubFunctionInfo("N", "I", "Absolute coordinate retrieval"),
+    SpatialSubFunctionInfo("N", "II", "Spatial extent representation"),
 )
 
 SPATIAL_SUBFUNCTIONS: Mapping[tuple[str, str], SpatialSubFunctionInfo] = MappingProxyType(
