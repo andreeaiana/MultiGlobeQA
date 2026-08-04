@@ -1,6 +1,6 @@
 """Register a session-time aggregated road view for osmh3kg.
 
-Discovery context (see plan 2026-05-04-osmh3kg-road-aggregation-view.md):
+Why the view exists:
 - osmh3kg has 4.78M road rows; 51.4% of named roads span multiple OSM ways
 - Each row is one OSM way (id 1:1 with row); geometry is MULTILINESTRING (99.4%)
 - sfid_d Wave F1 SQL semantics ("which regions does named road X traverse?")

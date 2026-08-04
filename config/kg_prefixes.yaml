@@ -39,8 +39,8 @@ worldkg:
 
 # osmh3kg is a hybrid: label predicates are bare OSM tag keys ("name",
 # "name:en") but type + geometry use full geosparql/rdf IRIs like the
-# other KGs. Predicate strings verified against the actual Delta table
-# via jobs/verify_gold_predicates (230899): hasGeometry ~ 90M rows,
+# other KGs. Predicate strings verified
+# against the Delta table: hasGeometry ~ 90M rows,
 # asWKT ~ 90M rows, rdf:type ~ 80M rows, name ~ 13M rows.
 osmh3kg:
   label:

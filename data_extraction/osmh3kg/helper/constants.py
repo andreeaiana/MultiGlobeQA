@@ -7,7 +7,7 @@ All values can be overridden via environment variables.
 import os
 from pathlib import Path
 
-# Base paths — project-relative defaults instead of hardcoded /ceph/ paths
+# Base paths, resolved relative to the project root.
 _HELPER_DIR = Path(__file__).resolve().parent
 _DATA_PREP_DIR = _HELPER_DIR.parent / "data_preparation"
 _OSMH3KG_DIR = _HELPER_DIR.parent

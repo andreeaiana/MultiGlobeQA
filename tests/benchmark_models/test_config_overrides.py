@@ -64,7 +64,7 @@ class TestConfigOverrideApplication:
 
     def test_self_consistency_n_override_requires_temperature(self) -> None:
         # The tier-2 workhorse variant is now greedy (self-consistency
-        # removed 2026-07-22, temperature reset to 0). Overriding SC to 5
+        # removed, temperature reset to 0). Overriding SC to 5
         # validates only when a temperature > 0 is supplied alongside it.
         config = _CATALOGUE.get("qwen35-a3b-thinking-tier2")
         merged = config.model_dump()

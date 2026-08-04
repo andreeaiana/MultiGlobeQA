@@ -16,8 +16,7 @@ pools:
   - pool_a
   - pool_b
 
-# Per-KG POI vocabulary alignment (Cat 2 fix, Tier 2 Spark coverage scan
-# 2026-05-04):
+# Per-KG POI vocabulary alignment:
 #   - osmh3kg: lowercase OSM amenity tags (hospital/pharmacy/laboratory —
 #     56,378 POIs combined).
 #   - worldkg: PascalCase WorldKG ontology classes

@@ -35,7 +35,7 @@ pools:
 # and an undefined "interior point" — the type filter excludes that
 # degenerate case).
 variants:
-  # `country` variant DROPPED 2026-05-04 per Tier 2 coverage scan —
+  # `country` variant dropped per a coverage scan:
   # `node_type = 'country'` matches 0 rows in osmh3kg/worldkg/kwg.
   # Countries are encoded as the country_iso3 ATTRIBUTE on each entity,
   # not as a separate `node_type='country'` row. The `region` variant

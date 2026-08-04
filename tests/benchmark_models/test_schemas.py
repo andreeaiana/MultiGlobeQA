@@ -47,13 +47,13 @@ from benchmark_models.schemas import (
 # ============================================================================
 
 
-# The full canonical vocabulary as observed in the Templates sheet on
-# 2026-04-09. If a future template introduces a new answer type, this
-# list should be updated alongside the registry entry. The test fails
-# both ways: missing-from-registry and missing-from-this-list.
+# The full canonical vocabulary as observed in the Templates sheet.
+# If a future template introduces a new answer type, this list should
+# be updated alongside the registry entry. The test fails both ways:
+# missing-from-registry and missing-from-this-list.
 EXPECTED_CANONICAL_TYPES = frozenset(
     {
-        # Pre-2026-04-23 registry.
+        # Base registry.
         "Boolean (yes/no, true/false)",
         "Entity name (single)",
         "Set enumeration (list of entity names)",
@@ -68,14 +68,14 @@ EXPECTED_CANONICAL_TYPES = frozenset(
         "Predefined value (left, right)",
         "Predefined value (upstream, downstream)",
         "Cardinal direction (predefined)",
-        # Added for the 2026-04-23 benchmark (Wave 3a).
+        # Added for the Wave 3a benchmark.
         "Ternary (true/false/plausibly)",
         "Geohash string",
         "Composite string (H3+S2)",
         "Bounding box (4-float)",
         "Polar coordinates (angle, distance)",
-        # Added for the 2026-05-05 benchmark share (overloaded
-        # ``grid_cell_id`` resolves to one of these per-TID).
+        # Added for the benchmark share (overloaded ``grid_cell_id``
+        # resolves to one of these per-TID).
         "H3 cell index",
         "S2 cell index",
     }
@@ -473,28 +473,25 @@ class TestLoadTemplateRegistry:
         pipeline falls back to row-mode resolution and produces wrong
         canonical types for the overloaded TIDs.
 
-        All TIDs are in the FINAL 1..72 taxonomy (post-drop renumber; TID
-        24.1 dropped 2026-07-24 shifting parents 25..73 down to 24..72).
-        The old bbox-mislabel override (115.1 → "Bounding box (4-float)")
-        was removed because the renumbered share's tid 72.1 carries
+        The bbox TID needs no mislabel override: tid 66.1 carries
         ``ground_truth_type='bounding_box'`` directly.
         """
         reg = load_template_registry()
         expected = {
             # categorical
-            "50.1": "Predefined value (left, right)",           # was 55.1
-            "51.1": "Predefined value (upstream, downstream)",  # was 56.1
-            "52.1": "Cardinal direction (predefined)",          # was 57.1
-            "62.1": "Ternary (true/false/plausibly)",           # was 68.1
+            "50.1": "Predefined value (left, right)",
+            "51.1": "Predefined value (upstream, downstream)",
+            "52.1": "Cardinal direction (predefined)",
+            "62.1": "Ternary (true/false/plausibly)",
             # grid_cell_id
-            "40.1": "H3 cell index",                            # was 45.1
-            "41.1": "H3 cell index",                            # was 46.1
-            "64.1": "H3 cell index",                            # was 70.1
-            "64.2": "S2 cell index",                            # was 70.2
-            "64.3": "Geohash string",                           # was 70.3
-            "64.4": "Coordinates (lat/long pair)",              # was 70.4
-            # bbox — new tid 66.1 (was 72.1) derives from ground_truth_type.
-            "66.1": "Bounding box (4-float)",                   # was 72.1
+            "40.1": "H3 cell index",
+            "41.1": "H3 cell index",
+            "64.1": "H3 cell index",
+            "64.2": "S2 cell index",
+            "64.3": "Geohash string",
+            "64.4": "Coordinates (lat/long pair)",
+            # bbox: tid 66.1 derives from ground_truth_type.
+            "66.1": "Bounding box (4-float)",
         }
         for tid, expected_canonical in expected.items():
             actual = reg.get(tid).answer_type
@@ -560,11 +557,9 @@ class TestTypeVocabulary:
             )
 
     def test_set_vocab_added_for_2026_05_07_share(self) -> None:
-        """The 2026-05-07 share introduces the bare ``set`` ground_truth_type
-        on what were TIDs 27.1 / 28.1 / 29.1 pre-renumbering (22.1 / 23.1 /
-        24.1 after the first renumber; the land-use 24.1 was dropped
-        2026-07-24, so 22.1 / 23.1 remain). Without this vocab mapping,
-        those rows silently format-error at eval time."""
+        """The share uses the bare ``set`` ground_truth_type on the
+        set-enumeration TIDs. Without this vocab mapping, those rows
+        silently format-error at eval time."""
         from benchmark_models.schemas.type_registry import (
             BENCHMARK_TYPE_TO_CANONICAL,
             canonicalize_answer_type,
@@ -605,24 +600,20 @@ class TestBundledRegistryFreshness:
         assert len(reg) >= 129
 
     def test_set_typed_tids_present(self) -> None:
-        """The set-enumeration tids in the renumbered share (was
-        27.1/28.1/29.1 pre-renumbering; 22.1/23.1/24.1 after the first
-        renumber). The land-use 24.1 was dropped 2026-07-24, so 22.1/23.1
-        remain and must resolve to the set-enumeration canonical — depends
-        on the ``set`` vocab entry being present."""
+        """The set-enumeration tids in the share must resolve to the
+        set-enumeration canonical, which depends on the ``set`` vocab
+        entry being present."""
         reg = load_template_registry()
-        for tid in ("17.1", "18.1"):  # were 22.1/23.1 pre-2026-07-26 renumber
+        for tid in ("17.1", "18.1"):
             info = reg.get(tid)
             assert info.answer_type == "Set enumeration (list of entity names)"
 
     def test_tid_52_1_now_area(self) -> None:
-        """The area-km2 TID (was 80.1 pre-2026-05-09, then 57.1, 53.1 in
-        the 1..73 renumber, now 52.1 after the 2026-07-24 TID-24.1 drop)
-        is typed as area_km2 → Numeric (float). Catches a future
-        regeneration against un-fixed JSON that would re-introduce the
-        distance mislabel that motivated this fixture originally."""
+        """The area-km2 TID 47.1 is typed as area_km2, resolving to
+        Numeric (float). Catches a future regeneration against un-fixed
+        JSON that would re-introduce the distance mislabel."""
         reg = load_template_registry()
-        info = reg.get("47.1")  # was 52.1 pre-2026-07-26 renumber
+        info = reg.get("47.1")
         assert info.answer_type == "Numeric (float)"
         # Default unit pulled from the canonical, which for
         # ``area_km2`` is ``km^2``.

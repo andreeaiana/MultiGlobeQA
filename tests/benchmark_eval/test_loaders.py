@@ -1,6 +1,6 @@
 """Tests for ``benchmark_eval.loaders``.
 
-Two new behaviours added 2026-05-05 alongside the new benchmark share:
+Two behaviours the loader supports for the benchmark share:
 
 1. ``load_gold_rows`` accepts a directory of Spark part files (the
    share's layout) in addition to a single JSONL file.

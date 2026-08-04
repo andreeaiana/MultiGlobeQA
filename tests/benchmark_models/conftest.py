@@ -24,10 +24,9 @@ from benchmark_models.schemas import (
     load_template_registry,
 )
 
-# Minimal set of synthetic TIDs needed by the test suite. Pinned
-# canonical names + units mirror what the old (pre-2026-05-05) bundled
-# registry exposed for these TIDs, so existing assertions that depend
-# on, e.g., ``Numeric (float)``+``km`` for TID 1.1 keep passing.
+# Minimal set of synthetic TIDs needed by the test suite. Canonical
+# names + units are pinned for these TIDs, so existing assertions that
+# depend on, e.g., ``Numeric (float)``+``km`` for TID 1.1 keep passing.
 _SYNTHETIC_TIDS: dict[str, dict[str, str | None]] = {
     "1.1": {
         "sfid": "A",

@@ -46,7 +46,7 @@
     "delta_km": 5.0,
     "d_scale_km": 200.0,
     "separator_chars": ",;\\s_",
-    "separator_description": "Character class for the regex parsing a 'lat<sep>lon' string. Includes ',' ';' whitespace and '_' (underscore added 2026-05-05 for TID 111.5)."
+    "separator_description": "Character class for the regex parsing a 'lat<sep>lon' string. Includes ',' ';' whitespace and '_'."
   },
   "geometry": {
     "line_tolerance_km": 5.0,
@@ -59,7 +59,7 @@
     "angle_tol_description": "Bearing tolerance (degrees) for Polar coordinates (angle, distance) scoring (TID 74.1). EM=1 requires the bearing within this window AND the radial distance within the numeric-distance tolerance for its magnitude. The radial half reuses the distance kind's scale-from-magnitude deltas."
   },
   "grid_cell": {
-    "description": "Spatial-proximity companions (em_spatial / ne_spatial) for grid-cell answer types. The strict exact-ID EM is retained unchanged as the universal `em`; these companions additionally decode both prediction and gold to an H3 cell and score by resolution-agnostic hierarchy containment, crediting a right-place answer that uses a different resolution/encoding. Applied to standalone 'H3 cell index' and the H3 half of 'Composite string (H3+S2)' (TID 48.1). 'S2 cell index' is intentionally excluded — no S2 decoder dependency; strict-ID is the honest measure there. (The former 'MGRS-like grid cell' companion was removed with the 2026-07-22 drop of that answer type.)",
+    "description": "Spatial-proximity companions (em_spatial / ne_spatial) for grid-cell answer types. The strict exact-ID EM is retained unchanged as the universal `em`; these companions additionally decode both prediction and gold to an H3 cell and score by resolution-agnostic hierarchy containment, crediting a right-place answer that uses a different resolution/encoding. Applied to standalone 'H3 cell index' and the H3 half of 'Composite string (H3+S2)' (TID 48.1). 'S2 cell index' is intentionally excluded — no S2 decoder dependency; strict-ID is the honest measure there.",
     "composite_h3_containment": true,
     "composite_h3_containment_description": "The Composite H3 half is scored by exact H3 hierarchy containment (the finer cell's ancestor at the coarser cell's resolution equals the coarser cell). Falls back to centroid geodesic distance <= the gold H3 cell's edge length when containment can't be evaluated. The S2 half is not spatially scored (no S2 decoder)."
   },

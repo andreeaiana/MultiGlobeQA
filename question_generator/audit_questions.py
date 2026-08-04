@@ -14,7 +14,7 @@ reports per-TID quality issues:
 
 Run via srun (Spark + Sedona init):
 
-    srun --mem=32G --cpus-per-task=4 --partition=cpu \\
+    srun --mem=32G --cpus-per-task=4 \\
       uv run python -m question_generator.audit_questions \\
         --output reports/question_audit.jsonl
 

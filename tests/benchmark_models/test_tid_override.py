@@ -1,4 +1,4 @@
-"""P0-2: per-TID canonical overrides take precedence on model side.
+"""Per-TID canonical overrides take precedence on the model side.
 
 The resolution order in ``resolve_canonical_answer_type``:
 
@@ -15,13 +15,9 @@ the wrong answer:
 * **Benchmark-side mislabels** where the row's ``ground_truth_type``
   literally describes the wrong shape. (None currently.)
 
-TIDs are in the FINAL contiguous 1..66 taxonomy. History: removed parents
-30/35/36/56 (first renumber to 1..73), TID 24.1 dropped 2026-07-24
-(parents 25..73 -> 24..72), then the 2026-07-26 final drop of parents
-7/9/10/12/13/62 renumbered the 66 survivors to 1..66. The ``# was``
-comments trace the immediately-prior (pre-2026-07-26) numbering. These
-tests pin the new behaviour: when ``tid`` is in the override map, it wins
-regardless of the row label.
+TIDs are the released ids (parents 1..66). These tests pin the
+behaviour: when ``tid`` is in the override map, it wins regardless of
+the row label.
 """
 
 from __future__ import annotations
@@ -36,7 +32,7 @@ from benchmark_models.schemas.type_registry import (
 
 class TestResolveWithOverride:
     def test_tid_62_1_ternary_override(self) -> None:
-        """Overloaded ``categorical`` tag — TID 62.1 (was 68.1) is Ternary
+        """Overloaded ``categorical`` tag: TID 62.1 is Ternary
         (yes/no/plausibly), not whatever ``categorical`` would
         canonicalise to by default."""
         out = resolve_canonical_answer_type(
@@ -47,7 +43,7 @@ class TestResolveWithOverride:
         assert out == "Ternary (true/false/plausibly)"
 
     def test_tid_50_1_predefined_left_right_override(self) -> None:
-        """Overloaded ``categorical`` tag — TID 50.1 (was 55.1) picks the
+        """Overloaded ``categorical`` tag: TID 50.1 picks the
         left/right enum, not the cardinal-direction or
         upstream/downstream alternates."""
         out = resolve_canonical_answer_type(
@@ -58,8 +54,8 @@ class TestResolveWithOverride:
         assert out == "Predefined value (left, right)"
 
     def test_tid_52_1_cardinal_direction_override(self) -> None:
-        """Overloaded ``categorical`` tag — TID 52.1 (was 57.1) is a cardinal
-        direction (Northeast, West, …)."""
+        """Overloaded ``categorical`` tag: TID 52.1 is a cardinal
+        direction (Northeast, West, ...)."""
         out = resolve_canonical_answer_type(
             ground_truth_type="categorical",
             fallback=None,
@@ -68,7 +64,7 @@ class TestResolveWithOverride:
         assert out == "Cardinal direction (predefined)"
 
     def test_tid_64_2_s2_override(self) -> None:
-        """Overloaded ``grid_cell_id`` tag — TID 64.2 (was 70.2) is S2, not H3."""
+        """Overloaded ``grid_cell_id`` tag: TID 64.2 is S2, not H3."""
         out = resolve_canonical_answer_type(
             ground_truth_type="grid_cell_id",
             fallback=None,
@@ -77,7 +73,7 @@ class TestResolveWithOverride:
         assert out == "S2 cell index"
 
     def test_tid_64_4_coordinates_override(self) -> None:
-        """Overloaded ``grid_cell_id`` tag — TID 64.4 (was 70.4) is a
+        """Overloaded ``grid_cell_id`` tag: TID 64.4 is a
         coordinate-string (lat_lon), not actually a cell index at all."""
         out = resolve_canonical_answer_type(
             ground_truth_type="grid_cell_id",
@@ -120,7 +116,7 @@ class TestBackendsThreadTidThrough:
 
         return Example(
             question_id="q1",
-            tid="62.1",  # ternary (yes/no/plausibly), tagged 'categorical'; was 68.1
+            tid="62.1",  # ternary (yes/no/plausibly), tagged 'categorical'
             sfid="L",
             language="eng",
             kg_source="kwg",
@@ -149,42 +145,35 @@ class TestBackendsThreadTidThrough:
 
     def test_override_map_keys_present(self) -> None:
         """Pin every TID we know is currently overloaded, so a future
-        regen of the registry can't silently drop entries. Keys are in
-        the FINAL 1..66 taxonomy (2026-07-26 renumber)."""
+        regen of the registry can't silently drop entries. Keys are
+        released ids in the 1..66 parent range."""
         expected_keys = {
             # overloaded `categorical`
             "50.1", "51.1", "52.1", "62.1",
-            # overloaded `grid_cell_id` (64.4 = Coordinates; parent 70
-            # grid-cell encodings renumbered to 64 on the 2026-07-26 drop)
+            # overloaded `grid_cell_id` (parent 64 = grid-cell
+            # encodings; 64.4 = Coordinates)
             "40.1", "41.1", "64.1", "64.2", "64.3", "64.4",
         }
         assert expected_keys.issubset(set(TID_TO_CANONICAL_OVERRIDE.keys()))
 
-    def test_old_taxonomy_keys_not_present(self) -> None:
-        """Defensive guard: superseded TID strings should NOT be in the
-        override map — they refer to TIDs that no longer exist. Covers
-        the pre-2026-05-09 numbering (91.1, 67.1, 111.x, 115.1, …), the
-        2026-05-09 numbering the first renumber replaced (60.1, 73.1,
-        49.1, 75.x, …), the pre-24.1-drop numbering (58.1/69.1/71.x), and
-        the pre-2026-07-26-drop keys that shifted (45.1/46.1/55.1/56.1/
-        57.1/68.1/70.1-70.4)."""
+    def test_unreleased_tids_not_override_keys(self) -> None:
+        """Defensive guard: none of the TID strings below may be a key
+        in the override map. Some are not TIDs under the current ids at
+        all; the others are current TIDs that are not overloaded and so
+        must resolve from the row label rather than an override."""
         old_tids = {
-            # pre-2026-05-09
             "91.1", "92.1", "93.1", "105.1",
             "67.1",
             "111.1", "111.2", "111.3", "111.4", "111.5",
             "115.1",
-            # 2026-05-09 numbering, replaced by the first 1..73 renumber
             "60.1", "61.1", "73.1",
             "49.1", "75.1", "75.2", "75.3", "75.4", "75.5",
-            # pre-24.1-drop keys
             "58.1", "69.1", "47.1", "71.1", "71.2", "71.3", "71.4",
-            # pre-2026-07-26-drop override keys (now renumbered)
             "45.1", "46.1", "55.1", "56.1", "57.1", "68.1",
             "70.1", "70.2", "70.3", "70.4",
         }
         stale = old_tids & set(TID_TO_CANONICAL_OVERRIDE.keys())
         assert stale == set(), (
-            f"Stale pre-renumbering TID entries found in override map: "
+            f"Override map contains keys that are not released TIDs: "
             f"{sorted(stale)}"
         )

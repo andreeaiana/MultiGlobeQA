@@ -164,8 +164,8 @@ class TestScoreEntityName:
 class TestNormalizeGoldCanonical:
     """Phase 3 / 2c: gold-side URL → canonical-id mapping.
 
-    The 2026-05-07 share's gold triples carry full URIs as subject /
-    object values (``http://www.worldkg.org/resource/...`` for worldkg,
+    Gold triples carry full URIs as subject / object values
+    (``http://www.worldkg.org/resource/...`` for worldkg,
     ``http://stko-kwg.geog.ucsb.edu/lod/resource/...`` for kwg). The
     scorer must normalise these to the per-language alias-store key
     form (``wkg:<id>`` / ``kwg:<id>``) before lookup.
@@ -246,7 +246,7 @@ class TestNormalizeGoldCanonical:
 class TestScoreEntityHex:
     """H3 cell id matching.
 
-    Wave 2c (2026-04-23): the scorer now normalises decimal integers,
+    Wave 2c: the scorer normalises decimal integers,
     negative signed int64 overflow forms, and hex to a canonical
     15-character lower-case hex string before comparison. The test
     cases below use realistic H3 res-7 values rather than placeholder
@@ -287,7 +287,7 @@ class TestScoreEntityHex:
     def test_negative_int64_gold(self, scorer: Scorer) -> None:
         """H3 res-15 cells overflow signed int64 to negative form.
         Must unsigned-cast and still match the canonical hex. Uses a
-        real gold value observed in the 2026-04-23 benchmark."""
+        real gold value observed in the benchmark."""
         signed = -8190665156108222464
         canonical_hex = format(signed & 0xFFFFFFFFFFFFFFFF, "x")
         r = scorer.score(
@@ -459,8 +459,8 @@ class TestScoreSetEnumeration:
         assert r.em == 0 and r.format_error
 
     def test_json_encoded_string_gold(self, scorer: Scorer) -> None:
-        """The 2026-05-05 benchmark share stores set-enumeration gold
-        as JSON-encoded list strings (Spark's default array
+        """The benchmark share stores set-enumeration gold as
+        JSON-encoded list strings (Spark's default array
         serialization). The scorer's ``_coerce_list`` parses these
         before comparison so the share's 2,653 set-enum rows score
         correctly without preprocessing."""
@@ -475,8 +475,8 @@ class TestScoreSetEnumeration:
     def test_quote_wrapped_gold_elements_match_clean_pred(
         self, scorer: Scorer
     ) -> None:
-        """Phase 3 / 2c: TID 27.1 gold elements arrived quote-wrapped
-        in the 2026-05-07 share (e.g. ``'"Berlin"'``); D2 cleaned the
+        """Phase 3 / 2c: set-enumeration gold elements can arrive
+        quote-wrapped (e.g. ``'"Berlin"'``); D2 cleaned the
         committed JSON, but the scorer also strips a single wrapping
         ``"…"`` pair on read so a future regression that re-introduces
         the pathology doesn't depress recall. Uses entities already
@@ -656,7 +656,7 @@ class TestScoreCoordinates:
         assert r.em == 0 and r.format_error
 
     def test_underscore_joined_string(self, scorer: Scorer) -> None:
-        """TID 111.5 of the 2026-05-05 share emits coordinates as
+        """Some coordinate gold values are emitted as
         ``'<lat>_<lon>'`` underscore-joined strings. The regex must
         accept this separator alongside comma / semicolon /
         whitespace."""
@@ -676,14 +676,11 @@ class TestScoreCoordinates:
 
 
 class TestCoordinateGridQuantizationTID70_4:
-    """TID 70.4 ("Convert the location to a lat/long grid at {res} degrees")
+    """TID 64.4 ("Convert the location to a lat/long grid at {res} degrees")
     tightens the coordinate tolerance to a half-cell diagonal derived from the
     gold's decimal precision, so only a prediction in the *correct* grid cell
-    passes. History: this route was written for 75.5 -> 71.5, the MGRS drop
-    renamed coords 71.5 -> 71.4 but left the scorer literal at the now-dead
-    "71.5" (dormant), and the 2026-07-24 TID-24.1 drop renumbered coords to
-    70.4 and repointed the literal, reactivating it. These pin that behaviour
-    so the route can't silently go dormant again."""
+    passes. The scorer selects this route on an exact tid match, so these tests
+    pin the behaviour against the route silently going dormant."""
 
     def _grid_gold(self, value: str) -> GoldRow:
         return GoldRow(
@@ -708,7 +705,7 @@ class TestCoordinateGridQuantizationTID70_4:
         self, scorer: Scorer
     ) -> None:
         # The identical ~1.3 km-off prediction against a NON-grid coordinate
-        # tid uses the generic tolerance and passes — proving the 70.4 route
+        # tid uses the generic tolerance and passes — proving the 64.4 route
         # is what tightens scoring (guards against re-dormancy).
         generic = GoldRow(
             question_id="q1", tid="1.1", sfid="A",
@@ -724,10 +721,9 @@ class TestCoordinateGridQuantizationTID70_4:
 
 
 class TestScoreH3CellIndex:
-    """``H3 cell index`` (added 2026-05-05) routes to the existing
-    ``_score_entity_hex`` matcher. The benchmark share emits H3 cells
-    as decimal-encoded uint64 strings (e.g.
-    ``'609336537410174975'``)."""
+    """``H3 cell index`` routes to the existing ``_score_entity_hex``
+    matcher. The benchmark share emits H3 cells as decimal-encoded
+    uint64 strings (e.g. ``'609336537410174975'``)."""
 
     DECIMAL = "609336537410174975"
     HEX = format(int(DECIMAL), "x")  # canonical lowercase hex
@@ -755,10 +751,10 @@ class TestScoreH3CellIndex:
 
 
 class TestScoreS2CellIndex:
-    """``S2 cell index`` (added 2026-05-05) shares the entity-hex
-    matcher. S2 cell IDs round-trip through the same hex/decimal/
-    signed-int64 normalization. Real gold shape from the share is a
-    negative signed-int64 decimal string."""
+    """``S2 cell index`` shares the entity-hex matcher. S2 cell IDs
+    round-trip through the same hex/decimal/signed-int64
+    normalization. Real gold shape from the share is a negative
+    signed-int64 decimal string."""
 
     SIGNED = "-8350462053613305856"
     HEX = format(int(SIGNED) & 0xFFFFFFFFFFFFFFFF, "x")
@@ -842,7 +838,7 @@ class TestScoreH3SpatialCompanion:
 
 
 class TestScoreCompositeString:
-    """``Composite string (H3+S2)`` (TID 51.1). Strict equality of both
+    """``Composite string (H3+S2)``. Strict equality of both
     pipe-separated halves, plus an H3-half spatial companion scored by
     H3 hierarchy containment. The S2 half is not spatially scored."""
 
@@ -1689,7 +1685,7 @@ class TestCoerceBboxAndPolar:
 
 
 # ---------------------------------------------------------------------------
-# #5: TID 63.x dimensionless shape indices use a relative (ratio) tolerance
+# #5: TID 57.x dimensionless shape indices use a relative (ratio) tolerance
 # ---------------------------------------------------------------------------
 
 
@@ -1718,7 +1714,7 @@ class TestRatioToleranceTID63:
         assert scorer.score(_pred(0.0), g).em == 0
 
     def test_larger_scale_sub_tid(self, scorer: Scorer) -> None:
-        # 63.5 golds reach ~75; 5% relative still applies.
+        # 57.5 golds reach ~75; 5% relative still applies.
         g = _ratio_gold("57.5", 40.0)
         assert scorer.score(_pred(41.0), g).em == 1   # 2.5% off
         assert scorer.score(_pred(60.0), g).em == 0   # 50% off

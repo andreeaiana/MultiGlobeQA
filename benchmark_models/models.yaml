@@ -35,7 +35,7 @@ _gemma3_27b_defaults: &gemma3_27b_defaults
   # current pinned ``transformers`` (4.57.x) doesn't register the
   # ``gemma4`` model_type — that needs transformers ≥ 5.5.0, which
   # in turn requires the vLLM nightly. Gemma 3 has been supported
-  # since vLLM 0.18 with our transformers version, so the swap
+  # since vLLM 0.18 with the pinned transformers version, so the swap
   # keeps the open-weights Gemma data point in the catalogue without
   # a dependency-stack overhaul. The trade-off is that Gemma 3 has
   # no native ``thinking`` toggle, so its tier-2 variant falls back

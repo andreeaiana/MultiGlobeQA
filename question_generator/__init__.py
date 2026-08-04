@@ -1,5 +1,5 @@
 """
-Question Generator Module for Spatial KG RAG Benchmark.
+Question Generator Module for MultiGlobeQA.
 
 This module provides functionality for generating benchmark questions
 from spatial knowledge graphs using PySpark and Apache Sedona.

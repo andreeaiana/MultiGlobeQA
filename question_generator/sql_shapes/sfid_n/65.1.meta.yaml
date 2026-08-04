@@ -11,7 +11,7 @@ answer_unit: "lat/long pair"
 # sfid_o/63.1's convention so the validator's coordinates rule applies
 # to the single ground_truth column).
 #
-# KG SCOPE (post Tier 2 coverage scan 2026-05-04):
+# KG SCOPE (per a coverage scan):
 #   - city: osmh3kg + worldkg only (kwg dropped — Tier 2 found 0 matches;
 #     kwg's region vocab is admin-region-coded, not OSM city tags)
 #   - district / county / state: worldkg ONLY (osmh3kg uses OSM admin

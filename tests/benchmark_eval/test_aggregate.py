@@ -289,10 +289,10 @@ class TestProvenance:
 
 
 class TestHarnessErrorsSplit:
-    """Decided 2026-04-23: the paper reports raw ``em_micro`` (errors
-    count as wrong) as the headline, plus ``em_adjusted`` (harness
-    errors excluded from the denominator) for readers who want the
-    capability-only view. Per-class counts accompany both numbers.
+    """The paper reports raw ``em_micro`` (errors count as wrong) as the
+    headline, plus ``em_adjusted`` (harness errors excluded from the
+    denominator) for readers who want the capability-only view.
+    Per-class counts accompany both numbers.
     """
 
     def test_no_errors_adjusted_equals_micro(self) -> None:

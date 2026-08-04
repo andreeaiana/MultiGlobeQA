@@ -1,12 +1,12 @@
 """Tests for ``cli._assert_registry_covers_examples``.
 
-The guard catches a class of bug we hit on the 2026-05-09 renumbered
-share: 107 of the benchmark's 180 TIDs weren't in
-``template_registry.json`` because the registry hadn't been regenerated
-post-renumbering. The runner happily started, the schema-build path
-crashed per-row with ``unknown tid 'X.Y'``, and ~50% of every cell's
-predictions were silent ``error_class=config`` records — wasted
-compute that looked superficially like real refusals.
+The guard catches a class of bug where a large share of the
+benchmark's TIDs are absent from ``template_registry.json`` because
+the registry was not regenerated after the benchmark changed. The
+runner happily starts, the schema-build path crashes per-row with
+``unknown tid 'X.Y'``, and every affected prediction in a cell is a
+silent ``error_class=config`` record: wasted compute that looks
+superficially like a real refusal.
 
 The guard short-circuits this: at startup, scan the loaded examples'
 TIDs against the registry's known set, raise ``ClickException`` with

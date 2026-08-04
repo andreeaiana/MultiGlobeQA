@@ -212,10 +212,9 @@ class TestExampleFromBenchmarkRow:
         row["is_true_premise"] = "false"
         ex = Example.from_benchmark_row(row)
         # Gold answer-value fields are stripped. ``ground_truth_type``
-        # is intentionally NOT stripped (Wave 3c-ii, 2026-04-23): it's
-        # the schema label for the expected answer, not the answer
-        # itself, and backends use it to build per-question JSON
-        # schemas.
+        # is intentionally NOT stripped: it's the schema label for the
+        # expected answer, not the answer itself, and backends use it
+        # to build per-question JSON schemas.
         for field in (
             "ground_truth", "is_valid",
             "validation_errors", "error", "is_true_premise",
@@ -440,8 +439,8 @@ class TestExampleFromBenchmarkRow:
 
 
 class TestExampleEvents:
-    """Coverage for the ``event_<letter>_*`` slot extraction (added
-    2026-05-05 for SFID I event-driven templates)."""
+    """Coverage for the ``event_<letter>_*`` slot extraction used by
+    SFID I event-driven templates."""
 
     def _row_with_event_a(self) -> dict:
         """SFID I row with both an entity slot and an event slot."""
@@ -537,8 +536,8 @@ class TestExampleEvents:
 
 class TestExampleImages:
     """Coverage for the multimodal ``images`` field and the related
-    ``is_multimodal`` flag (added 2026-05-06 alongside the cleanup
-    script that strips data URIs out of the question text)."""
+    ``is_multimodal`` flag; the cleanup script strips data URIs out of
+    the question text."""
 
     def _row_with_images(self, image_count: int = 1) -> dict:
         images = [

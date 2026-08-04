@@ -2,8 +2,8 @@
 
 Covers the post-validation + coercion rewrite that prevents raw Python
 source or meta-statements from leaking into the ``answer`` field of
-tier-3 predictions. The smoke run (2026-04-22) surfaced two concrete
-failure modes that these tests pin:
+tier-3 predictions. The smoke run surfaced two concrete failure modes
+that these tests pin:
 
 * qid ``a9d9b79f`` (TID 19.1): answer leaked as
   ``"from geopy.geocoders import Nominatim..."`` — a Python source
@@ -301,7 +301,7 @@ class TestParseResultExplicitNull:
 
 
 class TestEnvelopeFreeRecovery:
-    """Smoke regression (GPT-5.4-tier3c, 2026-04-22): the model called
+    """Smoke regression (GPT-5.4-tier3c): the model called
     ``final_answer({"lat": X, "lon": Y})`` on 5 questions — an
     envelope without the canonical ``"answer"`` key.
 

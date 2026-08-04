@@ -76,7 +76,7 @@ def decide(results: dict[str, ModelResult], original_question: str) -> Decision:
 
     if top_count == len(ok) and len(ok) >= 2:
         # All ok models agree — unanimous, regardless of how many
-        # models we ran with. (2/2 agreed has no outlier, unlike 2/3
+        # models in the ensemble. (2/2 agreed has no outlier, unlike 2/3
         # which is "majority".)
         selected, final = _pick_model_with_text(top_norm, ok)
         return Decision(final, "unanimous", selected)

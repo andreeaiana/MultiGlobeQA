@@ -221,12 +221,10 @@ def test_tid_override_map_contains_known_problems() -> None:
     """P0-2: pin the override map's contents so a future cleanup
     doesn't silently drop entries.
 
-    All assertions use the FINAL contiguous 1..72 taxonomy (removed parents
-    30/35/36/56, then TID 24.1 dropped 2026-07-24 shifting parents 25..73
-    down to 24..72). The "was" comments trace the immediately-prior
-    numbering. The bounding-box mislabel for old 115.1 was fixed in the
-    renumbered share (new 72.1 carries ``ground_truth_type=bounding_box``
-    directly), so no override is needed for it anymore.
+    All assertions use the released template ids. An override exists only
+    where the released ``ground_truth_type`` tag is overloaded and cannot
+    by itself select a canonical answer type; a tid whose tag already names
+    its type (e.g. ``ground_truth_type=bounding_box``) needs no entry.
     """
     from benchmark_models.schemas.type_registry import (
         TID_TO_CANONICAL_OVERRIDE,
@@ -234,20 +232,20 @@ def test_tid_override_map_contains_known_problems() -> None:
 
     # `categorical` overloaded type — 4 distinct multiple-choice
     # families need 4 different canonicals.
-    assert TID_TO_CANONICAL_OVERRIDE["50.1"] == "Predefined value (left, right)"           # was 55.1
-    assert TID_TO_CANONICAL_OVERRIDE["51.1"] == "Predefined value (upstream, downstream)"  # was 56.1
-    assert TID_TO_CANONICAL_OVERRIDE["52.1"] == "Cardinal direction (predefined)"          # was 57.1
-    assert TID_TO_CANONICAL_OVERRIDE["62.1"] == "Ternary (true/false/plausibly)"           # was 68.1
+    assert TID_TO_CANONICAL_OVERRIDE["50.1"] == "Predefined value (left, right)"
+    assert TID_TO_CANONICAL_OVERRIDE["51.1"] == "Predefined value (upstream, downstream)"
+    assert TID_TO_CANONICAL_OVERRIDE["52.1"] == "Cardinal direction (predefined)"
+    assert TID_TO_CANONICAL_OVERRIDE["62.1"] == "Ternary (true/false/plausibly)"
 
     # `grid_cell_id` overloaded type — H3 / S2 / Geohash /
-    # coordinate-string all share the same tag. (Parent 71 grid-cell
-    # encodings renumbered to 70 on the 2026-07-24 TID-24.1 drop.)
-    assert TID_TO_CANONICAL_OVERRIDE["40.1"] == "H3 cell index"             # was 45.1
-    assert TID_TO_CANONICAL_OVERRIDE["41.1"] == "H3 cell index"             # was 46.1
-    assert TID_TO_CANONICAL_OVERRIDE["64.1"] == "H3 cell index"             # was 70.1
-    assert TID_TO_CANONICAL_OVERRIDE["64.2"] == "S2 cell index"             # was 70.2
-    assert TID_TO_CANONICAL_OVERRIDE["64.4"] == "Coordinates (lat/long pair)"  # was 70.4
+    # coordinate-string all share the same tag.
+    assert TID_TO_CANONICAL_OVERRIDE["40.1"] == "H3 cell index"
+    assert TID_TO_CANONICAL_OVERRIDE["41.1"] == "H3 cell index"
+    assert TID_TO_CANONICAL_OVERRIDE["64.1"] == "H3 cell index"
+    assert TID_TO_CANONICAL_OVERRIDE["64.2"] == "S2 cell index"
+    assert TID_TO_CANONICAL_OVERRIDE["64.4"] == "Coordinates (lat/long pair)"
 
-    # The old 115.1 bounding-box override is gone (mislabel fixed in
-    # renumbered share). Guard against accidentally re-introducing it.
+    # No override is needed for ``115.1``: the released
+    # ``ground_truth_type`` names its type directly. Guard against
+    # accidentally re-introducing an entry for it.
     assert "115.1" not in TID_TO_CANONICAL_OVERRIDE

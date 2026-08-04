@@ -58,7 +58,7 @@ def predictions_jsonl(tmp_path: Path) -> Path:
         # match the scorer's parse of "1" as True — silently turning the
         # 2/3 invariant into 3/3. Which rows land first here depends on
         # answer-type resolution, so skipping the ambiguous ones keeps this
-        # a pure boolean-equality test regardless of TID renumbering.
+        # a pure boolean-equality test whichever rows are selected.
         if not isinstance(gt, str) or gt.strip().lower() not in ("true", "false"):
             continue
         gt_bool = gt.strip().lower() == "true"

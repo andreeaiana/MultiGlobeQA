@@ -1,6 +1,6 @@
 {
   "vocabulary_version": "v2",
-  "description": "Canonical vocabulary mapping the benchmark's snake_case ``ground_truth_type`` values to the internal canonical display names (keys of TYPE_REGISTRY) and default units. Single source of truth for the benchmark-side vocabulary; both the eval pipeline and the model pipeline load this file at import time. v2 (2026-05-07): added ``set`` (TIDs 27.1, 28.1, 29.1) to map to the entity-list set enumeration.",
+  "description": "Canonical vocabulary mapping the benchmark's snake_case ``ground_truth_type`` values to the internal canonical display names (keys of TYPE_REGISTRY) and default units. Single source of truth for the benchmark-side vocabulary; both the eval pipeline and the model pipeline load this file at import time. ``set`` maps to the entity-list set enumeration.",
   "types": {
     "boolean": {
       "canonical_name": "Boolean (yes/no, true/false)",

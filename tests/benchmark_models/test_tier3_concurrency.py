@@ -18,9 +18,9 @@ every invocation, so concurrent calls raced:
   every diagnostic field that feeds the paper's tool-use-analysis
   table was unreliable.
 
-The 2026-04-23 refactor moved ``CodeAgent`` construction from
-``__init__`` into a per-call ``_build_agent()`` helper. These tests
-pin that invariant: under concurrent ``predict_batch``, every
+``CodeAgent`` is constructed per call in ``_build_agent()`` rather
+than once in ``__init__``. These tests pin that invariant: under
+concurrent ``predict_batch``, every
 question's trace is isolated, no qid's trace contains another qid's
 steps.
 

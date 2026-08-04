@@ -1,5 +1,5 @@
 """
-Configuration module for Spatial KG RAG Benchmark Generator.
+Configuration module for MultiGlobeQA generator.
 
 All configuration is centralized here and can be overridden via environment variables.
 """
@@ -49,7 +49,7 @@ OUTPUT_BENCHMARK_DELTA_PATH: str = os.getenv(
 MLFLOW_TRACKING_URI: str = os.getenv(
     "MLFLOW_TRACKING_URI", "file://" + str(PROJECT_ROOT / "logs" / "mlruns")
 )
-MLFLOW_EXPERIMENT_NAME: str = os.getenv("MLFLOW_EXPERIMENT_NAME", "Spatial_KG_RAG_Benchmark")
+MLFLOW_EXPERIMENT_NAME: str = os.getenv("MLFLOW_EXPERIMENT_NAME", "MultiGlobeQA")
 
 
 # Spark Configuration

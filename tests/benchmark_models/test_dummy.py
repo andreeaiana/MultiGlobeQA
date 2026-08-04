@@ -301,11 +301,8 @@ class TestDefaultRegistryLoading:
         # When constructed with registry=None (the default), DummyModel
         # loads the bundled template registry via the no-arg form of
         # load_template_registry. This is the smoke-test path.
-        # Use a TID known to exist in the bundled (2026-05-09 renumbered)
-        # production registry. TID 15.1 / SFID B is one of the
-        # smallest always-shipped families in the renumbered taxonomy;
-        # pre-renumbering this slot was 20.1 / SFID B (renumbering
-        # shifted 20.1 to SFID C).
+        # The TID / SFID pair below is one of the smallest
+        # always-shipped families in the bundled production registry.
         model = DummyModel()
         pred = model.predict(_example(tid="10.1", sfid="B"))
         assert pred.tid == "10.1"

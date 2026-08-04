@@ -1,4 +1,4 @@
-"""Main entry point for Spatial KG RAG Benchmark Generator.
+"""Main entry point for MultiGlobeQA generator.
 
 Orchestrates plan-driven benchmark generation:
 1. Initialize Spark with Sedona and Delta Lake
@@ -46,7 +46,7 @@ def _auto_shuffle_partitions(default_parallelism: int) -> int:
 def init_spark() -> SparkSession:
     """Initialize SparkSession with Sedona and Delta Lake."""
     builder = (
-        SparkSession.builder.appName("Spatial_KG_RAG_Benchmark_Generator")
+        SparkSession.builder.appName("MultiGlobeQA_Generator")
         .master(SPARK_MASTER)
         .config("spark.driver.memory", SPARK_DRIVER_MEMORY)
         .config("spark.executor.memory", SPARK_EXECUTOR_MEMORY)

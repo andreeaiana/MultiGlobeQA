@@ -61,7 +61,7 @@ CLI level.
 ``"image"`` — image bytes are uploaded to the provider as a content
 block alongside the prompt text. Requires a vision-capable backend;
 the slate's API providers all support this and the open-weights
-variants we serve via vLLM (Qwen 3.5, Gemma 4) are documented as
+variants served via vLLM (Qwen 3.5, Gemma 4) are documented as
 multimodal.
 
 ``"name"`` — text-only baseline. Each ``[IMAGE_<slot>]`` placeholder
@@ -265,9 +265,7 @@ class VLLMHttpVariantConfig(VariantConfigBase):
     Chat Completions API — the backend subclasses ``OpenAIModel`` and
     just overrides the client's ``base_url``.
 
-    See ``benchmark_models/backends/vllm_http.py`` for the client; see
-    the ``_VLLM_HTTP_*`` templates in
-    the job template that starts the serve.
+    See ``benchmark_models/backends/vllm_http.py`` for the client.
     """
 
     backend: Literal["vllm_http"]

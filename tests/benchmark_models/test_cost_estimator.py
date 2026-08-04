@@ -46,7 +46,7 @@ class TestEstimateCost:
 
     def test_tier2_greedy_token_counts(self) -> None:
         # qwen35-a3b-thinking-tier2 is greedy single-sample (self-consistency
-        # removed 2026-07-22 — it was the only variant using it, which made
+        # removed — it was the only variant using it, which made
         # its T2 numbers a 3-sample majority vote while every other model's
         # T2 was single-sample). Tier-2 budget = 400 in / 500 out per row.
         config = _CATALOGUE.get("qwen35-a3b-thinking-tier2")

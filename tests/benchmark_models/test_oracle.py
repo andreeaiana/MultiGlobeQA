@@ -81,10 +81,10 @@ def sample_triples() -> list[Triple]:
 class TestLoadGoldTriples:
     """Loader against both real and synthetic inputs.
 
-    The gold-triples format changed in the 2026-05-07 share from a
-    double-encoded JSON-string per question to flat one-row-per-triple
-    with explicit ``entity_role`` provenance. The loader groups rows
-    by ``question_id`` into ``list[Triple]``.
+    The gold-triples format is flat one-row-per-triple with explicit
+    ``entity_role`` provenance, not a double-encoded JSON-string per
+    question. The loader groups rows by ``question_id`` into
+    ``list[Triple]``.
     """
 
     def test_loads_a_real_share_shard(self) -> None:
@@ -607,7 +607,7 @@ class TestWktStyleHandling:
         assert "POLYGON ((130.985 30.62, 130.986 30.63))" in out
 
     def test_format_raw_geometrycollection_recognised(self) -> None:
-        """``GEOMETRYCOLLECTION`` is in the WKT prefix list (m20 fix)."""
+        """``GEOMETRYCOLLECTION`` is in the WKT prefix list."""
         triples: list[Triple] = [
             {
                 "subject": "e",
