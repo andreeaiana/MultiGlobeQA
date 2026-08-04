@@ -152,7 +152,7 @@ class TestLoadEmByQuestionId:
         assert em == {"q1": 1, "q2": 0}
 
     def test_duplicate_qid_last_wins(self, tmp_path: Path) -> None:
-        """P1-3: duplicate ``question_id`` rows last-write-wins; the
+        """Duplicate ``question_id`` rows last-write-wins; the
         intended fix is to surface the duplicate via a warning, not to
         change the existing behaviour."""
         f = tmp_path / "score_records.jsonl"
@@ -167,7 +167,7 @@ class TestLoadEmByQuestionId:
     def test_duplicate_qid_emits_warning(
         self, tmp_path: Path, caplog
     ) -> None:
-        """P1-3: a single warning per file when duplicates are present
+        """A single warning per file when duplicates are present
         — partial re-runs concatenated onto an old score file would
         otherwise silently corrupt the agreement matrix."""
         import logging

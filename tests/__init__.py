@@ -1,3 +1,3 @@
 """
-Test Suite for Spatial Benchmark RAG.
+Test Suite for MultiGlobeQA.
 """

@@ -889,7 +889,7 @@ class TestSelfConsistencyAgreement:
 
 
 class TestGroupStatsEmpty:
-    """B5: ``_group_stats`` on empty input returns ``None`` rather than
+    """``_group_stats`` on empty input returns ``None`` rather than
     ``0.0`` so the "no data" case can't be confused with a real
     "perfect zero" group. The normal aggregation path can't reach
     this branch (``_group_by`` filters keys before calling), so the
@@ -917,7 +917,7 @@ class TestGroupStatsEmpty:
 
 
 class TestEmConditionalTruePremise:
-    """P1-6: ``em_conditional`` averages over ``covered=True``, which
+    """``em_conditional`` averages over ``covered=True``, which
     includes correct false-premise refusals (em=1). The parallel
     ``em_conditional_true_premise`` excludes false-premise rows so
     the "attempted-answer accuracy" signal is readable alone."""
@@ -949,7 +949,7 @@ class TestEmConditionalTruePremise:
 
 
 class TestPolygonPlanarFallback:
-    """A3: AggregateReport surfaces planar-fallback diagnostics so the
+    """AggregateReport surfaces planar-fallback diagnostics so the
     paper can report what fraction of polygon rows used the degraded
     IoU metric (raw lon/lat instead of EPSG:6933 equal-area)."""
 
@@ -995,7 +995,7 @@ def _numrec6(qid, em, *, unit_match, tid="1.1", gold_label=None, covered=True):
 
 
 class TestDenominatorPolicyFix:
-    """#6: numeric_em_strict / mean_set_f1 must be over ALL type rows so a
+    """Numeric_em_strict / mean_set_f1 must be over ALL type rows so a
     model can't inflate them by refusing hard rows."""
 
     def test_numeric_unconditional_vs_conditional(self) -> None:

@@ -24,15 +24,22 @@ concurrent ``predict_batch``, every
 question's trace is isolated, no qid's trace contains another qid's
 steps.
 
-All smolagents imports are mocked so the tests run without the real
-framework installed.
+``smolagents`` is mocked in ``sys.modules`` so no real agent is
+constructed.
 """
 
 from __future__ import annotations
 
+import itertools
+import threading
 from typing import Any
 from unittest.mock import MagicMock, patch
 
+# Imported here, before any test patches ``sys.modules["smolagents"]``.
+# ``_build_agent`` imports this module lazily; its own module-level
+# ``from smolagents.monitoring import ...`` would otherwise resolve
+# against the mock, which is not a package.
+import benchmark_models.tier3_logging  # noqa: F401
 from benchmark_models.base import Example
 
 
@@ -68,12 +75,18 @@ def _mock_smol_with_per_call_agents() -> Any:
     mock_smol = MagicMock()
 
     created_agents: list[Any] = []
+    # ``predict_batch`` calls this factory from every worker thread, so
+    # marker assignment has to be atomic. Reading ``len(created_agents)``
+    # and appending separately lets two threads claim the same marker,
+    # which the isolation assertions below would read as a tier-3 bug.
+    marker_lock = threading.Lock()
+    next_marker = itertools.count()
 
     def make_agent(**_kwargs: Any) -> Any:
         agent = MagicMock()
         # Each agent mock gets a unique marker so tests can assert
         # traces came from the right one.
-        agent._marker = len(created_agents)
+        agent._marker = next(next_marker)
         # Mock memory.steps: one fake action_step with a code_action
         # that embeds the agent's marker — lets tests cross-check
         # that _extract_trace reads from the correct agent.
@@ -91,7 +104,8 @@ def _mock_smol_with_per_call_agents() -> Any:
             "answer": float(agent._marker),
             "unit": "km",
         }
-        created_agents.append(agent)
+        with marker_lock:
+            created_agents.append(agent)
         return agent
 
     mock_smol.CodeAgent.side_effect = make_agent

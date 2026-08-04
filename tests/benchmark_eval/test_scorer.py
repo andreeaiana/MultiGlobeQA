@@ -548,7 +548,7 @@ class TestScoreSetEnumeration:
 
 
 class TestSetEntityAliasCollisionDeterminism:
-    """A2: set-entity scoring must be deterministic across alias-store
+    """Set-entity scoring must be deterministic across alias-store
     regenerations. Two AliasStores built from JSON files with different
     key orders (but identical alias→canonical mappings) must produce
     byte-identical ScoreRecord output."""

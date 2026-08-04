@@ -89,7 +89,7 @@ class TestBenchmarkSnapshotHash:
         assert h_before != h_after
 
     def test_changes_on_same_size_content_edit(self, tmp_path: Path) -> None:
-        """P1-2: pre-fix, the manifest was ``(relpath, size)`` only,
+        """Pre-fix, the manifest was ``(relpath, size)`` only,
         so a same-size content edit was invisible to the snapshot
         hash. Post-fix, the manifest hashes file contents in 1 MiB
         chunks, so any byte change shifts the hash."""

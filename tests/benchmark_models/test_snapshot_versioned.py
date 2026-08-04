@@ -1,4 +1,4 @@
-"""P0-3: tier-3 snapshot_id upgrade to versioned form.
+"""Tier-3 snapshot_id upgrade to versioned form.
 
 Pre-fix: ``cli.py`` always called ``build_paths_only_snapshot_id()``.
 ``build_versioned_snapshot_id`` and ``upgrade_to_versioned`` existed
@@ -69,7 +69,7 @@ def test_versioned_snapshot_differs_across_delta_versions(
 ) -> None:
     """Two versioned snapshots with different Delta version numbers
     produce different hashes — surfaces data drift via the snapshot
-    id alone (P1-1 resume-warning consumes this)."""
+    Id alone (resume-warning consumes this)."""
     from benchmark_models.snapshot import build_versioned_snapshot_id
 
     env = {"WORLDKG_NODES_PATH": "/data/worldkg/"}

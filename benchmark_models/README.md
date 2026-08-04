@@ -11,7 +11,7 @@ metrics; this file documents the harness interface.
 The `models` extra brings in the backends and the tier-3 agent; add `kg` for tier-3a /
 3c knowledge-graph retrieval and `vllm` to serve open weights locally. Real KG
 retrieval also needs the graph snapshots from Zenodo
-(<https://doi.org/PLACEHOLDER>), pointed at by `BENCHMARK_KGS_ROOT`.
+(<https://doi.org/10.5281/zenodo.21786184>), pointed at by `BENCHMARK_KGS_ROOT`.
 
 ```bash
 uv sync --extra models --extra kg

@@ -1,4 +1,4 @@
-"""D7: assertion tests that hardcoded fallback constants in the
+"""Assertion tests that hardcoded fallback constants in the
 ``benchmark_eval`` package stay in sync with ``scoring_spec.json``.
 
 The fallback dicts in ``scorer.py``, ``distances.py``,
@@ -24,7 +24,7 @@ def spec() -> dict:
 
 
 def test_numeric_kind_by_unit_suffix_matches_spec(spec: dict) -> None:
-    """D1: spec is the source of truth for unit→kind."""
+    """Spec is the source of truth for unit→kind."""
     from benchmark_eval.scorer import (
         _FALLBACK_NUMERIC_KIND_BY_UNIT_SUFFIX,
         NUMERIC_KIND_BY_UNIT_SUFFIX,
@@ -47,7 +47,7 @@ def test_numeric_kind_by_unit_suffix_matches_spec(spec: dict) -> None:
 
 
 def test_scale_buckets_match_spec(spec: dict) -> None:
-    """D2: scale-from-magnitude breakpoints stay in sync."""
+    """Scale-from-magnitude breakpoints stay in sync."""
     from benchmark_eval.distances import (
         _FALLBACK_SCALE_BUCKETS,
         NATIONAL_DELTA_KM,
@@ -66,7 +66,7 @@ def test_scale_buckets_match_spec(spec: dict) -> None:
     # Spec → live constants.
     assert buckets["urban"]["upper_exclusive"] == SCALE_BREAK_URBAN_REGIONAL
     assert buckets["regional"]["upper_exclusive"] == SCALE_BREAK_REGIONAL_NATIONAL
-    # Area breakpoints are independent of the linear distance breakpoints (#13).
+    # Area breakpoints are independent of the linear distance breakpoints.
     assert (
         buckets["urban"]["upper_exclusive_area_km2"]
         == SCALE_BREAK_URBAN_REGIONAL_AREA
@@ -97,7 +97,7 @@ def test_scale_buckets_match_spec(spec: dict) -> None:
 
 
 def test_default_delta_ratio_matches_spec(spec: dict) -> None:
-    """#5: dimensionless-ratio floor stays in sync (spec ↔ fallbacks)."""
+    """Dimensionless-ratio floor stays in sync (spec ↔ fallbacks)."""
     from benchmark_eval.distances import DEFAULT_RATIO_DELTA
     from benchmark_eval.scorer import _FALLBACK_DEFAULTS, load_scoring_spec
 
@@ -118,7 +118,7 @@ def test_polar_angle_tol_matches_spec(spec: dict) -> None:
 
 
 def test_date_precision_tolerances_match_spec(spec: dict) -> None:
-    """D3: date-precision tolerances stay in sync."""
+    """Date-precision tolerances stay in sync."""
     from benchmark_eval.canonicalize import (
         _DATE_PRECISION_TOLERANCE,
         _FALLBACK_DATE_PRECISION_TOLERANCE,
@@ -130,7 +130,7 @@ def test_date_precision_tolerances_match_spec(spec: dict) -> None:
 
 
 def test_coord_separator_chars_match_spec(spec: dict) -> None:
-    """D4: coordinate-string separator regex stays in sync."""
+    """Coordinate-string separator regex stays in sync."""
     from benchmark_eval.scorer import (
         _FALLBACK_COORD_SEPARATOR_CHARS,
         _load_coord_separator_chars,
@@ -142,7 +142,7 @@ def test_coord_separator_chars_match_spec(spec: dict) -> None:
 
 
 def test_unit_conversion_groups_match_spec(spec: dict) -> None:
-    """D7: hardcoded fallback in units.py matches the spec exactly."""
+    """Hardcoded fallback in units.py matches the spec exactly."""
     from benchmark_eval.units import _FALLBACK_GROUPS
 
     spec_groups = {
@@ -153,13 +153,13 @@ def test_unit_conversion_groups_match_spec(spec: dict) -> None:
 
 
 def test_spec_has_no_versioning_surface(spec: dict) -> None:
-    """A1: spec is the canonical spec — no ``spec_version`` field
+    """Spec is the canonical spec — no ``spec_version`` field
     should reappear (would suggest a backward-compat regression)."""
     assert "spec_version" not in spec
 
 
 def test_cli_defaults_match_spec(spec: dict) -> None:
-    """P1-4: ``benchmark_eval`` CLI defaults must read from the spec,
+    """``benchmark_eval`` CLI defaults must read from the spec,
     not from hardcoded literals. Inspect the click options on the
     ``score`` command and assert each default == the spec value.
 
@@ -192,33 +192,40 @@ def test_cli_defaults_match_spec(spec: dict) -> None:
     )
 
 
-def test_tid_override_map_single_source(spec: dict) -> None:  # noqa: ARG001
-    """P0-2: the per-TID canonical-override map must be defined in
-    one place. The runtime resolver in
-    ``benchmark_models.schemas.type_registry`` is the source of truth;
-    the build script imports it from there. This test asserts the
-    build script's import binds the same dict object — drift becomes
-    impossible by construction.
-
-    If the build script ever falls back to defining its own copy
-    inline, this test fails and forces a re-import.
+def test_tid_override_map_agrees_with_shipped_registry(
+    spec: dict,  # noqa: ARG001
+) -> None:
+    """The runtime override map and the shipped template registry must
+    agree. ``TID_TO_CANONICAL_OVERRIDE`` resolves overloaded
+    ``ground_truth_type`` tags at runtime; ``template_registry.json``
+    records the same decision per tid for the eval pipeline. If the two
+    drift, a question is scored under one canonical type and reported
+    under another.
     """
-    from scripts.build_template_registry_from_benchmark import (
-        _TID_TO_CANONICAL_OVERRIDE as BUILD_SCRIPT_COPY,
+    from benchmark_models.schemas.template_registry import (
+        load_template_registry,
     )
-
     from benchmark_models.schemas.type_registry import (
         TID_TO_CANONICAL_OVERRIDE,
+        TYPE_REGISTRY,
     )
 
-    # The build script imports the runtime constant under its old
-    # underscore name; we assert object identity, not value equality.
-    # If someone re-defines it inline, ``is`` returns False.
-    assert BUILD_SCRIPT_COPY is TID_TO_CANONICAL_OVERRIDE
+    registry = load_template_registry()
+
+    for tid, canonical in TID_TO_CANONICAL_OVERRIDE.items():
+        info = registry.get(tid)
+        assert info is not None, f"override tid {tid} is not a released tid"
+        assert info.answer_type == canonical, (
+            f"tid {tid}: override says {canonical!r}, "
+            f"registry says {info.answer_type!r}"
+        )
+        assert canonical in TYPE_REGISTRY, (
+            f"tid {tid}: {canonical!r} is not a known canonical type"
+        )
 
 
 def test_tid_override_map_contains_known_problems() -> None:
-    """P0-2: pin the override map's contents so a future cleanup
+    """pin the override map's contents so a future cleanup
     doesn't silently drop entries.
 
     All assertions use the released template ids. An override exists only

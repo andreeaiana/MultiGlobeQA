@@ -91,7 +91,7 @@ Strata cells are `<income>_<density>`, income in {HIC, UMC, LMC, LIC} and densit
 ## Data preparation
 
 The snapshots used for the released benchmark are archived on Zenodo
-(<https://doi.org/PLACEHOLDER>); download those to skip this section. Rebuilding a graph
+(<https://doi.org/10.5281/zenodo.21786184>); download those to skip this section. Rebuilding a graph
 from its upstream source instead:
 
 | KG | steps |

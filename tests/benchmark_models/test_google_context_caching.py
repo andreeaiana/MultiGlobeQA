@@ -1,4 +1,4 @@
-"""P1-9: Google explicit context caching hookup.
+"""Google explicit context caching hookup.
 
 The Gemini caches API: ``client.caches.create(...)`` returns a
 ``CachedContent`` with ``.name``; subsequent ``generate_content``

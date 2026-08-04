@@ -221,7 +221,7 @@ class TestAggregateReportCostLatency:
         assert report.total_input_tokens == 200  # 2 × 100 default
 
     def test_mean_latency_ms_adjusted_excludes_harness_errors(self) -> None:
-        """B2: harness errors (infra timeouts, code-gen failures)
+        """Harness errors (infra timeouts, code-gen failures)
         often have latency_ms=0 (immediate fast-fail) or massive
         outliers — both distort the raw mean. The ``_adjusted``
         companion filters them out parallel to ``em_adjusted``."""

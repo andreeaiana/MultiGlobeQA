@@ -1,4 +1,4 @@
-"""P1-5: ``--include-invalid`` recorded as a deviation.
+"""``--include-invalid`` recorded as a deviation.
 
 Pre-fix: ``scoring_spec_deviations`` only carried fields from
 ``ScorerConfig.deviations_from_spec()``. ``--include-invalid``

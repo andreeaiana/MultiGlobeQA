@@ -583,7 +583,7 @@ def default_unit_for_benchmark_type(benchmark_type: str | None) -> str | None:
 # runtime ``resolve_canonical_answer_type`` consume this dict.
 # ``test_spec_drift`` asserts they stay in lock-step via direct equality.
 TID_TO_CANONICAL_OVERRIDE: dict[str, str] = {
-    # Keys are TIDs in the released contiguous 1..72 taxonomy.
+    # Keys are released sub-template ids.
 
     # `categorical` — single benchmark type covers several distinct
     # multiple-choice families (left/right, upstream/downstream,
@@ -604,7 +604,7 @@ TID_TO_CANONICAL_OVERRIDE: dict[str, str] = {
     "64.3": "Geohash string",
     "64.4": "Coordinates (lat/long pair)",
 
-    # NOTE: bounding-box questions need no override. TID 72.1 carries
+    # NOTE: bounding-box questions need no override. TID 66.1 carries
     # ``ground_truth_type='bounding_box'`` directly, and
     # ``canonicalize_answer_type`` maps that without help.
 }

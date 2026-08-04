@@ -1,4 +1,4 @@
-"""P0-4: per-backend batch_size defaults.
+"""Per-backend batch_size defaults.
 
 Pre-fix: CLI default was 1; runner only called ``predict_batch()``
 when ``batch_size > 1``. ThreadPoolExecutor batching in

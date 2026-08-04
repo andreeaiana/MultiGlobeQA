@@ -1,4 +1,4 @@
-"""P1-7: ``log_run`` reopens ``parent_run_id`` before nesting.
+"""``log_run`` reopens ``parent_run_id`` before nesting.
 
 Pre-fix: ``mlflow.start_run(nested=parent_run_id is not None)`` only
 nests under an *already active* parent run. Calling ``log_run`` with

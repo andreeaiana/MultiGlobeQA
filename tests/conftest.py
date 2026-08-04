@@ -1,5 +1,5 @@
 """
-Pytest fixtures for Spatial Benchmark RAG tests.
+Pytest fixtures for MultiGlobeQA tests.
 """
 
 from pathlib import Path

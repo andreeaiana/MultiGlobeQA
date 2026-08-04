@@ -35,7 +35,7 @@ It also carries the per-language alias stores, which the scorer takes as a requi
 argument. The multimodal slice ships image URLs rather than image bytes.
 
 The knowledge-graph snapshots the questions were generated from are archived on
-Zenodo: <https://doi.org/PLACEHOLDER>. They are needed for tier-3 retrieval and for
+Zenodo: <https://doi.org/10.5281/zenodo.21786184>. They are needed for tier-3 retrieval and for
 regenerating the questions, and for nothing else.
 
 ## Install
@@ -48,7 +48,7 @@ uv sync --extra generate                # adds question generation
 
 Scoring and tier-1/2 inference need neither Spark nor a knowledge graph. Tier-3
 retrieval reads the KG Delta tables through Spark, so it needs the `kg` extra and a
-local copy of the graphs from Zenodo (<https://doi.org/PLACEHOLDER>).
+local copy of the graphs from Zenodo (<https://doi.org/10.5281/zenodo.21786184>).
 
 ## Run a model
 
@@ -154,7 +154,7 @@ multiglobeqa generate --run <spec>.yaml
 `RunSpec` in `question_generator/shape_loader.py` defines the spec: the sub-templates
 (`tids`, each optionally `<tid>:<variant>`), the graphs (`kgs`), the strata, a seed, a
 sample size and an output directory. No spec is shipped, and generation also needs a
-Spark cluster and local copies of the knowledge graphs (<https://doi.org/PLACEHOLDER>).
+Spark cluster and local copies of the knowledge graphs (<https://doi.org/10.5281/zenodo.21786184>).
 
 ## Tests
 
