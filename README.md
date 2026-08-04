@@ -1,7 +1,7 @@
 # MultiGlobeQA
 
 <h1 align="center">
-  <img src="assets/logo.png" alt="MultiGlobeQA" width="40%">
+  <img src="assets/multiglobeqa_logo.png" alt="MultiGlobeQA" width="40%">
 </h1>
 
 A multilingual, globally distributed benchmark for execution-verified geospatial
