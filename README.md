@@ -1,5 +1,9 @@
 # MultiGlobeQA
 
+<h1 align="center">
+  <img src="assets/logo.png" alt="MultiGlobeQA" width="40%">
+</h1>
+
 A multilingual, globally distributed benchmark for execution-verified geospatial
 reasoning, with the harness that runs models against it and the scorer that grades
 them.
