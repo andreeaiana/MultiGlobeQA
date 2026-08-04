@@ -12,7 +12,6 @@ reproducible from a seed.
 raw KG dumps
    → nt_parser_rs (Rust)            N-Triples → RDF triples
    → data_extraction.nt_to_delta    triples → entity Delta tables
-   → PageRank                       entity prominence
    → shape_executor                 sampling + spatial SQL per sub-template
    → validator                      answer sanity checks
    → exporter                       JSONL / Parquet
@@ -90,6 +89,10 @@ Strata cells are `<income>_<density>`, income in {HIC, UMC, LMC, LIC} and densit
 {high, medium, low}.
 
 ## Data preparation
+
+The snapshots used for the released benchmark are archived on Zenodo
+(<https://doi.org/PLACEHOLDER>); download those to skip this section. Rebuilding a graph
+from its upstream source instead:
 
 | KG | steps |
 |---|---|

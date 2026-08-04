@@ -1,166 +1,177 @@
 # benchmark_eval
 
+Scoring for predictions produced by `benchmark_models`. Reads a `predictions.jsonl` and
+the benchmark gold, joins them on `question_id`, and writes `score_records.jsonl` (one
+row per prediction) and `aggregate_report.json` to an output directory.
 
-Primary-metric scoring for predictions produced by the model section. Reads a `predictions.jsonl` and a benchmark JSONL, writes `score_records.jsonl` (one per prediction) and `aggregate_report.json` (rolled-up numbers) to an output directory. Logs the same metrics to MLflow by default.
-
-## Quickstart
+## score
 
 ```bash
 python -m benchmark_eval score \
-    --predictions results/smoke/<variant>/predictions.jsonl \
-    --benchmark benchmark/final/large/ \
-    --aliases output/aliases/eng.json \
-    --output results/smoke/<variant>/scores/
+    --predictions results/<variant>/predictions.jsonl \
+    --benchmark   <data>/large/ \
+    --aliases     <data>/aliases/eng.json \
+    --output      results/<variant>/scores/
 ```
 
-`--benchmark` accepts either a directory walked recursively for Spark `part-*.json` shards (layout `benchmark/final/<size>/<kg>/<sfid>/<lang>/benchmark.jsonl/`, `<size>` ∈ {`large`, `small`}) or a single JSONL file — point it at one size, not the bare `benchmark/final/`. `--aliases` is required (no default — pass the per-language alias store for multilingual runs).
+`--benchmark` takes a single JSONL file or a directory walked for
+`<kg>/<sfid>/<lang>/benchmark.jsonl/part-*.json` shards; point it at one size, not at a
+root holding both. `--aliases` is required and takes one alias file, normally the store
+for the language being scored. `--language <iso639-3>` restricts the walk to that
+language's shards; omitting it loads all 17 and collapses them last-wins.
+`--include-invalid` keeps rows the generator flagged `is_valid=False`, dropped by
+default. The remaining flags set tolerances, listed below.
 
-Output files:
+`score_records.jsonl` carries `em`, `ne`, `covered`, the per-type drill-down fields
+below, and the identity fields (`question_id`, `tid`, `sfid`, `answer_type`, `model_id`,
+`tier`, `language`, `kg_source`, `strata_cell`) denormalised so the file stands alone.
+`raw_distance` and `raw_tolerance` preserve `d` and `tau`, so both metrics can be
+recomputed under other tolerances without re-running a model.
 
-- `score_records.jsonl` — one `ScoreRecord` per prediction, with `em`, `ne`, `covered`, `raw_distance`, `raw_tolerance`, per-type drill-down fields, and all identity fields denormalized for analysis (`question_id`, `tid`, `sfid`, `answer_type`, `model_id`, `tier`, `language`, `strata_cell`).
-- `aggregate_report.json` — headline numbers and per-group breakdowns.
+## pairwise-agreement
 
-## Primary Metrics
+Joins two or more score-record files on `question_id` and reports, per pair, the
+agreement rate, the both-right / both-wrong / one-only rates, and Cohen's kappa.
 
-Two headline metrics applied uniformly across every answer type; the per-type rules vary but the interface doesn't.
+```bash
+python -m benchmark_eval pairwise-agreement \
+    --records gemini=results/gemini/score_records.jsonl \
+    --records qwen=results/qwen/score_records.jsonl \
+    --output results/agreement.json
+```
 
-**Exact Match (EM)** — binary, higher is better.
+## Primary metrics
 
 ```
-EM = 1 [ d(â, a*) < τ(a*) ]
+EM = 1[ d(pred, gold) < tau(gold) ]        binary, higher is better
+NE = min(1, d(pred, gold) / tau(gold))     in [0, 1], lower is better
 ```
 
-For discrete types (Boolean / Entity / Cardinal direction / Predefined value / Entity hex string / Set enumeration) the distance `d` is 0 or 1 and the tolerance `τ` is 1, so the rule collapses to strict equality (up to alias resolution for entity-like types). For continuous types (Numeric / Coordinates / Geometry lines) the rule is a hit-at-tolerance: the prediction counts as correct if the distance to gold is below the type-appropriate `τ`. Polygon geometry uses `EM = 1[IoU ≥ polygon_iou_threshold]` (default 0.5). Dates use components-match (gold-specified components must exactly match).
+For discrete types `d` is 0 or 1 and `tau` is 1, so EM is equality, after alias
+resolution where the type is alias-backed. For continuous types EM is a hit at
+tolerance. Set enumeration takes `NE = 1 - Jaccard` and polygons `NE = 1 - IoU`.
 
-**Normalized Error (NE)** — real-valued in `[0, 1]`, lower is better.
+## Per-type rules
 
-```
-NE = min(1, d(â, a*) / τ(a*))
-```
-
-Set enumeration uses `NE = 1 − Jaccard(Â, A*)` directly. Polygon geometry uses `NE = 1 − IoU`. Dates use `NE = min(1, days_between / τ_days)` with `τ_days` picked from the coarser of prediction and gold precision (1 / 15 / 365 for day / month / year).
-
-## Per-Type Rules
-
-| Answer type | Distance `d` | Tolerance `τ` | Drill-down fields |
+| Answer type | Distance `d` | Tolerance `tau` | Drill-down fields |
 |---|---|---|---|
-| Boolean | 0 if equal else 1 | 1 | — |
-| Entity name (single) | 0 if `resolve(â) == gold_id` else 1 | 1 | `resolve_failure` |
-| Entity hex string (single) | 0 if case-insensitive exact match else 1 | 1 | — |
-| Cardinal direction | 0 if `resolve(â) == gold_id` else 1 | 1 | `resolve_failure` |
-| Predefined value (left/right, upstream/downstream) | 0 if `resolve(â) == gold_id` else 1 | 1 | `resolve_failure` |
-| Set enumeration (entities) | `1 − Jaccard` (members resolved via alias) | 1 | `set_precision`, `set_recall`, `set_f1` |
-| Set enumeration (dates) | `1 − Jaccard` (members canonicalized) | 1 | `set_precision`, `set_recall`, `set_f1` |
-| Numeric | `|ŷ − y*|` (strict unit match required for EM=1) | `max(δ, α·|y*|)` | `unit_match`, `numeric_failure_category` |
-| Coordinates (single point) | geodesic distance (km) | `max(δ_coord, α·d_scale)` | — |
-| Geometry: lines | Hausdorff distance (km) | `line_tolerance_km` | — |
-| Geometry: polygons | `1 − IoU` | 1 (EM uses `iou_threshold` directly) | — |
-| Date | components-match for EM; day-distance for NE | 1 / 15 / 365 days (precision-adaptive) | — |
+| Boolean (yes/no, true/false) | 0 if equal else 1 | 1 | - |
+| Ternary (true/false/plausibly) | 0 if equal after case folding else 1 | 1 | - |
+| Entity name (single) | 0 if `resolve(pred)` is the gold id else 1 | 1 | `resolve_failure` |
+| Entity hex string (single), H3 cell index, S2 cell index | equality after hex / decimal / signed-int64 normalisation | 1 | `em_spatial`, `ne_spatial` (H3 only) |
+| Geohash string | case-insensitive equality; non-base-32 predictions are format errors | 1 | - |
+| Composite string (H3+S2) | equality of both pipe-separated halves | 1 | `em_spatial`, `ne_spatial` (H3 half) |
+| Cardinal direction (predefined) | 0 if `resolve(pred)` is the gold id else 1 | 1 | `resolve_failure` |
+| Predefined value (left/right, upstream/downstream) | 0 if `resolve(pred)` is the gold id else 1 | 1 | `resolve_failure` |
+| Set enumeration (list of entity names) | `1 - Jaccard` over alias-resolved members; EM needs set equality | 1 | `set_precision`, `set_recall`, `set_f1` |
+| Set enumeration (list of dates) | `1 - Jaccard` over canonicalised dates; an unparseable element is a format error | 1 | `set_precision`, `set_recall`, `set_f1` |
+| Numeric (integer, float) | `abs(pred - gold)`; EM also needs the declared unit to match | `max(delta, alpha*abs(gold))` | `unit_match`, `numeric_failure_category` |
+| Coordinates (lat/long pair) | geodesic distance (km) | `max(delta_coord, alpha*d_scale)` | - |
+| Polar coordinates (angle, distance) | max of the normalised bearing and radial errors | EM needs both within tolerance | - |
+| Bounding box (4-float) | `1 - IoU` | EM is `1[IoU >= threshold]` | - |
+| Geometry (list of lat/long pairs), lines | Hausdorff distance (km) | `line_tolerance_km` | - |
+| Geometry (list of lat/long pairs), polygons | `1 - IoU`, computed in EPSG:6933 | EM is `1[IoU >= threshold]` | - |
+| Date | components match for EM, day distance for NE | 1 / 15 / 365 days, from the coarser of prediction and gold precision | - |
 
-Default tolerance hyperparameters (configurable via CLI flags):
+Geometry routes to the polygon rule when the gold is a closed ring enclosing a
+non-trivial area, and to the line rule otherwise.
 
 | Parameter | Default | Flag |
 |---|---|---|
-| `α` (relative tolerance) | 0.05 | `--alpha` |
-| `δ` distance (km) | 5.0 | `--delta-distance` |
-| `δ` area (km²) | 25.0 | `--delta-area` |
-| `δ` count | 1.0 | (no flag) |
-| Polygon IoU threshold | 0.5 | `--polygon-iou-threshold` |
-| Scale-from-magnitude | **on** | `--no-scale-from-magnitude` to disable |
+| `alpha`, relative tolerance | 0.05 | `--alpha` |
+| `delta` distance (km) | 5.0 | `--delta-distance` |
+| `delta` area (km2) | 25.0 | `--delta-area` |
+| IoU threshold, polygons and boxes | 0.5 | `--polygon-iou-threshold` |
+| Polar bearing tolerance (degrees) | 5.0 | `--polar-angle-tol` |
+| Scale-from-magnitude | on | `--no-scale-from-magnitude` disables |
 
-By default the `δ` for distance / area is picked from the gold's magnitude: urban (`|y*| < 50` → `δ=0.5`), regional (`50 ≤ |y*| < 500` → `δ=5`), national (`|y*| ≥ 500` → `δ=10`). Pass `--no-scale-from-magnitude` to revert to a single flat global `δ` (set via `--delta-distance` / `--delta-area`).
+Counts use `delta = 1.0` and dimensionless ratios `delta = 0.0`, making the ratio
+tolerance purely relative. Coordinates use `delta_coord = 5 km` and `d_scale = 200 km`,
+so the default tolerance is 10 km. None of those four has a flag.
 
-These defaults live in `benchmark_eval/scoring_spec.json` — the canonical scoring rules. CLI flag values that differ from the spec are recorded on every run as `scoring_spec_deviations` in the aggregate report and MLflow, so readers can tell whether numbers were produced under spec defaults or a custom config.
+With scale-from-magnitude on, distance and area answers take `delta` from the gold's
+magnitude instead of the flat default: distances under 50 km get 0.5, under 500 km get
+5, otherwise 10; areas under 2500 km2 get 0.25, under 250000 km2 get 25, otherwise 100.
+Counts and ratios never scale.
 
-## Refusals and Coverage
+The defaults live in `benchmark_eval/scoring_spec.json`, the canonical rule set. Flag
+values that differ from it are recorded on each run as `scoring_spec_deviations` in the
+aggregate report.
 
-Predictions with `answer == None` (or `refusal=True`) are treated as refusals: `em=0`, `ne=1`, `covered=False`. Predictions that fail to parse into the expected Python type (e.g. string where a number was expected) are treated as format errors: `em=0`, `ne=1`, `covered=False`, `format_error=True`.
+## Refusals and coverage
 
-**False-premise rows are a deliberate exception**: when `is_true_premise=False` and the model refuses (`answer=None`), the refusal is the *correct* answer to an unanswerable question. The row is scored `em=1`, `covered=True`, `refusal=True`. So `coverage_rate` counts:
+| Prediction | Gold | Scored as |
+|---|---|---|
+| refusal (`answer` is null, or `refusal`) | true premise | `em=0`, `ne=1`, `covered=False`, `refusal=True` |
+| refusal | false premise | `em=1`, `ne=0`, `covered=True`, `refusal=True` |
+| refusal | no `ground_truth`, no false-premise marker | `em=0`, `covered=False`, `gold_missing=True` |
+| typed answer | false premise | `em=0`, `covered=True` |
+| unparseable as the declared type | any | `em=0`, `ne=1`, `covered=False`, `format_error=True` |
+| `final_state == "error"` | any | `em=0`, `ne=1`, `covered=False`, not a refusal |
 
-- Real-premise rows where the model produced a parseable, non-refusal answer.
-- False-premise rows where the model correctly refused.
+`coverage_rate`, also reported as `answer_rate`, is the share of rows with
+`covered=True`: parseable non-refusal answers plus correct refusals on false-premise
+rows. Alongside it:
 
-It does NOT count:
+- `em_conditional` - mean EM over covered rows.
+- `refusal_rate` - share of all rows that are uncredited refusals; gold-missing rows and
+  correct false-premise refusals are excluded from the numerator.
+- `false_refusal_rate` - share of true-premise rows the model refused.
+- `negative_rejection_rate` - mean EM over false-premise rows, the correct-refusal rate.
+- `em_adjusted` / `ne_adjusted` - the headline means with harness failures (`error_class`
+  in `infra`, `context_overflow`, `code_gen`) out of the denominator.
+- `missing_prediction_rate` - gold question ids with no prediction, over the gold size.
+  Those rows are absent from every other rate rather than scored as EM=0.
 
-- Real-premise rows where the model refused (these are scored `em=0`, `covered=False`).
-- Format errors on any row.
-- Gold-missing rows.
+## Aggregate report
 
-The aggregate report includes:
+`em_micro` / `ne_micro` are means over all predictions; `em_macro` / `ne_macro` are
+means over the per-answer-type means, so each type carries equal weight.
+`em_true_premise` / `ne_true_premise` restrict to real-premise rows, and
+`majority_baseline_em` is the EM of always emitting each TID's modal gold label.
 
-- `coverage_rate` — fraction of rows that produced a scoreable response per the rules above. Includes correct false-premise refusals. **Do not read this as "fraction of questions the model attempted an answer for"** — read `refusal_rate` (true-premise refusals only) and `negative_rejection_rate` (false-premise correct-refusal rate) together to get that picture.
-- `em_conditional` — mean EM conditional on `covered=True`. Reports the model's accuracy on the questions it actually attempted, plus its correct-refusal rate on false-premise rows.
-- `format_error_rate` — fraction of predictions that failed to parse.
-- `refusal_rate` — fraction of true-premise rows where the model refused (i.e. erroneously declined).
-- `negative_rejection_rate` — fraction of false-premise rows where the model correctly refused.
+Breakdowns are `dict[str, GroupStats]` under `per_answer_type`, `per_sfid`,
+`per_language`, `per_kg`, `per_strata_cell` (the full tag, e.g. `HIC_high`) and
+`per_income_tier` (the prefix before `_`). Each `GroupStats` carries `n`, `n_covered`,
+`em`, `ne`, `em_conditional`, `ne_conditional`.
 
-## Micro vs Macro
+Diagnostics, populated when the relevant subset is non-empty:
 
-Both are reported:
+- `resolve_failure_rate` - alias lookup returned nothing for an entity, cardinal or
+  predefined prediction.
+- `unit_match_rate` - predicted unit matched gold after canonicalisation (numeric only).
+- `numeric_failure_breakdown` - numeric `em=0` rows counted by
+  `number_wrong_unit_correct`, `number_correct_unit_wrong`, `both_wrong`.
+- `numeric_em_unit_normalized` / `numeric_ne_unit_normalized` - numeric scores after
+  converting the prediction into the gold unit. Conversion applies only within a
+  dimensional group (distance, area); other rows keep their strict values.
+- `grid_em_spatial` / `grid_ne_spatial` - over rows whose H3 cell decodes, scored by
+  hierarchy containment rather than exact id, so a right place at a different resolution
+  counts. `grid_em_strict` / `grid_ne_strict` are the exact-id numbers on that subset.
 
-- `em_micro` / `ne_micro` — simple mean across all predictions. Reflects the benchmark's actual distribution of answer types.
-- `em_macro` / `ne_macro` — mean across per-answer-type means. Each answer type contributes equally.
+## Alias store
 
-## Per-Group Breakdowns
-
-The aggregate report carries `dict[str, GroupStats]` rollups keyed on:
-
-- `per_answer_type` — by canonical answer-type name.
-- `per_sfid` — by Spatial Function ID family.
-- `per_language` — by ISO language code.
-- `per_strata_cell` — by full `strata_cell` tag (e.g. `HIC_high`, `LIC_low`). Surfaces the income-tier × density-bucket cross product the benchmark stratifies on.
-- `per_income_tier` — coarser companion: the prefix before `_` in `strata_cell` (`HIC` / `UMC` / `LMC` / `LIC`). For paper tables that don't need the full 12-cell matrix.
-
-Both strata rollups are empty dicts when no record carries a `strata_cell`. Each `GroupStats` carries `n`, `n_covered`, `em`, `ne`, `em_conditional`.
-
-## Diagnostic Metrics
-
-Populated when the relevant sub-population is non-empty:
-
-- `resolve_failure_rate` — alias lookup returned `None` for an entity / cardinal / predefined prediction.
-- `unit_match_rate` — predicted unit matched gold after canonicalization (numeric only).
-- `numeric_failure_breakdown` — counts of `em=0` numeric failures, split by whether unit and/or value were wrong.
-
-## Unit-Normalized Companions
-
-Strict `em_micro` requires the model's declared unit to match gold (so `10000 m` vs gold `10 km` is EM=0). To separate *spatial-reasoning capability* from *unit-instruction compliance*, the aggregate report also reports `numeric_em_unit_normalized` / `numeric_ne_unit_normalized`, computed after converting prediction units into the gold unit. Conversion is restricted to within a dimensional group (distance / area); cross-group or unknown-unit cases fall back to the strict values.
-
-## Alias Store
-
-Entity / cardinal / predefined resolution goes through a per-language alias store, a flat lookup keyed by canonical id:
+Entity, cardinal and predefined resolution goes through a per-language alias store: a
+flat JSON object keyed by canonical id.
 
 ```json
 {
-  "osm:2476384356": {
-    "canonical": "Cafe Kanel",
-    "aliases": ["Cafe Kanel", "Café Kanel"]
-  },
-  "cardinal:N": {
-    "canonical": "N",
-    "aliases": ["N", "North", "Nord", "Norte", "北"]
-  },
-  "predef:left": {
-    "canonical": "left",
-    "aliases": ["left", "gauche", "izquierda", "links"]
-  }
+  "osm:2476384356": {"canonical": "Cafe Kanel", "aliases": ["Cafe Kanel"]},
+  "cardinal:N": {"canonical": "N", "aliases": ["N", "North", "Nord", "Norte"]},
+  "predef:left": {"canonical": "left", "aliases": ["left", "gauche", "links"]}
 }
 ```
 
-The stores are released with the benchmark data, one file per language, and passed
-to `score` with `--aliases <dir>/<lang>.json`. `AliasStore.for_language` falls back to
-the English store when a language's file is absent.
+Lookup canonicalises both sides (NFC, case folding, punctuation stripping). Where
+several ids claim one alias, resolution prefers the gold id if it is among them and
+otherwise takes the first in sorted order. A prediction that resolves to nothing scores
+`em=0` with `resolve_failure=True`. Entity hex strings bypass the store.
 
-The script populates the file from OSM entities in the benchmark, plus multilingual aliases for cardinal directions and predefined values.
+The stores ship with the benchmark data, one file per language. `AliasStore.load` reads
+one file; `AliasStore.for_language` reads `<aliases_dir>/<lang>.json` and falls back to
+its `fallback` language when that file is absent.
 
-## MLflow Tracking
+## MLflow
 
-Each `score` invocation logs one MLflow run by default (`--no-mlflow` to skip). Pass `--parent-run-id <id>` to nest the eval run under a `benchmark_models` run in the UI. Artifacts: `score_records.jsonl`, `aggregate_report.json`.
-
-## Testing
-
-```bash
-uv run pytest tests/benchmark_eval/ -v
-```
-
-Test coverage (~210 tests): canonicalization, alias store, per-type distance and tolerance, per-type scorer end-to-end, aggregation (micro / macro / diagnostics), MLflow logging (mocked), CLI end-to-end.
+Each `score` run logs one MLflow run with the report metrics and both output files as
+artifacts. `--no-mlflow` skips it; `--parent-run-id` nests it under an existing run.

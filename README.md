@@ -9,11 +9,12 @@ verifiable and the questions can be regenerated.
 
 | | |
 |---|---:|
-| questions, English (`large`) | 46,060 |
-| questions, English (`small`) | 5,916 |
+| questions per language (`large`) | 46,060 |
+| questions per language (`small`) | 5,916 |
 | languages | 17 |
 | parent templates / sub-templates / paraphrase variants | 65 / 129 / 315 |
 | spatial-function families | 14 |
+| answer types | 17 |
 | knowledge graphs | 3 |
 
 `small` is a subset of `large` with the same identifiers, sampled per
@@ -21,8 +22,21 @@ verifiable and the questions can be regenerated.
 
 ## Getting the data
 
-The questions, gold triples, images and per-language alias stores are published
-separately. The scorer needs an alias store; it will not run without one.
+The benchmark is published separately, on HuggingFace:
+
+```python
+from datasets import load_dataset
+
+questions = load_dataset("aiana94/MultiGlobeQA", "eng", split="large")
+gold      = load_dataset("aiana94/MultiGlobeQA", "gold_triples", split="large")
+```
+
+It also carries the per-language alias stores, which the scorer takes as a required
+argument. The multimodal slice ships image URLs rather than image bytes.
+
+The knowledge-graph snapshots the questions were generated from are archived on
+Zenodo: <https://doi.org/PLACEHOLDER>. They are needed for tier-3 retrieval and for
+regenerating the questions, and for nothing else.
 
 ## Install
 
@@ -34,7 +48,7 @@ uv sync --extra generate                # adds question generation
 
 Scoring and tier-1/2 inference need neither Spark nor a knowledge graph. Tier-3
 retrieval reads the KG Delta tables through Spark, so it needs the `kg` extra and a
-local copy of the graphs.
+local copy of the graphs from Zenodo (<https://doi.org/PLACEHOLDER>).
 
 ## Run a model
 
@@ -88,7 +102,7 @@ and returns a final answer.
 `benchmark_eval/scoring_spec.json`:
 
 - **EM** — exact match under that type's tolerance.
-- **NE** — normalized error, so a near miss and a wild one are distinguishable.
+- **NE** — normalized error, so a near miss and a large one are distinguishable.
 - **coverage** — the share of questions that produced a parseable answer. A question is
   uncovered if the model abstained, emitted an unparseable answer, or the harness
   errored.
@@ -121,7 +135,7 @@ sub-template `13.1` fixes the operands; variant `13.1.2` is one paraphrase of it
 carry all three as `tid`, `ftid` and `vid`.
 
 `data/templates/templates_<lang>.tsv` holds all 315 variants for one language, keyed by
-`vid`, so the seventeen files join on their identifier columns. Only the variant is
+`vid`, so the 17 files join on their identifier columns. Only the variant is
 translated; the `template_eng` and `sub_template_eng` columns are English in every file.
 
 The spatial families are lettered A–N and defined in
@@ -139,8 +153,8 @@ multiglobeqa generate --run <spec>.yaml
 
 `RunSpec` in `question_generator/shape_loader.py` defines the spec: the sub-templates
 (`tids`, each optionally `<tid>:<variant>`), the graphs (`kgs`), the strata, a seed, a
-sample size and an output directory. No spec is shipped, and generation also needs
-local copies of the knowledge graphs and a Spark cluster.
+sample size and an output directory. No spec is shipped, and generation also needs a
+Spark cluster and local copies of the knowledge graphs (<https://doi.org/PLACEHOLDER>).
 
 ## Tests
 
