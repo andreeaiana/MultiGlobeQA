@@ -173,3 +173,19 @@ they need Spark fixtures that are not part of this repository.
 
 MIT, see [LICENSE](LICENSE). The knowledge graphs the questions derive from carry their
 own licences.
+
+## Citation
+
+If you use MultiGlobeQA, please cite the following publication:
+
+```
+@misc{iana2023newsreclib,
+  title={MultiGlobeQA: A Multilingual and Globally Diverse Benchmark for Geospatial Reasoning},
+  author={Martin Böckling and Elizaveta Nosova and Heiko Paulheim and Andreea Iana},
+  year={2026},
+  eprint={2608.03882},
+  archivePrefix={arXiv},
+  primaryClass={cs.CL},
+  url={https://arxiv.org/abs/2608.03882}, 
+}
+```
