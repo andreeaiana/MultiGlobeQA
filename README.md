@@ -179,7 +179,7 @@ own licences.
 If you use MultiGlobeQA, please cite the following publication:
 
 ```
-@misc{iana2023newsreclib,
+@misc{boeckling2026multiglobeqa,
   title={MultiGlobeQA: A Multilingual and Globally Diverse Benchmark for Geospatial Reasoning},
   author={Martin Böckling and Elizaveta Nosova and Heiko Paulheim and Andreea Iana},
   year={2026},
@@ -189,3 +189,4 @@ If you use MultiGlobeQA, please cite the following publication:
   url={https://arxiv.org/abs/2608.03882}, 
 }
 ```
+
