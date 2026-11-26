@@ -14,7 +14,7 @@
 # OpenAI-compatible endpoint.
 # Tiers: plain (tier 1), reasoning (tier 2), tool_agent (tier 3)
 #
-# Install: uv sync --extra benchmark_models
+# Install: uv sync --extra models
 
 # ============================================================================
 # YAML anchor templates (loader filters keys starting with ``_``).
@@ -31,15 +31,8 @@ _gemma3_27b_defaults: &gemma3_27b_defaults
   model_path: google/gemma-3-27B-it
   dtype: bfloat16
   gpu_memory_utilization: 0.90
-  # Pinned to Gemma 3 27B (rather than Gemma 4 31B) because the
-  # current pinned ``transformers`` (4.57.x) doesn't register the
-  # ``gemma4`` model_type — that needs transformers ≥ 5.5.0, which
-  # in turn requires the vLLM nightly. Gemma 3 has been supported
-  # since vLLM 0.18 with the pinned transformers version, so the swap
-  # keeps the open-weights Gemma data point in the catalogue without
-  # a dependency-stack overhaul. The trade-off is that Gemma 3 has
-  # no native ``thinking`` toggle, so its tier-2 variant falls back
-  # to prompted CoT (see the ``gemma-3-27b-it-tier2`` entry below).
+  # Gemma 3 has no native thinking toggle, so its tier-2 variant uses
+  # prompted CoT (see the ``gemma-3-27b-it-tier2`` entry below).
 
 _qwen35_27b_defaults: &qwen35_27b_defaults
   backend: vllm_http
@@ -70,6 +63,85 @@ _qwen35_27b_yarn_64k: &qwen35_27b_yarn_64k
     rope_type: yarn
     factor: 2.0
     original_max_position_embeddings: 32768
+
+# Models with native reasoning (Qwen 3.8, Gemma 4, gpt-oss, GLM-4.7-Flash).
+# They serve at their native context window; no ``rope_scaling`` override
+# is set. ``reasoning_parser`` is the ``--reasoning-parser`` name to serve
+# the model with. With a parser, the JSON-schema grammar applies only after
+# the reasoning channel ends. Without one, vLLM applies the grammar from the
+# first generated token and suppresses thinking.
+
+_qwen38_27b_defaults: &qwen38_27b_defaults
+  backend: vllm_http
+  model_path: Qwen/Qwen3.8-27B-FP8
+  dtype: auto
+  gpu_memory_utilization: 0.9
+  max_model_len: 262144
+  slurm_mem_gb: 128
+  reasoning_parser: qwen3
+  # Compact-JSON grammar: forbids unbounded whitespace between JSON tokens.
+  vllm_extra_args: ["--structured-outputs-config '{\"backend\": \"xgrammar\", \"disable_any_whitespace\": true}'"]
+
+_gemma4_31b_defaults: &gemma4_31b_defaults
+  backend: vllm_http
+  model_path: google/gemma-4-31B-it
+  dtype: bfloat16
+  gpu_memory_utilization: 0.9
+  # Lower to 131072 if vLLM cannot allocate the KV cache at this length.
+  max_model_len: 262144
+  slurm_mem_gb: 128
+  reasoning_parser: gemma4
+  # Pins the model revision. The second argument is the compact-JSON grammar.
+  vllm_extra_args:
+    - "--revision 842da3794eaa0b77d5f08bae87a17459d91ff475"
+    - "--structured-outputs-config '{\"backend\": \"xgrammar\", \"disable_any_whitespace\": true}'"
+
+_gptoss_120b_defaults: &gptoss_120b_defaults
+  backend: vllm_http
+  model_path: openai/gpt-oss-120b
+  dtype: auto
+  gpu_memory_utilization: 0.9
+  max_model_len: 131072
+  slurm_mem_gb: 128
+  reasoning_parser: openai_gptoss
+  # The upstream gpt-oss serving recipe disables prefix caching.
+  disable_prefix_caching: true
+  # Compact-JSON grammar: forbids unbounded whitespace between JSON tokens.
+  vllm_extra_args: ["--structured-outputs-config '{\"backend\": \"xgrammar\", \"disable_any_whitespace\": true}'"]
+
+_gptoss_20b_defaults: &gptoss_20b_defaults
+  backend: vllm_http
+  model_path: openai/gpt-oss-20b
+  dtype: auto
+  gpu_memory_utilization: 0.9
+  max_model_len: 131072
+  slurm_mem_gb: 80
+  reasoning_parser: openai_gptoss
+  disable_prefix_caching: true
+  # Compact-JSON grammar: forbids unbounded whitespace between JSON tokens.
+  vllm_extra_args: ["--structured-outputs-config '{\"backend\": \"xgrammar\", \"disable_any_whitespace\": true}'"]
+
+_glm47_flash_defaults: &glm47_flash_defaults
+  backend: vllm_http
+  model_path: zai-org/GLM-4.7-Flash
+  dtype: bfloat16
+  gpu_memory_utilization: 0.9
+  max_model_len: 202752
+  slurm_mem_gb: 128
+  # ``glm45`` is the reasoning-parser name for GLM-4.7 on vLLM 0.20.1
+  # (``glm47`` exists there only as a tool parser).
+  reasoning_parser: glm45
+  # Compact-JSON grammar: forbids unbounded whitespace between JSON tokens.
+  vllm_extra_args: ["--structured-outputs-config '{\"backend\": \"xgrammar\", \"disable_any_whitespace\": true}'"]
+
+_qwen38_thinking_off: &qwen38_thinking_off
+  chat_template_kwargs:
+    enable_thinking: false
+    preserve_thinking: false
+
+_glm_thinking_off: &glm_thinking_off
+  chat_template_kwargs:
+    enable_thinking: false
 
 # ============================================================================
 # Closed-source (API) — tier 1 + tier 3
@@ -169,16 +241,19 @@ gemini-3-flash-tier3c-name:
 # ============================================================================
 
 qwen35-a3b-plain:
+  boolean_literal_hint: true
   <<: *qwen35_a3b_defaults
   tier: plain
   batch_size: 64
 
 qwen35-27b-plain:
+  boolean_literal_hint: true
   <<: *qwen35_27b_defaults
   tier: plain
   batch_size: 32
 
 gemma-3-27b-it-plain:
+  boolean_literal_hint: true
   <<: *gemma3_27b_defaults
   tier: plain
 
@@ -187,21 +262,24 @@ gemma-3-27b-it-plain:
 # ============================================================================
 
 qwen35-a3b-thinking-tier2:
+  boolean_literal_hint: true
   <<: *qwen35_a3b_defaults
   tier: reasoning
   thinking: true
   batch_size: 64
 
-# Qwen3.5-27B and Gemma 3 27B both use prompted CoT (neither has a
-# native thinking toggle). SC@3 is applied only on the workhorse
-# Qwen3.5-35B-A3B-FP8 variant above; these two use greedy CoT.
+# Qwen3.5-27B and Gemma 3 27B use greedy prompted CoT, like the
+# Qwen3.5-35B-A3B variant above (its ``thinking: true`` has no effect
+# on requests).
 
 qwen35-27b-tier2:
+  boolean_literal_hint: true
   <<: *qwen35_27b_defaults
   tier: reasoning
   batch_size: 32
 
 gemma-3-27b-it-tier2:
+  boolean_literal_hint: true
   <<: *gemma3_27b_defaults
   tier: reasoning
 
@@ -262,8 +340,8 @@ gemma-3-27b-it-tier3c:
 # (-image) or a text-only baseline where ``[IMAGE_<slot>]`` is
 # substituted with the entity's textual name (-name). The image-vs-name
 # gap quantifies how much the visual modality contributes when the
-# model also has KG/web tool access. All three open-weights models are
-# vision-capable per their HF model cards
+# model also has KG/web tool access. Qwen3.5-35B-A3B, Qwen3.5-27B and
+# Gemma 3 27B are vision-capable per their HF model cards
 # (``pipeline_tag: image-text-to-text``, ``vision_config`` block).
 #
 # qwen35-27b-tier3a/c-{image,name} carry the YaRN 64K context
@@ -385,8 +463,9 @@ gemma-3-27b-it-tier3c-name:
 # Multimodal (tier 1) — image vs name ablation
 # ============================================================================
 #
-# Each slate model gets two companion variants. ``-image`` packs the
-# extracted JPEG/PNG bytes into a provider-specific content block;
+# Gemini 3 Flash, Qwen3.5 and Gemma 3 get two companion variants.
+# ``-image`` packs the extracted JPEG/PNG bytes into a provider-specific
+# content block;
 # ``-name`` substitutes the entity's display name into the
 # ``[IMAGE_<slot>]`` placeholder for a text-only baseline. Pair-wise
 # EM gap = visual contribution.
@@ -406,6 +485,7 @@ gemini-3-flash-name:
   multimodal_mode: name
 
 qwen35-27b-image:
+  boolean_literal_hint: true
   <<: *qwen35_27b_defaults
   tier: plain
   multimodal_mode: image
@@ -416,6 +496,7 @@ qwen35-27b-name:
   multimodal_mode: name
 
 qwen35-a3b-image:
+  boolean_literal_hint: true
   <<: *qwen35_a3b_defaults
   tier: plain
   multimodal_mode: image
@@ -426,6 +507,7 @@ qwen35-a3b-name:
   multimodal_mode: name
 
 gemma-3-27b-it-image:
+  boolean_literal_hint: true
   <<: *gemma3_27b_defaults
   tier: plain
   multimodal_mode: image
@@ -449,7 +531,7 @@ gemma-3-27b-it-name:
 #
 # Native 32 K context is sufficient for tier-2 (single-turn, no agent
 # loop), so no YaRN extension needed even on qwen35-27b. The reasoning
-# budget (``max_tokens`` for prompted CoT on qwen / gemma, ``thinking``
+# budget (``max_tokens`` for prompted CoT on Qwen3.5 / Gemma 3, ``thinking``
 # budget for native reasoners on gemini) is bounded per-call.
 
 gemini-3-flash-thinking-tier2-image:
@@ -467,6 +549,7 @@ gemini-3-flash-thinking-tier2-name:
   multimodal_mode: name
 
 qwen35-a3b-thinking-tier2-image:
+  boolean_literal_hint: true
   <<: *qwen35_a3b_defaults
   tier: reasoning
   thinking: true
@@ -481,21 +564,13 @@ qwen35-a3b-thinking-tier2-name:
   multimodal_mode: name
 
 qwen35-27b-tier2-image:
+  boolean_literal_hint: true
   <<: *qwen35_27b_defaults
   tier: reasoning
   batch_size: 32
   multimodal_mode: image
-  # Observed 18.75% budget-truncation casualties at the default
-  # effective cap of 2048 (qwen 27B prompted-CoT spiraling inside the
-  # JSON `reasoning` field on numeric tids 1.1 / 77.1 — model loops
-  # "Let's try X. Let's refine. Let's assume Y..." until truncation).
-  # The OpenAI backend computes
-  #     effective = max(2048, config.max_tokens * 4)
-  # for prompted-CoT requests (backends/openai.py:367-372), so
-  # setting 1024 here yields 4096 effective — enough headroom to
-  # absorb the spirals while keeping cost bounded. Scope is -image
-  # only; the text-only -name run hasn't been collected yet and the
-  # plain tier2 text-only variant has not shown the same rate.
+  # Prompted-CoT requests get max(2048, max_tokens * 4) output tokens
+  # (backends/openai.py), so 1024 here gives 4096.
   max_tokens: 1024
 
 qwen35-27b-tier2-name:
@@ -505,6 +580,7 @@ qwen35-27b-tier2-name:
   multimodal_mode: name
 
 gemma-3-27b-it-tier2-image:
+  boolean_literal_hint: true
   <<: *gemma3_27b_defaults
   tier: reasoning
   multimodal_mode: image
@@ -514,3 +590,342 @@ gemma-3-27b-it-tier2-name:
   tier: reasoning
   multimodal_mode: name
 
+# ============================================================================
+# Open-weights (vLLM) with native reasoning — tiers 1, 2 and 3
+# ============================================================================
+#
+# Thinking control per family:
+#   * qwen38 / glm47-flash: the chat template opens a think block by
+#     default; variants without thinking pass
+#     ``chat_template_kwargs: {enable_thinking: false}``.
+#   * gemma4: thinking is off by default; the thinking variants enable it.
+#   * gptoss: reasoning cannot be disabled, only bounded, through
+#     ``request_reasoning_effort``: low (tier 1, tier 3) or high (tier 2).
+
+# ---- Qwen 3.8 27B -----------------------------------------------------------
+
+qwen38-27b-plain:
+  boolean_literal_hint: true
+  <<: [*qwen38_27b_defaults, *qwen38_thinking_off]
+  tier: plain
+  batch_size: 32
+
+qwen38-27b-thinking-tier2:
+  # Native thinking: the answer is JSON only and the reasoning stays in
+  # the thinking channel. ``max_tokens`` covers thinking plus answer.
+  boolean_literal_hint: true
+  <<: *qwen38_27b_defaults
+  tier: reasoning
+  batch_size: 32
+  schema_reasoning: false
+  max_tokens: 32768
+
+qwen38-27b-tier3a:
+  <<: [*qwen38_27b_defaults, *qwen38_thinking_off]
+  tier: tool_agent
+  sub_tier: "3a"
+  max_num_seqs: 16
+
+qwen38-27b-tier3b:
+  <<: [*qwen38_27b_defaults, *qwen38_thinking_off]
+  tier: tool_agent
+  sub_tier: "3b"
+
+qwen38-27b-tier3c:
+  <<: [*qwen38_27b_defaults, *qwen38_thinking_off]
+  tier: tool_agent
+  sub_tier: "3c"
+  max_num_seqs: 16
+
+# Image variants. Prefix caching is disabled for them: with large images it
+# stalls prefill on Qwen 3.8.
+
+qwen38-27b-image:
+  boolean_literal_hint: true
+  <<: [*qwen38_27b_defaults, *qwen38_thinking_off]
+  tier: plain
+  batch_size: 32
+  multimodal_mode: image
+  disable_prefix_caching: true
+
+qwen38-27b-thinking-tier2-image:
+  boolean_literal_hint: true
+  <<: *qwen38_27b_defaults
+  tier: reasoning
+  batch_size: 32
+  schema_reasoning: false
+  max_tokens: 32768
+  multimodal_mode: image
+  disable_prefix_caching: true
+
+qwen38-27b-tier3a-image:
+  <<: [*qwen38_27b_defaults, *qwen38_thinking_off]
+  tier: tool_agent
+  sub_tier: "3a"
+  max_num_seqs: 16
+  multimodal_mode: image
+  disable_prefix_caching: true
+
+qwen38-27b-tier3b-image:
+  <<: [*qwen38_27b_defaults, *qwen38_thinking_off]
+  tier: tool_agent
+  sub_tier: "3b"
+  multimodal_mode: image
+  disable_prefix_caching: true
+
+qwen38-27b-tier3c-image:
+  <<: [*qwen38_27b_defaults, *qwen38_thinking_off]
+  tier: tool_agent
+  sub_tier: "3c"
+  max_num_seqs: 16
+  multimodal_mode: image
+  disable_prefix_caching: true
+
+# ---- Gemma 4 31B ------------------------------------------------------------
+
+gemma4-31b-plain:
+  boolean_literal_hint: true
+  <<: *gemma4_31b_defaults
+  tier: plain
+  batch_size: 32
+
+gemma4-31b-thinking-tier2:
+  # Native thinking: the answer is JSON only and the reasoning stays in
+  # the thinking channel. ``max_tokens`` covers thinking plus answer.
+  boolean_literal_hint: true
+  <<: *gemma4_31b_defaults
+  tier: reasoning
+  chat_template_kwargs:
+    enable_thinking: true
+  batch_size: 32
+  schema_reasoning: false
+  max_tokens: 16384
+
+gemma4-31b-tier3a:
+  <<: *gemma4_31b_defaults
+  tier: tool_agent
+  sub_tier: "3a"
+  max_num_seqs: 16
+
+gemma4-31b-tier3b:
+  <<: *gemma4_31b_defaults
+  tier: tool_agent
+  sub_tier: "3b"
+
+gemma4-31b-tier3c:
+  <<: *gemma4_31b_defaults
+  tier: tool_agent
+  sub_tier: "3c"
+  max_num_seqs: 16
+
+# Image variants.
+
+gemma4-31b-image:
+  boolean_literal_hint: true
+  <<: *gemma4_31b_defaults
+  tier: plain
+  batch_size: 32
+  multimodal_mode: image
+
+gemma4-31b-thinking-tier2-image:
+  boolean_literal_hint: true
+  <<: *gemma4_31b_defaults
+  tier: reasoning
+  chat_template_kwargs:
+    enable_thinking: true
+  batch_size: 32
+  schema_reasoning: false
+  max_tokens: 16384
+  multimodal_mode: image
+
+gemma4-31b-tier3a-image:
+  <<: *gemma4_31b_defaults
+  tier: tool_agent
+  sub_tier: "3a"
+  max_num_seqs: 16
+  multimodal_mode: image
+
+gemma4-31b-tier3b-image:
+  <<: *gemma4_31b_defaults
+  tier: tool_agent
+  sub_tier: "3b"
+  multimodal_mode: image
+
+gemma4-31b-tier3c-image:
+  <<: *gemma4_31b_defaults
+  tier: tool_agent
+  sub_tier: "3c"
+  max_num_seqs: 16
+  multimodal_mode: image
+
+# ---- gpt-oss 120B / 20B (text only) -----------------------------------------
+
+gptoss-120b-plain:
+  # ``max_tokens`` covers the analysis channel and the answer.
+  boolean_literal_hint: true
+  <<: *gptoss_120b_defaults
+  tier: plain
+  batch_size: 32
+  max_tokens: 2048
+  request_reasoning_effort: low
+
+gptoss-120b-thinking-tier2:
+  # Native thinking: the answer is JSON only and the reasoning stays in
+  # the thinking channel. ``max_tokens`` covers thinking plus answer.
+  boolean_literal_hint: true
+  <<: *gptoss_120b_defaults
+  tier: reasoning
+  batch_size: 32
+  schema_reasoning: false
+  max_tokens: 32768
+  request_reasoning_effort: high
+
+gptoss-120b-tier3a:
+  <<: *gptoss_120b_defaults
+  tier: tool_agent
+  sub_tier: "3a"
+  max_num_seqs: 16
+  request_reasoning_effort: low
+
+gptoss-120b-tier3b:
+  <<: *gptoss_120b_defaults
+  tier: tool_agent
+  sub_tier: "3b"
+  request_reasoning_effort: low
+
+gptoss-120b-tier3c:
+  <<: *gptoss_120b_defaults
+  tier: tool_agent
+  sub_tier: "3c"
+  max_num_seqs: 16
+  request_reasoning_effort: low
+
+gptoss-20b-plain:
+  boolean_literal_hint: true
+  <<: *gptoss_20b_defaults
+  tier: plain
+  batch_size: 32
+  max_tokens: 2048
+  request_reasoning_effort: low
+
+gptoss-20b-thinking-tier2:
+  # Native thinking: the answer is JSON only and the reasoning stays in
+  # the thinking channel. ``max_tokens`` covers thinking plus answer.
+  boolean_literal_hint: true
+  <<: *gptoss_20b_defaults
+  tier: reasoning
+  batch_size: 32
+  schema_reasoning: false
+  max_tokens: 32768
+  request_reasoning_effort: high
+
+gptoss-20b-tier3a:
+  <<: *gptoss_20b_defaults
+  tier: tool_agent
+  sub_tier: "3a"
+  max_num_seqs: 16
+  request_reasoning_effort: low
+
+gptoss-20b-tier3b:
+  <<: *gptoss_20b_defaults
+  tier: tool_agent
+  sub_tier: "3b"
+  request_reasoning_effort: low
+
+gptoss-20b-tier3c:
+  <<: *gptoss_20b_defaults
+  tier: tool_agent
+  sub_tier: "3c"
+  max_num_seqs: 16
+  request_reasoning_effort: low
+
+# ---- GLM-4.7-Flash (text only) ----------------------------------------------
+
+glm47-flash-plain:
+  boolean_literal_hint: true
+  <<: [*glm47_flash_defaults, *glm_thinking_off]
+  tier: plain
+  batch_size: 64
+
+glm47-flash-thinking-tier2:
+  # Native thinking: the answer is JSON only and the reasoning stays in
+  # the thinking channel. ``max_tokens`` covers thinking plus answer.
+  boolean_literal_hint: true
+  <<: *glm47_flash_defaults
+  tier: reasoning
+  batch_size: 64
+  schema_reasoning: false
+  max_tokens: 32768
+
+glm47-flash-tier3a:
+  <<: [*glm47_flash_defaults, *glm_thinking_off]
+  tier: tool_agent
+  sub_tier: "3a"
+  max_num_seqs: 16
+
+glm47-flash-tier3b:
+  <<: [*glm47_flash_defaults, *glm_thinking_off]
+  tier: tool_agent
+  sub_tier: "3b"
+
+glm47-flash-tier3c:
+  <<: [*glm47_flash_defaults, *glm_thinking_off]
+  tier: tool_agent
+  sub_tier: "3c"
+  max_num_seqs: 16
+
+# ---- Tier 3 with native thinking --------------------------------------------
+#
+# The tier-3 agent loop with thinking enabled, at the family's tier-2 output
+# budget per step (``tier3_max_tokens``). The reasoning parser separates the
+# reasoning from the message content, and only the content is stored between
+# steps; a step that returns no content falls back to its reasoning text.
+# Run with ``--oracle-mode t3`` for the oracle agent with thinking.
+
+qwen38-27b-tier3a-thinking:
+  <<: *qwen38_27b_defaults
+  tier: tool_agent
+  sub_tier: "3a"
+  max_num_seqs: 16
+  chat_template_kwargs:
+    enable_thinking: true
+    preserve_thinking: false
+  tier3_max_tokens: 32768
+
+gemma4-31b-tier3a-thinking:
+  <<: *gemma4_31b_defaults
+  tier: tool_agent
+  sub_tier: "3a"
+  max_num_seqs: 16
+  chat_template_kwargs:
+    enable_thinking: true
+  tier3_max_tokens: 16384
+
+glm47-flash-tier3a-thinking:
+  <<: *glm47_flash_defaults   # no thinking-off anchor: the template default is thinking on
+  tier: tool_agent
+  sub_tier: "3a"
+  max_num_seqs: 16
+  tier3_max_tokens: 32768
+
+qwen38-27b-tier3a-thinking-image:
+  <<: *qwen38_27b_defaults
+  tier: tool_agent
+  sub_tier: "3a"
+  max_num_seqs: 16
+  chat_template_kwargs:
+    enable_thinking: true
+    preserve_thinking: false
+  tier3_max_tokens: 32768
+  multimodal_mode: image
+  disable_prefix_caching: true
+
+gemma4-31b-tier3a-thinking-image:
+  <<: *gemma4_31b_defaults
+  tier: tool_agent
+  sub_tier: "3a"
+  max_num_seqs: 16
+  chat_template_kwargs:
+    enable_thinking: true
+  tier3_max_tokens: 16384
+  multimodal_mode: image
