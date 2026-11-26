@@ -62,7 +62,11 @@ python -m benchmark_models smoke --variant dummy --n 10
 
 `dummy` returns canned predictions and needs no GPU or API key. For a real model, pick
 a variant from `benchmark_models/models.yaml` and set the backend's credentials
-(`GOOGLE_API_KEY` for Gemini, `VLLM_BASE_URL` for a local `vllm serve`):
+(`GOOGLE_API_KEY` for Gemini, `VLLM_BASE_URL` for a local `vllm serve`). The file holds
+the variants of the nine evaluated models: Gemini 3 Flash through the Google API, and
+Qwen3.5-27B, Qwen3.5-35B-A3B, Qwen3.8-27B, Gemma 3 27B, Gemma 4 31B, gpt-oss-120b,
+gpt-oss-20b and GLM-4.7-Flash through vLLM. `python -m benchmark_models list-variants`
+prints them.
 
 ```bash
 python -m benchmark_models smoke \
@@ -97,8 +101,13 @@ Predictions join gold by `question_id`.
 | 3c | both |
 | oracle | the gold triples injected in place of retrieval |
 
+Tier 2 uses prompted chain-of-thought for Qwen3.5-27B, Qwen3.5-35B-A3B and Gemma 3 27B,
+and the model's native reasoning mode for Qwen3.8-27B, Gemma 4 31B, gpt-oss and
+GLM-4.7-Flash. Gemini 3 Flash combines the tier-2 prompt with thinking level `high`.
+
 Tier 3 runs as a code agent: the model calls retrieval and computation tools in a loop
-and returns a final answer.
+and returns a final answer. The `-tier3a-thinking` variants run this agent with native
+thinking enabled.
 
 ## Metrics
 

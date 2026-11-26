@@ -81,16 +81,69 @@ and runtime settings.
 | vLLM, Qwen3.5-35B-A3B | qwen35-a3b-plain | qwen35-a3b-thinking-tier2 | qwen35-a3b-tier3a | qwen35-a3b-tier3b | qwen35-a3b-tier3c |
 | vLLM, Qwen3.5-27B | qwen35-27b-plain | qwen35-27b-tier2 | qwen35-27b-tier3a | qwen35-27b-tier3b | qwen35-27b-tier3c |
 | vLLM, Gemma 3 27B | gemma-3-27b-it-plain | gemma-3-27b-it-tier2 | gemma-3-27b-it-tier3a | gemma-3-27b-it-tier3b | gemma-3-27b-it-tier3c |
+| vLLM, Qwen3.8-27B | qwen38-27b-plain | qwen38-27b-thinking-tier2 | qwen38-27b-tier3a | qwen38-27b-tier3b | qwen38-27b-tier3c |
+| vLLM, Gemma 4 31B | gemma4-31b-plain | gemma4-31b-thinking-tier2 | gemma4-31b-tier3a | gemma4-31b-tier3b | gemma4-31b-tier3c |
+| vLLM, gpt-oss-120b | gptoss-120b-plain | gptoss-120b-thinking-tier2 | gptoss-120b-tier3a | gptoss-120b-tier3b | gptoss-120b-tier3c |
+| vLLM, gpt-oss-20b | gptoss-20b-plain | gptoss-20b-thinking-tier2 | gptoss-20b-tier3a | gptoss-20b-tier3b | gptoss-20b-tier3c |
+| vLLM, GLM-4.7-Flash | glm47-flash-plain | glm47-flash-thinking-tier2 | glm47-flash-tier3a | glm47-flash-tier3b | glm47-flash-tier3c |
+
+Qwen3.8-27B, Gemma 4 31B and GLM-4.7-Flash also have a `-tier3a-thinking` variant, the
+tier-3 agent with native thinking enabled.
 
 Multimodal variants add an `-image` or `-name` suffix. Tier-1 names drop the `-plain`
 segment (`gemini-3-flash-image`, `qwen35-27b-name`); tier-2 and tier-3 names keep the
-base (`qwen35-27b-tier2-image`, `gemini-3-flash-tier3a-name`).
+base (`qwen35-27b-tier2-image`, `gemini-3-flash-tier3a-name`). Qwen3.8-27B and Gemma 4
+31B have `-image` variants only; gpt-oss and GLM-4.7-Flash have text variants only.
 
 Tier-3 tool sets: 3a has the KG tools (`find_entity`, `get_entity`,
 `find_entities_by_type`, `list_categories`) plus a Python sandbox; 3b has web search,
 page fetch and the sandbox; 3c has all of them. Tier-3 predictions carry the full agent
 trace in `tool_calls` -- the code written at each step, the execution output and any
 error.
+
+## Reasoning and thinking
+
+For vLLM variants, tier 2 runs in one of two ways, set per variant in `models.yaml`:
+
+- **Prompted chain-of-thought** (`schema_reasoning: true`, the default): the `tier2`
+  prompt asks for a `reasoning` field next to the answer.
+- **Native reasoning** (`schema_reasoning: false`): the `tier2_thinking` prompt asks for
+  the answer only, and the model reasons in its thinking channel, which is stored in
+  `reasoning`. `max_tokens` covers thinking plus answer.
+
+`gemini-3-flash-thinking-tier2` uses the `tier2` prompt with `thinking_level: high`.
+
+Settings of the vLLM variants:
+
+| Setting | Effect |
+|---|---|
+| `chat_template_kwargs` | sent with every request; `enable_thinking` switches thinking on or off for Qwen3.8-27B, Gemma 4 31B and GLM-4.7-Flash (the default is on for Qwen3.8-27B and GLM-4.7-Flash, off for Gemma 4 31B) |
+| `request_reasoning_effort` | `low`, `medium` or `high` for gpt-oss, whose reasoning cannot be switched off |
+| `json_schema` | `false` drops the response schema and parses the completion leniently |
+| `reasoning_parser`, `disable_prefix_caching`, `vllm_extra_args` | serve settings of the model, listed below; the harness does not start the server and does not read them |
+
+On tier 3, the Qwen3.8-27B and GLM-4.7-Flash variants switch thinking off, the Gemma 4
+31B variants leave it at the model's default (off), and the gpt-oss variants run at
+reasoning effort `low`. The `-tier3a-thinking` variants run with thinking on; with
+`--oracle-mode t3` they give the oracle agent with thinking.
+
+`boolean_literal_hint` (any backend) adds a sentence to the tier-1 and tier-2 prompts of
+Boolean questions that asks for the JSON literal `true` or `false`. Where the sentence
+is inserted, `prompt_template_id` ends in `+boolhint`; the `tier2_thinking` prompt
+already contains it.
+
+Serve settings for the models with native reasoning:
+
+| Model | `--max-model-len` | `--reasoning-parser` | Other |
+|---|---|---|---|
+| `Qwen/Qwen3.8-27B-FP8` | 262144 | `qwen3` | `--no-enable-prefix-caching` for the `-image` variants |
+| `google/gemma-4-31B-it` | 262144 | `gemma4` | `--revision 842da3794eaa0b77d5f08bae87a17459d91ff475` |
+| `openai/gpt-oss-120b`, `openai/gpt-oss-20b` | 131072 | `openai_gptoss` | `--no-enable-prefix-caching` |
+| `zai-org/GLM-4.7-Flash` | 202752 | `glm45` | |
+
+All five are served with
+`--structured-outputs-config '{"backend": "xgrammar", "disable_any_whitespace": true}'`.
+The settings are those used with vLLM 0.20.1.
 
 ## Oracle modes
 
@@ -141,15 +194,16 @@ Granularity that works in practice:
 | 1, 2 | `(lang, kg)` | single-turn; a cell finishes inside a normal job wall |
 | 3 | `(lang, kg, sfid)` | agent loops run 3-10 s per question on web search, ~30 s on oracle modes and up to ~250 s on KG retrieval, so a whole KG bucket overruns |
 
-Per-KG SFID coverage is 13 + 13 + 9 = 35 standard cells plus 2 multimodal sub-cells,
-so one tier-3 variant across all languages is 17 x 37 = 629 jobs.
+Per-KG SFID coverage is 13 + 13 + 9 = 35 standard cells plus 2 multimodal sub-cells.
 
 Runs resume by default. Point a rerun at the same output path and the runner skips
 questions that already have predictions; `--no-resume` forces a clean run.
 
 For vLLM variants, start one `vllm serve` per job and point the harness at it with
 `VLLM_BASE_URL`. `--enable-prefix-caching` lets vLLM reuse KV cache across the
-questions in a cell.
+questions in a cell. The models with native reasoning need the serve settings listed
+under [Reasoning and thinking](#reasoning-and-thinking), which switch prefix caching off
+for gpt-oss and the Qwen3.8 `-image` variants.
 
 ## Output format
 
@@ -165,7 +219,10 @@ Each prediction is one JSON line:
 Provenance (`question_id`, `tid`, `sfid`, `answer_type`, `model_id`, `tier`, `language`,
 `seed`, `snapshot_id`, `prompt_template_id`), the response (`answer`, `unit`, `refusal`),
 `usage` and `latency_ms` are always present; `answer` is `null` for an abstention and
-`refusal` mirrors that. Tier-2 rows may add `reasoning` and `sc_samples`; tier-3 rows add
+`refusal` mirrors that. `finish_reason` is set by the vLLM backend on tiers 1 and 2
+(`"length"` when the output budget ran out) and is `null` for the Google backend, on
+tier 3 and on error rows. Rows may add `reasoning` (tier 2, and tier 1 when the server
+returns a reasoning channel, as for gpt-oss) and `sc_samples`; tier-3 rows add
 `tool_calls`, `cap_hit`, `final_state` and `error_class`; oracle rows add
 `triple_context`. Each run pins the JSON response schema from the row's
 `ground_truth_type`, so the model is told the shape of the expected answer before it
