@@ -266,7 +266,44 @@ def _build_smolagents_model(
         effective_api_key = (
             api_key or kwargs.pop("api_key", None) or "EMPTY"
         )
-        return LiteLLMModel(
+
+        class _ReasoningContentFallbackModel(LiteLLMModel):
+            """Recover the message body when a reasoning parser consumes it.
+
+            Serving gpt-oss with ``--reasoning-parser openai_gptoss`` routes
+            the entire harmony output into ``reasoning_content`` and leaves
+            ``message.content`` empty. smolagents then calls
+            ``parse_code_blobs(None)`` and raises ``TypeError`` on every
+            step, so the agent spends its whole step budget and returns
+            ``no_final_answer``.
+
+            When ``content`` is empty we fall back to the reasoning channel
+            that LiteLLM exposes on the raw response. A no-op whenever
+            ``content`` is non-empty, so other models and providers are
+            unaffected.
+            """
+
+            def generate(self, *args: Any, **gen_kwargs: Any) -> Any:
+                msg = super().generate(*args, **gen_kwargs)
+                if getattr(msg, "content", None):
+                    return msg
+                raw = getattr(msg, "raw", None)
+                recovered = None
+                try:  # dict- and object-shaped raw responses both occur
+                    choice = (raw["choices"][0] if isinstance(raw, dict)
+                              else raw.choices[0])
+                    message = (choice["message"] if isinstance(choice, dict)
+                               else choice.message)
+                    recovered = (message.get("reasoning_content")
+                                 if isinstance(message, dict)
+                                 else getattr(message, "reasoning_content", None))
+                except Exception:  # malformed/absent raw — leave as-is
+                    recovered = None
+                if recovered:
+                    msg.content = recovered
+                return msg
+
+        return _ReasoningContentFallbackModel(
             model_id=f"openai/{model_id}",
             api_key=effective_api_key,
             api_base=base_url,
@@ -497,6 +534,8 @@ class SmolagentsModel(Model):
         max_tokens: int | None = None,
         web_search_timeout_seconds: float = _DEFAULT_WEB_SEARCH_TIMEOUT_SECONDS,
         multimodal_mode: MultimodalMode = "off",  # type: ignore[name-defined]  # noqa: F821
+        chat_template_kwargs: dict[str, Any] | None = None,
+        request_reasoning_effort: str | None = None,
     ) -> None:
         """Construct a tier-3 Smolagents model.
 
@@ -594,6 +633,18 @@ class SmolagentsModel(Model):
             "temperature": 0,
             "max_tokens": effective_max_tokens,
         }
+        # Thinking settings of the variant for the agent loop. They are
+        # sent in the OpenAI-compatible request body (``extra_body``), so
+        # they exist only on the vLLM path; LiteLLM's other providers
+        # would reject or misroute them.
+        if provider == "vllm_http":
+            extra_body: dict[str, Any] = {}
+            if chat_template_kwargs:
+                extra_body["chat_template_kwargs"] = dict(chat_template_kwargs)
+            if request_reasoning_effort:
+                extra_body["reasoning_effort"] = request_reasoning_effort
+            if extra_body:
+                self._smol_model_kwargs["extra_body"] = extra_body
         # KG tools are lightweight wrappers over the shared
         # ``EntityService`` (which itself wraps a ``TripleBridge``
         # Spark session) and are stateless across calls — built once
@@ -1462,6 +1513,8 @@ class SmolagentsOracleModel(SmolagentsModel):
         max_concurrent: int = _DEFAULT_MAX_CONCURRENT,
         max_tokens: int | None = None,
         multimodal_mode: MultimodalMode = "off",  # type: ignore[name-defined]  # noqa: F821
+        chat_template_kwargs: dict[str, Any] | None = None,
+        request_reasoning_effort: str | None = None,
     ) -> None:
         """Construct a tier-3 oracle Smolagents model.
 
@@ -1517,6 +1570,16 @@ class SmolagentsOracleModel(SmolagentsModel):
             "temperature": 0,
             "max_tokens": effective_max_tokens,
         }
+        # Same thinking settings as the parent class (see
+        # SmolagentsModel.__init__).
+        if provider == "vllm_http":
+            extra_body: dict[str, Any] = {}
+            if chat_template_kwargs:
+                extra_body["chat_template_kwargs"] = dict(chat_template_kwargs)
+            if request_reasoning_effort:
+                extra_body["reasoning_effort"] = request_reasoning_effort
+            if extra_body:
+                self._smol_model_kwargs["extra_body"] = extra_body
         # Oracle: no retrieval tools. The Python sandbox + smolagents'
         # built-in final_answer are the only capabilities. The
         # parent's ``_build_agent`` would otherwise try to construct

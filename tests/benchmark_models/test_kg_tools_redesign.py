@@ -530,9 +530,10 @@ class TestEntityServiceListTypes:
         assert "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" in preds
         assert limit == 11  # 10 + 1 over-fetch
 
-    def test_truncates_and_sets_has_more(self) -> None:
+    def test_truncates_and_never_sets_has_more(self) -> None:
         # Three rdf:type values; ask for limit=2 → expect first two
-        # alphabetically and has_more=True.
+        # alphabetically. has_more stays False: the tool has no offset
+        # or cursor, so the agent could not act on it.
         bridge = _MockBridge({
             "subj1": [{"subject": "subj1", "predicate": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "object": "cafe"}],
             "subj2": [{"subject": "subj2", "predicate": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "object": "hospital"}],
@@ -542,7 +543,7 @@ class TestEntityServiceListTypes:
         result = svc.list_types(limit=2)
         assert result["types"] == ["cafe", "hospital"]
         assert result["shown"] == 2
-        assert result["has_more"] is True
+        assert result["has_more"] is False
 
 
 # ---------------------------------------------------------------------------

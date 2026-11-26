@@ -337,10 +337,13 @@ class EntityService:
             self.schema.type_predicates,
             limit=limit + 1,
         )
-        has_more = len(types) > limit
-        if has_more:
-            types = types[:limit]
-        return {"types": types, "has_more": has_more, "shown": len(types)}
+        # Always report has_more=False. The ``list_categories`` tool takes
+        # no offset or cursor, so an agent cannot act on has_more=True and
+        # may loop on ``while has_more: list_categories()``, which returns
+        # the same head on every call. The list is still capped to
+        # ``limit`` for the per-step context budget.
+        types = types[:limit]
+        return {"types": types, "has_more": False, "shown": len(types)}
 
     # ------------------------------------------------------------------
     # Lifecycle / passthroughs

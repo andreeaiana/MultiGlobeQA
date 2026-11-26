@@ -1011,6 +1011,11 @@ class Prediction(BaseModel):
     """The reasoning trace for prompted-CoT variants
     (``{"reasoning": ..., "answer": ...}``). For native-thinking models,
     the provider's reasoning channel content if available, otherwise None."""
+    finish_reason: str | None = None
+    """Provider-reported finish reason (``"stop"``, ``"length"``, …).
+    ``"length"`` with an empty ``raw_completion`` means the token
+    budget ran out before any final content. ``None`` for backends
+    that do not report it and for tier-3 agent rows."""
     sc_samples: list[Any] | None = None
     """Self-consistency samples when ``self_consistency_n > 1``.
     Length equals N; the final ``answer`` is the majority vote across

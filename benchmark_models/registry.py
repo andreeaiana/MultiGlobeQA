@@ -200,6 +200,11 @@ def create_model(
             else getattr(config, "multimodal_mode", "off")
         )
 
+        # Thinking settings (vLLM variants only; None for every other
+        # backend, so the constructors keep their defaults).
+        t3_chat_template_kwargs = getattr(config, "chat_template_kwargs", None)
+        t3_reasoning_effort = getattr(config, "request_reasoning_effort", None)
+
         if oracle_context is not None:
             from benchmark_models.tier3 import SmolagentsOracleModel
 
@@ -217,6 +222,10 @@ def create_model(
                 kwargs["max_tokens"] = max_tokens
             if max_concurrent is not None:
                 kwargs["max_concurrent"] = max_concurrent
+            if t3_chat_template_kwargs is not None:
+                kwargs["chat_template_kwargs"] = t3_chat_template_kwargs
+            if t3_reasoning_effort is not None:
+                kwargs["request_reasoning_effort"] = t3_reasoning_effort
             kwargs["multimodal_mode"] = tier3_multimodal_mode
             return SmolagentsOracleModel(variant_name, **kwargs)
 
@@ -239,15 +248,30 @@ def create_model(
             kwargs["max_concurrent"] = max_concurrent
         if web_search_timeout is not None:
             kwargs["web_search_timeout_seconds"] = web_search_timeout
+        if t3_chat_template_kwargs is not None:
+            kwargs["chat_template_kwargs"] = t3_chat_template_kwargs
+        if t3_reasoning_effort is not None:
+            kwargs["request_reasoning_effort"] = t3_reasoning_effort
         kwargs["multimodal_mode"] = tier3_multimodal_mode
         return SmolagentsModel(variant_name, **kwargs)
 
     # Tiers 1 + 2: construct a PromptRenderer (oracle-aware for T1 oracle
     # runs; plain otherwise) and pass it to the backend.
     tier_literal = "tier1" if config.tier == "plain" else "tier2"
+    # Native-thinking tier-2 variants (schema_reasoning: false) use the
+    # answer-only prompt contract — reasoning happens in the thinking
+    # channel, not a JSON field.
+    prompt_variant = (
+        "tier2_thinking"
+        if tier_literal == "tier2"
+        and not getattr(config, "schema_reasoning", True)
+        else None
+    )
     renderer = PromptRenderer(
         tier=tier_literal,  # type: ignore[arg-type]
         oracle_context=oracle_context if config.tier == "plain" else None,
+        prompt_variant=prompt_variant,
+        boolean_literal_hint=bool(getattr(config, "boolean_literal_hint", False)),
     )
 
     # Resolve the multimodal mode in priority order:

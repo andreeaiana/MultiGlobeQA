@@ -34,6 +34,7 @@ API reference:
 from __future__ import annotations
 
 import json
+import re
 import time
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor
@@ -197,8 +198,15 @@ class OpenAIModel(Model):
             template_info.answer_type,
             tid=example.tid,
         )
+        # Native-thinking variants (``schema_reasoning: false``) reason
+        # in the provider's thinking channel before the grammar applies,
+        # so their JSON contract is answer(+unit) only, the same shape as
+        # tier 1. Prompted chain-of-thought variants keep a ``reasoning``
+        # property.
         schema = self._build_response_schema(
-            template_info, include_reasoning=True, answer_type=answer_type
+            template_info,
+            include_reasoning=getattr(self.config, "schema_reasoning", True),
+            answer_type=answer_type,
         )
 
         if self.config.self_consistency_n > 1:
@@ -403,6 +411,25 @@ class OpenAIModel(Model):
             api_kwargs["top_p"] = self.config.top_p
             api_kwargs["seed"] = seed_value
 
+        # vLLM-specific request shaping. The fields exist only on
+        # VLLMHttpVariantConfig; ``getattr`` keeps every other backend
+        # on its existing path.
+        if not getattr(self.config, "json_schema", True):
+            # ``json_schema: false``: no guided decoding; the completion is
+            # parsed leniently below.
+            del api_kwargs["response_format"]
+        chat_template_kwargs = getattr(self.config, "chat_template_kwargs", None)
+        if chat_template_kwargs:
+            api_kwargs["extra_body"] = {
+                "chat_template_kwargs": dict(chat_template_kwargs)
+            }
+        request_effort = getattr(self.config, "request_reasoning_effort", None)
+        if request_effort:
+            # Harmony models (gpt-oss): effort is a top-level request
+            # field and coexists with the sampling params, unlike the
+            # OpenAI-native reasoning branch above which drops them.
+            api_kwargs["reasoning_effort"] = request_effort
+
         t0 = time.perf_counter()
         try:
             response = retry_with_backoff(
@@ -446,16 +473,51 @@ class OpenAIModel(Model):
 
         # Extract text from response.
         raw_completion = ""
+        native_reasoning: str | None = None
+        finish_reason: str | None = None
         if response.choices:
-            msg = response.choices[0].message
+            choice = response.choices[0]
+            msg = choice.message
             raw_completion = msg.content or ""
+            _fr = getattr(choice, "finish_reason", None)
+            finish_reason = _fr if isinstance(_fr, str) else None
+            # vLLM surfaces the reasoning channel as
+            # ``message.reasoning`` (older servers:
+            # ``reasoning_content``) when a reasoning parser is
+            # configured serve-side. Type-guarded: absent on other
+            # providers' SDK objects (and mocks auto-create attrs).
+            _nr = (
+                getattr(msg, "reasoning", None)
+                or getattr(msg, "reasoning_content", None)
+            )
+            native_reasoning = _nr if isinstance(_nr, str) else None
+        if finish_reason == "length" and not raw_completion:
+            # The token budget expired before any final content. Recorded
+            # via ``finish_reason`` on the prediction.
+            logger.warning(
+                "OpenAIModel: completion truncated at token cap ({}) "
+                "with empty content for question_id={}",
+                effective_max_tokens,
+                example.question_id,
+            )
 
         # Parse the JSON answer. For OpenAI, the reasoning trace is in
         # the JSON response itself (the "reasoning" field of the
         # structured output), not in separate content blocks.
-        answer, unit, reasoning_text, refusal = self._parse_json_answer(
-            raw_completion, template_info
-        )
+        if getattr(self.config, "json_schema", True):
+            answer, unit, reasoning_text, refusal = self._parse_json_answer(
+                raw_completion, template_info
+            )
+        else:
+            answer, unit, reasoning_text, refusal = (
+                self._parse_json_answer_lenient(raw_completion, template_info)
+            )
+        # The native thinking channel takes the ``reasoning`` slot: it is
+        # the model's chain of thought and is recoverable nowhere else,
+        # while a JSON ``reasoning`` property remains readable inside
+        # ``raw_completion``.
+        if native_reasoning:
+            reasoning_text = native_reasoning
 
         return Prediction(
             question_id=example.question_id,
@@ -476,6 +538,7 @@ class OpenAIModel(Model):
             usage=usage,
             latency_ms=latency_ms,
             raw_completion=raw_completion,
+            finish_reason=finish_reason,
         )
 
     # ------------------------------------------------------------------
@@ -576,6 +639,58 @@ class OpenAIModel(Model):
         reasoning = data.get("reasoning")
         refusal = answer is None
         return answer, unit, reasoning, refusal
+
+    @classmethod
+    def _parse_json_answer_lenient(
+        cls, text: str, template_info: TemplateInfo
+    ) -> tuple[Any, str | None, str | None, bool]:
+        """Best-effort parse for runs without a schema (``json_schema: false``).
+
+        Without guided decoding the model may wrap the JSON in prose
+        or markdown fences, or leak a think block. Strategy: strip a
+        leading ``<think>…</think>`` block, try strict parsing, then
+        each fenced code block, then the first decodable JSON object
+        anywhere in the text.
+        """
+        stripped = text.strip()
+        if not stripped:
+            return None, None, None, True
+        if stripped.startswith("<think>") and "</think>" in stripped:
+            stripped = stripped.split("</think>", 1)[1].strip()
+        candidates: list[str] = [stripped]
+        candidates.extend(
+            m.group(1).strip()
+            for m in re.finditer(r"```(?:json)?\s*(.*?)```", stripped, re.DOTALL)
+        )
+        for cand in candidates:
+            try:
+                data = json.loads(cand)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(data, dict):
+                return cls._answer_tuple(data)
+        decoder = json.JSONDecoder()
+        for match in re.finditer(r"\{", stripped):
+            try:
+                data, _ = decoder.raw_decode(stripped, match.start())
+            except json.JSONDecodeError:
+                continue
+            if isinstance(data, dict):
+                return cls._answer_tuple(data)
+        logger.warning(
+            "OpenAIModel: lenient parse found no JSON object for "
+            "tid={}: {!r}",
+            template_info.tid,
+            stripped[:200],
+        )
+        return None, None, None, True
+
+    @staticmethod
+    def _answer_tuple(
+        data: dict[str, Any],
+    ) -> tuple[Any, str | None, str | None, bool]:
+        answer = data.get("answer")
+        return answer, data.get("unit"), data.get("reasoning"), answer is None
 
     # ------------------------------------------------------------------
     # Error helper

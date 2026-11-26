@@ -103,6 +103,10 @@ class PromptRenderingError(RuntimeError):
 _TIER_TO_TEMPLATE_FILE: dict[str, str] = {
     "tier1": "tier1.txt",
     "tier2": "tier2.txt",
+    # Native-thinking tier-2 (schema_reasoning: false): reasoning lives
+    # in the provider's thinking channel, so the prompt asks for the
+    # tier-1-shaped answer(+unit) JSON with no "reasoning" field.
+    "tier2_thinking": "tier2_thinking.txt",
     "tier3a": "tier3a.txt",
     "tier3b": "tier3b.txt",
     "tier3c": "tier3c.txt",
@@ -121,6 +125,39 @@ _ORACLE_TIER_KEYS: frozenset[str] = frozenset({
     "tier1_oracle_verbalized",
     "tier3_oracle",
 })
+
+
+# ``boolean_literal_hint``: the hint is the sentence of ``tier2_thinking.txt``
+# verbatim; it is inserted right after the anchor below, which every
+# tier-1 / tier-1-oracle / tier-2 template contains.
+_BOOLEAN_LITERAL_HINT = (
+    'For yes/no questions, the "answer" value must be the JSON literal '
+    'true or false \u2014 not the strings "yes" or "no".'
+)
+_BOOLEAN_HINT_ANCHOR = '(and a "unit" field for numeric answers). '
+
+
+def _apply_boolean_literal_hint(prompt: str, template_info: TemplateInfo) -> tuple[str, bool]:
+    """Insert :data:`_BOOLEAN_LITERAL_HINT` for boolean questions.
+
+    Returns ``(prompt, applied)``. Non-boolean prompts are returned
+    unchanged, and so are prompts that already contain the sentence.
+    Raises :class:`PromptRenderingError` if a boolean prompt has neither
+    the sentence nor exactly one anchor.
+    """
+    spec = TYPE_REGISTRY[template_info.answer_type]
+    if spec.json_schema.get("type") != ["boolean", "null"]:
+        return prompt, False
+    if _BOOLEAN_LITERAL_HINT in prompt:  # template already carries it (tier2_thinking)
+        return prompt, False
+    if prompt.count(_BOOLEAN_HINT_ANCHOR) != 1:
+        raise PromptRenderingError(
+            "boolean_literal_hint: expected exactly one anchor "
+            f"{_BOOLEAN_HINT_ANCHOR!r} in the rendered tier-1 prompt."
+        )
+    return prompt.replace(
+        _BOOLEAN_HINT_ANCHOR, _BOOLEAN_HINT_ANCHOR + _BOOLEAN_LITERAL_HINT + " ", 1
+    ), True
 
 
 @cache
@@ -414,6 +451,8 @@ class PromptRenderer:
         tier: Tier,
         *,
         oracle_context: object | None = None,
+        prompt_variant: str | None = None,
+        boolean_literal_hint: bool = False,
     ) -> None:
         """Construct a renderer for the given tier.
 
@@ -425,6 +464,17 @@ class PromptRenderer:
                 tier 1 in this adapter (tier-3 oracle uses a separate
                 model class). Typed as ``object`` to avoid a circular
                 import from :mod:`benchmark_models.oracle`.
+            prompt_variant: Optional template override for the
+                non-oracle path (e.g. ``"tier2_thinking"`` for
+                native-thinking variants with ``schema_reasoning:
+                false``). Recorded in the emitted
+                ``prompt_template_id`` for auditability.
+            boolean_literal_hint: See
+                :attr:`VariantConfigBase.boolean_literal_hint`. Boolean
+                questions get the true/false sentence of
+                ``tier2_thinking.txt`` (unless the template already has
+                it) and a ``+boolhint`` suffix on their
+                ``prompt_template_id`` when it was inserted.
         """
         from benchmark_models.oracle import T1_ORACLE_MODES, OracleContext
 
@@ -453,6 +503,8 @@ class PromptRenderer:
                 )
         self._tier: Tier = tier
         self._oracle_context = oracle_context
+        self._prompt_variant = prompt_variant
+        self._boolean_literal_hint = boolean_literal_hint
 
     @property
     def oracle_mode(self) -> str | None:
@@ -462,6 +514,18 @@ class PromptRenderer:
         return self._oracle_context.mode  # type: ignore[attr-defined]
 
     def render(
+        self, example: Example, template_info: TemplateInfo
+    ) -> tuple[str, str, str | None]:
+        """Render the prompt; see :meth:`_render_base`. Applies the
+        ``boolean_literal_hint`` on top when it is enabled."""
+        prompt, template_id, triple_context = self._render_base(example, template_info)
+        if self._boolean_literal_hint:
+            prompt, applied = _apply_boolean_literal_hint(prompt, template_info)
+            if applied:
+                template_id = f"{template_id}+boolhint"
+        return prompt, template_id, triple_context
+
+    def _render_base(
         self, example: Example, template_info: TemplateInfo
     ) -> tuple[str, str, str | None]:
         """Render the prompt for ``example``.
@@ -478,8 +542,11 @@ class PromptRenderer:
             re-running the renderer.
         """
         if self._oracle_context is None:
-            prompt = render_prompt(self._tier, example, template_info)
-            return prompt, f"{self._tier}.canonical", None
+            prompt = render_prompt(
+                self._tier, example, template_info,
+                prompt_variant=self._prompt_variant,
+            )
+            return prompt, f"{self._prompt_variant or self._tier}.canonical", None
 
         # Oracle path — look up triples, format, render oracle template.
         from benchmark_models.oracle import format_triples

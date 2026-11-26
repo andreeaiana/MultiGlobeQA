@@ -123,6 +123,22 @@ class TestTier3SmolagentsFactoryRoutesGoogle:
         assert "vertex_location" not in kwargs
 
 
+def _recording_litellm() -> tuple[type, list[dict]]:
+    """Stand-in for ``smolagents.LiteLLMModel`` that records constructor kwargs.
+
+    The ``vllm_http`` branch of the factory subclasses ``LiteLLMModel``, and a
+    ``MagicMock`` cannot serve as a base class, so these tests patch in a
+    plain class instead.
+    """
+    calls: list[dict] = []
+
+    class _Stub:
+        def __init__(self, **kwargs: object) -> None:
+            calls.append(kwargs)
+
+    return _Stub, calls
+
+
 class TestTier3SmolagentsFactoryRoutesVllmHttp:
     def test_vllm_http_uses_openai_prefix_and_api_base(
         self, monkeypatch: pytest.MonkeyPatch
@@ -133,12 +149,13 @@ class TestTier3SmolagentsFactoryRoutesVllmHttp:
         from benchmark_models.tier3 import _build_smolagents_model
 
         monkeypatch.delenv("VLLM_BASE_URL", raising=False)
-        with patch("smolagents.LiteLLMModel") as litellm_class:
+        stub, calls = _recording_litellm()
+        with patch("smolagents.LiteLLMModel", stub):
             _build_smolagents_model(
                 provider="vllm_http",
                 model_id="Qwen/Qwen3.5-35B-A3B",
             )
-        kwargs = litellm_class.call_args.kwargs
+        kwargs = calls[-1]
         assert kwargs["model_id"] == "openai/Qwen/Qwen3.5-35B-A3B"
         assert kwargs["api_base"] == "http://localhost:8000/v1"
         # vLLM serve doesn't require auth by default — backend supplies
@@ -153,14 +170,15 @@ class TestTier3SmolagentsFactoryRoutesVllmHttp:
         from benchmark_models.tier3 import _build_smolagents_model
 
         monkeypatch.setenv("VLLM_BASE_URL", "http://from-env:8000/v1")
-        with patch("smolagents.LiteLLMModel") as litellm_class:
+        stub, calls = _recording_litellm()
+        with patch("smolagents.LiteLLMModel", stub):
             _build_smolagents_model(
                 provider="vllm_http",
                 model_id="Qwen/Qwen3.5-35B-A3B",
                 base_url="http://explicit:9000/v1",
             )
         assert (
-            litellm_class.call_args.kwargs["api_base"]
+            calls[-1]["api_base"]
             == "http://explicit:9000/v1"
         )
 
@@ -174,13 +192,14 @@ class TestTier3SmolagentsFactoryRoutesVllmHttp:
         from benchmark_models.tier3 import _build_smolagents_model
 
         monkeypatch.setenv("VLLM_BASE_URL", "http://from-env:8000/v1")
-        with patch("smolagents.LiteLLMModel") as litellm_class:
+        stub, calls = _recording_litellm()
+        with patch("smolagents.LiteLLMModel", stub):
             _build_smolagents_model(
                 provider="vllm_http",
                 model_id="Qwen/Qwen3.5-35B-A3B",
             )
         assert (
-            litellm_class.call_args.kwargs["api_base"]
+            calls[-1]["api_base"]
             == "http://from-env:8000/v1"
         )
 
@@ -194,14 +213,15 @@ class TestTier3SmolagentsFactoryRoutesVllmHttp:
         from benchmark_models.tier3 import _build_smolagents_model
 
         monkeypatch.delenv("VLLM_BASE_URL", raising=False)
-        with patch("smolagents.LiteLLMModel") as litellm_class:
+        stub, calls = _recording_litellm()
+        with patch("smolagents.LiteLLMModel", stub):
             _build_smolagents_model(
                 provider="vllm_http",
                 model_id="Qwen/Qwen3.5-35B-A3B",
                 api_key="my-secret-token",
             )
         assert (
-            litellm_class.call_args.kwargs["api_key"] == "my-secret-token"
+            calls[-1]["api_key"] == "my-secret-token"
         )
 
     def test_vllm_http_falls_back_to_dummy_key_when_unset(
@@ -212,9 +232,10 @@ class TestTier3SmolagentsFactoryRoutesVllmHttp:
         from benchmark_models.tier3 import _build_smolagents_model
 
         monkeypatch.delenv("VLLM_BASE_URL", raising=False)
-        with patch("smolagents.LiteLLMModel") as litellm_class:
+        stub, calls = _recording_litellm()
+        with patch("smolagents.LiteLLMModel", stub):
             _build_smolagents_model(
                 provider="vllm_http",
                 model_id="Qwen/Qwen3.5-35B-A3B",
             )
-        assert litellm_class.call_args.kwargs["api_key"] == "EMPTY"
+        assert calls[-1]["api_key"] == "EMPTY"

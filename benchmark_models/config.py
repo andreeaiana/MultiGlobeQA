@@ -60,9 +60,8 @@ CLI level.
 
 ``"image"`` — image bytes are uploaded to the provider as a content
 block alongside the prompt text. Requires a vision-capable backend;
-the slate's API providers all support this and the open-weights
-variants served via vLLM (Qwen 3.5, Gemma 4) are documented as
-multimodal.
+the slate's API providers all support this, and the vLLM variants
+with image input are those of Qwen 3.5, Qwen 3.8, Gemma 3 and Gemma 4.
 
 ``"name"`` — text-only baseline. Each ``[IMAGE_<slot>]`` placeholder
 in the question is replaced with the corresponding entity's
@@ -153,6 +152,16 @@ class VariantConfigBase(BaseModel):
     content block; ``"name"`` to substitute entity names into the
     ``[IMAGE_<slot>]`` placeholders for a text-only baseline. See
     :data:`MultimodalMode` for the full rationale."""
+
+    boolean_literal_hint: bool = False
+    """Tiers 1 and 2 only. On Boolean questions, insert the sentence 'For
+    yes/no questions, the "answer" value must be the JSON literal true or
+    false — not the strings "yes" or "no".' into the tier-1, tier-1-oracle
+    and tier-2 prompt (a no-op when the template already contains it, e.g.
+    ``tier2_thinking``). Without it the prompt asks for "yes or no" while
+    the strict schema allows only true/false/null. Prompts of every other
+    answer type stay byte-identical. Defined on the base class, so it
+    applies to every backend."""
 
     @model_validator(mode="after")
     def _validate_tier_consistency(self) -> VariantConfigBase:
@@ -365,8 +374,59 @@ class VLLMHttpVariantConfig(VariantConfigBase):
     """Fraction of GPU memory for the vLLM engine. Lower = safer;
     higher = more KV cache room."""
     thinking: bool = False
-    """``True`` for models with a thinking toggle (e.g., Qwen3.5 with
-    ``<think>...</think>`` blocks)."""
+    """Not read by the request builder, so it has no effect on requests.
+    Thinking is set through :attr:`chat_template_kwargs` and
+    :attr:`request_reasoning_effort`."""
+    chat_template_kwargs: dict[str, Any] | None = None
+    """Per-request chat-template kwargs, sent to the vLLM serve as
+    ``extra_body={"chat_template_kwargs": ...}`` on every
+    chat-completions call (tiers 1/2) and set construction-time on the
+    smolagents ``LiteLLMModel`` (tier 3). This is the thinking toggle
+    for models whose chat template reads it::
+
+        chat_template_kwargs:
+          enable_thinking: false      # Qwen 3.8 / GLM-4.7 / Gemma 4
+          preserve_thinking: false    # Qwen 3.8: no cross-turn CoT
+
+    The Qwen 3.8 and GLM-4.7 tier-3 variants set ``enable_thinking:
+    false`` here. The ``-thinking`` variants of Qwen 3.8 and Gemma 4
+    set it to ``true``; the GLM-4.7 one sets nothing, since thinking is
+    the template default. gpt-oss takes
+    :attr:`request_reasoning_effort` instead."""
+    request_reasoning_effort: str | None = None
+    """Top-level ``reasoning_effort`` request field for harmony models
+    (gpt-oss: ``"low"`` / ``"medium"`` / ``"high"`` — reasoning cannot
+    be disabled, only bounded). Sent alongside the normal sampling
+    params, unlike the OpenAI-native reasoning branch which drops
+    them. Distinct from the :attr:`reasoning_effort` property, which
+    is always ``"none"``."""
+    reasoning_parser: str | None = None
+    """Value for ``vllm serve --reasoning-parser`` (``qwen3``,
+    ``gemma4``, ``glm45``, ``openai_gptoss``). The harness does not
+    start the server and does not read this field. A thinking-capable
+    model served with JSON-schema structured output needs a parser:
+    without one, vLLM applies the grammar from the first generated
+    token and suppresses thinking."""
+    disable_prefix_caching: bool = False
+    """Serve the model with ``--no-enable-prefix-caching`` instead of
+    ``--enable-prefix-caching``. Set for gpt-oss (upstream recipe) and
+    for multimodal Qwen 3.8 (prefix caching + large images hangs
+    prefill, vllm#52583). Not read by the harness."""
+    json_schema: bool = True
+    """When ``False``, omit ``response_format`` from requests and parse
+    the completion leniently (fence-stripping + first-JSON-object
+    extraction), i.e. run without guided decoding."""
+    vllm_extra_args: list[str] = Field(default_factory=list)
+    """Further arguments to pass to ``vllm serve``. Not read by the
+    harness."""
+    schema_reasoning: bool = True
+    """Tier-2 only. ``True`` (prompted chain-of-thought): the JSON
+    schema carries a ``reasoning`` property and the 4× budget
+    expansion applies. ``False`` (native reasoning): the JSON is
+    answer(+unit) only, reasoning happens in the thinking channel
+    before the grammar applies, the ``tier2_thinking`` prompt template
+    is used, and ``max_tokens`` must be set explicitly to cover
+    thinking + answer (no 4× expansion)."""
 
     @property
     def model_id(self) -> str:
@@ -384,14 +444,14 @@ class VLLMHttpVariantConfig(VariantConfigBase):
 
         :class:`benchmark_models.backends.openai.OpenAIModel` reads
         ``self.config.reasoning_effort`` unconditionally
-        (``openai.py:319``) to gate a 25k-token budget expansion for
+        to gate a 25k-token budget expansion for
         OpenAI reasoning models. The vLLM thinking toggle (Qwen 3+ /
         Gemma 4) flows through chat-completions request params
         instead — going through the OpenAI reasoning branch would
         over-allocate tokens past :attr:`max_model_len` and crash on
         the serve. Pinning to ``"none"`` keeps the parent on the
-        plain-completion path; the ``thinking`` flag is consumed by
-        the dedicated thinking-aware request builder.
+        plain-completion path. Thinking for vLLM models is set through
+        :attr:`chat_template_kwargs` and :attr:`request_reasoning_effort`.
         """
         return "none"
 
